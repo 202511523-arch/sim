@@ -23,7 +23,7 @@ router.get('/project/:projectId/list', authenticate, hasProjectAccess, async (re
     try {
         const { projectId } = req.params;
         const workflows = await Workflow.find({ project: projectId })
-            .select('name description updatedAt createdBy')
+            .select('name description updatedAt createdAt createdBy nodes connections')
             .populate('createdBy', 'name')
             .sort({ updatedAt: -1 });
 
@@ -104,6 +104,31 @@ router.put('/:id', authenticate, async (req, res) => {
     } catch (error) {
         console.error('Update workflow error:', error);
         res.status(500).json({ success: false, message: 'Failed to update workflow', error: error.message });
+    }
+});
+
+/**
+ * DELETE /api/workflow/:id
+ * Delete a workflow
+ */
+router.delete('/:id', authenticate, async (req, res) => {
+    try {
+        const workflow = await Workflow.findById(req.params.id);
+        if (!workflow) {
+            return res.status(404).json({ success: false, message: 'Workflow not found' });
+        }
+
+        // Optional: Check if user is the creator or has admin access
+        // if (workflow.createdBy.toString() !== req.user._id.toString()) {
+        //     return res.status(403).json({ success: false, message: 'Not authorized to delete this workflow' });
+        // }
+
+        await Workflow.findByIdAndDelete(req.params.id);
+
+        res.json({ success: true, message: 'Workflow deleted successfully' });
+    } catch (error) {
+        console.error('Delete workflow error:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete workflow' });
     }
 });
 

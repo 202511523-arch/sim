@@ -9,66 +9,395 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <!-- Reusing existing main styles -->
     <link rel="stylesheet" href="../css/common.css">
-    <link rel="stylesheet" href="../css/workspace.css">
     <link rel="stylesheet" href="../css/workspace-new.css">
+    <link rel="stylesheet" href="../css/popup-panels.css">
     <link rel="stylesheet" href="css/editor.css">
 
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
     <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+
+    <style>
+        /* ===== Workflow List View ===== */
+        .workflow-list-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #0a0e14 0%, #111827 50%, #0f172a 100%);
+            z-index: 8;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .workflow-list-header {
+            padding: 32px 40px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .workflow-list-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .workflow-list-header h2 .material-icons-round {
+            font-size: 28px;
+            color: #818cf8;
+        }
+
+        .workflow-list-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .workflow-list-actions .wf-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .wf-action-btn.primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .wf-action-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .wf-action-btn.secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .wf-action-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .workflow-search-bar {
+            padding: 0 40px 16px;
+            flex-shrink: 0;
+        }
+
+        .workflow-search-bar input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 20px 12px 44px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .workflow-search-bar input:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .workflow-search-wrapper {
+            position: relative;
+            max-width: 400px;
+        }
+
+        .workflow-search-wrapper .material-icons-round {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 20px;
+        }
+
+        .workflow-cards-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 40px 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            align-content: start;
+        }
+
+        .workflow-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .workflow-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .workflow-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(99, 102, 241, 0.08);
+        }
+
+        .workflow-card:hover::before {
+            opacity: 1;
+        }
+
+        .workflow-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .workflow-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .workflow-card-icon .material-icons-round {
+            font-size: 24px;
+            color: #818cf8;
+        }
+
+        .workflow-card-menu {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .workflow-card-menu:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+        }
+
+        .workflow-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin: 0 0 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .workflow-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .workflow-card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .workflow-card-meta .material-icons-round {
+            font-size: 14px;
+        }
+
+        .workflow-card-stats {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .workflow-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .workflow-stat .material-icons-round {
+            font-size: 14px;
+            color: #818cf8;
+        }
+
+        .workflow-empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+            color: #64748b;
+        }
+
+        .workflow-empty-state .material-icons-round {
+            font-size: 64px;
+            color: #334155;
+            margin-bottom: 16px;
+        }
+
+        .workflow-empty-state h3 {
+            margin: 0 0 8px;
+            color: #94a3b8;
+            font-size: 18px;
+        }
+
+        .workflow-empty-state p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* ===== Card Context Menu ===== */
+        .wf-context-menu {
+            position: absolute;
+            background: rgba(30, 41, 59, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 6px;
+            z-index: 1000;
+            min-width: 180px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            display: none;
+        }
+
+        .wf-context-menu.active {
+            display: block;
+        }
+
+        .wf-context-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #e2e8f0;
+            transition: background 0.15s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .wf-context-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .wf-context-item.danger {
+            color: #f87171;
+        }
+
+        .wf-context-item.danger:hover {
+            background: rgba(248, 113, 113, 0.1);
+        }
+
+        .wf-context-item .material-icons-round {
+            font-size: 18px;
+        }
+
+        /* ===== Override editor header with unified style ===== */
+        .editor-header {
+            display: none !important;
+        }
+
+        /* Sticky Notes Container z-index */
+        #sticky-notes-container {
+            z-index: 10001;
+        }
+    </style>
 </head>
 
 <body>
     <div class="editor-container">
-        <!-- Header -->
-        <header class="editor-header">
-            <div class="header-left">
-                <a href="../dashboard.html" class="back-btn">
+        <!-- Unified Header (matching other workspaces) -->
+        <header class="simvex-header">
+            <div class="logo-section">
+                <button id="back-to-list-btn" class="back-btn" title="Back to workflow list"
+                    style="display:none; background:none; border:none; color:#94a3b8; cursor:pointer; margin-right:8px; padding:6px; border-radius:8px; transition:all 0.2s;">
                     <span class="material-icons-round">arrow_back</span>
-                </a>
-                <div class="workflow-info">
-                    <h1 class="workflow-title" contenteditable="true">Untitled Workflow</h1>
-                    <span class="save-status">All changes saved</span>
-                </div>
+                </button>
+                <span class="logo-icon material-icons-round" style="color: #818cf8;">schema</span>
+                <span class="logo-text">SIMVEX Workflow</span>
             </div>
             <!-- Collaboration Users -->
-            <div id="collaboration-users" style="margin-left: 16px;"></div>
+            <div id="collaboration-users" style="margin-left: 16px; position: relative; z-index: 10001;"></div>
             <nav class="nav-pills header-center">
                 <a href="/dashboard.html" class="nav-pill">Dashboard</a>
                 <a href="/workflow/index.html" class="nav-pill active">Workflow</a>
             </nav>
-            <div class="header-right">
-                <div class="collaborators-list" id="collaborators-list">
-                    <!-- Avatars will be injected here -->
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+                <!-- Editor Toolbar (hidden when in list view) -->
+                <div id="editor-toolbar" style="display:none; align-items:center; gap:8px;">
+                    <button id="run-workflow-btn" class="save-button" title="Run workflow"
+                        style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <span class="material-icons-round" style="font-size: 18px;">play_arrow</span>
+                        <span>Run</span>
+                    </button>
+                    <button id="delete-node-btn" class="save-button" title="Delete selected node"
+                        style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+                        <span class="material-icons-round" style="font-size: 18px;">delete</span>
+                    </button>
                 </div>
-                <button class="btn btn-secondary" id="new-project-btn"
-                    style="margin-right: 10px; background: rgba(99, 102, 241, 0.1); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3);">
-                    <span class="material-icons-round">create_new_folder</span>
-                    New Project
+                <button id="project-save-btn" class="save-button" title="Save workflow">
+                    <span class="material-icons-round" style="font-size: 18px;">save</span>
+                    <span id="save-status-text">Save</span>
                 </button>
-                <button class="btn btn-secondary" id="new-workflow-btn" style="margin-right: 10px;">
-                    <span class="material-icons-round">add</span>
-                    New Workflow
-                </button>
-                <button class="btn btn-secondary" id="open-workflow-btn" style="margin-right: 10px;">
-                    <span class="material-icons-round">folder_open</span>
-                    Open
-                </button>
-                <button class="btn btn-primary" id="save-workflow-btn" style="margin-right: 10px;">
-                    <span class="material-icons-round">save</span>
-                    Save
-                </button>
-                <button class="btn btn-primary" id="run-workflow-btn">
-                    <span class="material-icons-round">play_arrow</span>
-                    Run
-                </button>
-                <button class="btn btn-secondary" id="share-btn">
-                    <span class="material-icons-round">share</span>
-                    Share
-                </button>
+                <div id="navbar-controls" style="display: flex; align-items: center;"></div>
             </div>
         </header>
+
         <!-- Custom Modal -->
         <div id="custom-modal" class="modal-overlay"
             style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
@@ -83,6 +412,7 @@
                 </div>
             </div>
         </div>
+
         <!-- Main Workspace -->
         <main class="editor-workspace">
             <!-- Node Palette (Sidebar) -->
@@ -130,6 +460,7 @@
                     </div>
                 </div>
             </aside>
+
             <!-- Node Canvas -->
             <div class="node-canvas" id="node-canvas">
                 <!-- SVG Layer for connections -->
@@ -138,7 +469,42 @@
                 <div class="nodes-layer" id="nodes-layer">
                     <!-- Nodes will be injected here -->
                 </div>
+
+                <!-- Workflow List View (overlays the canvas when no workflow is selected) -->
+                <div class="workflow-list-view" id="workflow-list-view">
+                    <div class="workflow-list-header">
+                        <h2>
+                            <span class="material-icons-round">schema</span>
+                            My Workflows
+                        </h2>
+                        <div class="workflow-list-actions">
+                            <button class="wf-action-btn secondary" id="wf-new-project-btn">
+                                <span class="material-icons-round">create_new_folder</span>
+                                New Project
+                            </button>
+                            <button class="wf-action-btn primary" id="wf-new-workflow-btn">
+                                <span class="material-icons-round">add</span>
+                                New Workflow
+                            </button>
+                        </div>
+                    </div>
+                    <div class="workflow-search-bar">
+                        <div class="workflow-search-wrapper">
+                            <span class="material-icons-round">search</span>
+                            <input type="text" id="workflow-search-input" placeholder="Search workflows...">
+                        </div>
+                    </div>
+                    <div class="workflow-cards-grid" id="workflow-cards-grid">
+                        <!-- Workflow cards rendered here -->
+                        <div class="workflow-empty-state" id="workflow-empty-state">
+                            <span class="material-icons-round">schema</span>
+                            <h3>No Workflows Yet</h3>
+                            <p>Create a new workflow to get started</p>
+                        </div>
+                    </div>
+                </div>
             </div>
+
             <!-- Properties Panel -->
             <aside class="properties-panel" id="properties-panel">
                 <div class="panel-header">
@@ -151,10 +517,179 @@
             </aside>
         </main>
     </div>
+
+    <!-- Context Menu -->
+    <div class="wf-context-menu" id="wf-context-menu">
+        <button class="wf-context-item" data-action="open">
+            <span class="material-icons-round">open_in_new</span> Open
+        </button>
+        <button class="wf-context-item" data-action="rename">
+            <span class="material-icons-round">edit</span> Rename
+        </button>
+        <button class="wf-context-item" data-action="duplicate">
+            <span class="material-icons-round">content_copy</span> Duplicate
+        </button>
+        <button class="wf-context-item" data-action="share">
+            <span class="material-icons-round">share</span> Share
+        </button>
+        <button class="wf-context-item danger" data-action="delete">
+            <span class="material-icons-round">delete</span> Delete
+        </button>
+    </div>
+
+    <!-- Floating Action Buttons (FAB) -->
+    <div class="floating-actions">
+        <button class="fab" id="fab-notes" title="Notes">
+            <span class="material-icons-round">edit_note</span>
+        </button>
+        <button class="fab" id="fab-chat" title="AI Assistant">
+            <span class="material-icons-round">smart_toy</span>
+        </button>
+        <button class="fab" id="fab-sticky" title="Sticky Note">
+            <span class="material-icons-round">sticky_note_2</span>
+        </button>
+        <button class="fab" id="fab-draw" title="Drawing Tool">
+            <span class="material-icons-round">draw</span>
+        </button>
+    </div>
+
+    <!-- Chat Popup -->
+    <div class="popup-panel" id="chat-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">smart_toy</span>
+                AI Workflow Assistant
+            </div>
+            <button class="popup-close" onclick="closePopup('chat-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="ai-panel">
+            <div id="chat-messages" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+        <div class="popup-footer">
+            <div class="ai-omni-input">
+                <input type="text" id="omni-input" placeholder="Ask about workflows...">
+                <button class="btn-circle" id="omni-send">
+                    <span class="material-icons-round">send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Popup -->
+    <div class="popup-panel" id="notes-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">edit_note</span>
+                Study Notes
+            </div>
+            <button class="popup-close" onclick="closePopup('notes-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="notes-panel">
+            <textarea id="notepad" placeholder="Workflow notes..."></textarea>
+        </div>
+        <div
+            style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+            <button class="btn-circle" id="btn-new-note" title="New Note">
+                <span class="material-icons-round">add</span>
+            </button>
+            <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot">
+                <span class="material-icons-round">camera_alt</span>
+            </button>
+            <button class="btn-circle" id="btn-pdf-export" title="Export PDF">
+                <span class="material-icons-round">download</span>
+            </button>
+            <button class="btn-circle" id="btn-save-note" title="Save"
+                style="flex: 1; width: auto; border-radius: 8px;">
+                <span class="material-icons-round">save</span>
+                <span style="margin-left: 6px;">Save</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Draw Tool Popup -->
+    <div class="popup-panel" id="draw-popup">
+        <div class="popup-header">
+            <div class="popup-title"><span class="material-icons-round">draw</span> Drawing Tool</div>
+            <button class="popup-close" onclick="closePopup('draw-popup')"><span
+                    class="material-icons-round">close</span></button>
+        </div>
+        <div class="popup-body" style="padding: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
+                    <div style="display: flex; gap: 8px;"><button class="draw-tool-btn active" data-tool="pen"
+                            title="Pen"><span class="material-icons-round">edit</span></button><button
+                            class="draw-tool-btn" data-tool="eraser" title="Eraser"><span
+                                class="material-icons-round">ink_eraser</span></button><button class="draw-tool-btn"
+                            data-tool="highlighter" title="Highlighter"><span
+                                class="material-icons-round">format_paint</span></button></div>
+                </div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;"><button class="color-btn active"
+                            data-color="#60a5fa" style="background: #60a5fa;"></button><button class="color-btn"
+                            data-color="#34d399" style="background: #34d399;"></button><button class="color-btn"
+                            data-color="#f472b6" style="background: #f472b6;"></button><button class="color-btn"
+                            data-color="#fbbf24" style="background: #fbbf24;"></button><button class="color-btn"
+                            data-color="#FFFFFF" style="background: #FFFFFF;"></button></div>
+                </div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Brush
+                        Size: <span id="brush-size-value">3</span>px</label><input type="range" id="brush-size" min="1"
+                        max="20" value="3" style="width: 100%; accent-color: var(--accent-primary);"></div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Opacity:
+                        <span id="opacity-value">100</span>%</label><input type="range" id="draw-opacity" min="10"
+                        max="100" value="100" style="width: 100%; accent-color: var(--accent-primary);"></div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;"><button class="btn-circle" id="btn-clear-canvas"
+                        title="Clear All"
+                        style="flex: 1; width: auto; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #ef4444;"><span
+                            class="material-icons-round">clear</span><span
+                            style="margin-left: 6px;">Clear</span></button></div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
+                        style="flex: 1; width: auto; border-radius: 8px;">
+                        <span class="material-icons-round">visibility</span>
+                        <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
+                    </button>
+                    <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
+                        style="flex: 1; width: auto; border-radius: 8px;">
+                        <span class="material-icons-round">edit_off</span>
+                        <span style="margin-left: 6px;" id="toggle-draw-text">Enable Drawing</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Notes Container -->
+    <div id="sticky-notes-container" style="z-index: 10001;"></div>
+
+    <!-- Custom Eraser Cursor -->
+    <div id="custom-cursor"
+        style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
+        <div id="cursor-circle"
+            style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
+        </div>
+        <span class="material-icons-round" id="cursor-icon"
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
+    </div>
+
+    <!-- Drawing Canvas (Global Overlay) -->
+    <canvas id="draw-canvas"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
+
     <!-- Scripts -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="../js/api.js?v=1.0"></script>
     <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
+    <script src="../js/workspace-common/workspace-chatbot.js"></script>
+    <script src="../js/workspace-common/workspace-notes.js"></script>
     <script type="module" src="js/workflow-main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -164,6 +699,7 @@
                 console.warn('No projectId in URL - using dev fallback');
                 projectId = 'dev-demo-project';
             }
+
             // Init Collaboration
             if (typeof WorkspaceCollaboration !== 'undefined') {
                 window.workspaceCollaboration = new WorkspaceCollaboration({
@@ -171,7 +707,293 @@
                     containerId: 'collaboration-users'
                 });
             }
+
+            // Init Chatbot
+            if (typeof WorkspaceChatbot !== 'undefined') {
+                window.workspaceChatbot = new WorkspaceChatbot({
+                    workspace: 'workflow',
+                    projectId: projectId,
+                    containerId: 'ai-panel',
+                    inputId: 'omni-input'
+                });
+            }
+
+            // Init Notes
+            if (typeof WorkspaceNotes !== 'undefined') {
+                window.workspaceNotes = new WorkspaceNotes({
+                    workspace: 'workflow',
+                    projectId: projectId,
+                    notepadId: 'notepad'
+                });
+                document.getElementById('btn-save-note')?.addEventListener('click', async () => await workspaceNotes.manualSave());
+                document.getElementById('btn-screenshot')?.addEventListener('click', async () => await workspaceNotes.attachScreenshot());
+                document.getElementById('btn-new-note')?.addEventListener('click', async () => await workspaceNotes.createNewNote());
+                document.getElementById('btn-pdf-export')?.addEventListener('click', async () => await workspaceNotes.exportToPDF());
+            }
+
+            // Save button click
+            document.getElementById('project-save-btn')?.addEventListener('click', () => {
+                if (window.workflowApp && window.workflowApp.saveWorkflow) {
+                    window.workflowApp.saveWorkflow(true);
+                }
+            });
+
+            // ===== Workflow List View Logic =====
+            const listView = document.getElementById('workflow-list-view');
+            const cardsGrid = document.getElementById('workflow-cards-grid');
+            const searchInput = document.getElementById('workflow-search-input');
+            const contextMenu = document.getElementById('wf-context-menu');
+            let currentWorkflows = [];
+            let selectedWorkflowId = null;
+
+            // New Project button
+            document.getElementById('wf-new-project-btn')?.addEventListener('click', () => {
+                if (window.workflowApp) window.workflowApp.createNewProject();
+            });
+
+            // New Workflow button
+            document.getElementById('wf-new-workflow-btn')?.addEventListener('click', () => {
+                if (window.workflowApp) window.workflowApp.createNewWorkflow();
+            });
+
+            // Search filter
+            searchInput?.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                renderWorkflowCards(currentWorkflows.filter(wf =>
+                    wf.name.toLowerCase().includes(query)
+                ));
+            });
+
+            // Close context menu on outside click
+            document.addEventListener('click', (e) => {
+                if (!contextMenu.contains(e.target)) {
+                    contextMenu.classList.remove('active');
+                }
+            });
+
+            // Context menu actions
+            contextMenu.querySelectorAll('.wf-context-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    contextMenu.classList.remove('active');
+                    const action = item.dataset.action;
+                    if (!selectedWorkflowId) return;
+
+                    switch (action) {
+                        case 'open':
+                            openWorkflowById(selectedWorkflowId);
+                            break;
+                        case 'rename':
+                            renameWorkflow(selectedWorkflowId);
+                            break;
+                        case 'duplicate':
+                            duplicateWorkflow(selectedWorkflowId);
+                            break;
+                        case 'share':
+                            shareWorkflow(selectedWorkflowId);
+                            break;
+                        case 'delete':
+                            deleteWorkflow(selectedWorkflowId);
+                            break;
+                    }
+                });
+            });
+
+            function openWorkflowById(id) {
+                if (window.workflowApp) {
+                    window.workflowApp.loadWorkflow(id);
+                    listView.style.display = 'none';
+                }
+            }
+
+            async function renameWorkflow(id) {
+                const wf = currentWorkflows.find(w => w._id === id);
+                if (window.workflowApp) {
+                    const html = `<input id="rename-wf-input" type="text" value="${wf?.name || ''}" 
+                        style="width:100%; padding:10px; background:#0f172a; border:1px solid #475569; border-radius:8px; color:white; font-size:14px; font-family:Inter,sans-serif;">`;
+                    const confirmed = await window.workflowApp.showModal('Rename Workflow', html, true);
+                    if (confirmed) {
+                        const newName = document.getElementById('rename-wf-input')?.value;
+                        if (newName) {
+                            const token = localStorage.getItem('simvex_token') || sessionStorage.getItem('simvex_token');
+                            await fetch(`/api/workflow/${id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                body: JSON.stringify({ name: newName })
+                            });
+                            refreshWorkflowList();
+                        }
+                    }
+                }
+            }
+
+            async function duplicateWorkflow(id) {
+                // Simple: load, re-save as new
+                if (window.workflowApp) {
+                    window.workflowApp.showModal('Info', 'Duplicating workflow...');
+                    // For now just create a new workflow
+                    await window.workflowApp.createNewWorkflow(true, 'Copy of ' + (currentWorkflows.find(w => w._id === id)?.name || 'Workflow'));
+                    refreshWorkflowList();
+                }
+            }
+
+            function shareWorkflow(id) {
+                const url = `${window.location.origin}/workflow/index.html?id=${id}`;
+                navigator.clipboard.writeText(url);
+                if (window.workflowApp) {
+                    window.workflowApp.showModal('Share', `Link copied!<br><br><span style="font-size:12px; color:#94a3b8; word-break:break-all;">${url}</span>`);
+                }
+            }
+
+            async function deleteWorkflow(id) {
+                if (window.workflowApp) {
+                    const confirmed = await window.workflowApp.showModal('Delete Workflow', 'Are you sure you want to delete this workflow? This cannot be undone.', true);
+                    if (confirmed) {
+                        const token = localStorage.getItem('simvex_token') || sessionStorage.getItem('simvex_token');
+                        await fetch(`/api/workflow/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        refreshWorkflowList();
+                    }
+                }
+            }
+
+            function renderWorkflowCards(workflows) {
+                const emptyState = document.getElementById('workflow-empty-state');
+                cardsGrid.innerHTML = '';
+
+                if (!workflows || workflows.length === 0) {
+                    cardsGrid.appendChild(emptyState.cloneNode(true));
+                    return;
+                }
+
+                workflows.forEach(wf => {
+                    const card = document.createElement('div');
+                    card.className = 'workflow-card';
+                    card.dataset.id = wf._id;
+                    const date = new Date(wf.updatedAt || wf.createdAt).toLocaleDateString('ko-KR', {
+                        year: 'numeric', month: 'short', day: 'numeric'
+                    });
+                    const nodeCount = wf.nodes?.length || 0;
+                    const connCount = wf.connections?.length || 0;
+
+                    card.innerHTML = `
+                        <div class="workflow-card-header">
+                            <div class="workflow-card-icon">
+                                <span class="material-icons-round">account_tree</span>
+                            </div>
+                            <button class="workflow-card-menu" data-id="${wf._id}" title="More options">
+                                <span class="material-icons-round">more_vert</span>
+                            </button>
+                        </div>
+                        <h3 class="workflow-card-title">${wf.name || 'Untitled Workflow'}</h3>
+                        <div class="workflow-card-meta">
+                            <span><span class="material-icons-round">schedule</span> ${date}</span>
+                        </div>
+                        <div class="workflow-card-stats">
+                            <div class="workflow-stat">
+                                <span class="material-icons-round">hub</span> ${nodeCount} nodes
+                            </div>
+                            <div class="workflow-stat">
+                                <span class="material-icons-round">cable</span> ${connCount} connections
+                            </div>
+                        </div>
+                    `;
+
+                    // Click to open
+                    card.addEventListener('click', (e) => {
+                        if (e.target.closest('.workflow-card-menu')) return;
+                        openWorkflowById(wf._id);
+                    });
+
+                    // Context menu button
+                    card.querySelector('.workflow-card-menu')?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectedWorkflowId = wf._id;
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        contextMenu.style.top = `${rect.bottom + 4}px`;
+                        contextMenu.style.left = `${rect.left - 140}px`;
+                        contextMenu.classList.add('active');
+                    });
+
+                    cardsGrid.appendChild(card);
+                });
+            }
+
+            async function refreshWorkflowList() {
+                if (!window.workflowApp || !window.workflowApp.projectId) return;
+                try {
+                    const token = localStorage.getItem('simvex_token') || sessionStorage.getItem('simvex_token');
+                    const res = await fetch(`/api/workflow/project/${window.workflowApp.projectId}/list`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        currentWorkflows = data.data || [];
+                        renderWorkflowCards(currentWorkflows);
+                    }
+                } catch (e) {
+                    console.error('Failed to refresh workflow list:', e);
+                }
+            }
+
+            // ===== Expose refresh function to WorkflowApp =====
+            window.refreshWorkflowListView = refreshWorkflowList;
+            window.showWorkflowListView = () => {
+                listView.style.display = 'flex';
+                refreshWorkflowList();
+                // Show/hide toolbar and back button
+                const toolbar = document.getElementById('editor-toolbar');
+                const backBtn = document.getElementById('back-to-list-btn');
+                if (toolbar) toolbar.style.display = 'none';
+                if (backBtn) backBtn.style.display = 'none';
+            };
+            window.hideWorkflowListView = () => {
+                listView.style.display = 'none';
+                // Show toolbar and back button
+                const toolbar = document.getElementById('editor-toolbar');
+                const backBtn = document.getElementById('back-to-list-btn');
+                if (toolbar) toolbar.style.display = 'flex';
+                if (backBtn) backBtn.style.display = 'flex';
+            };
+
+            // Initial render after a short delay to let WorkflowApp initialize
+            setTimeout(() => {
+                refreshWorkflowList();
+            }, 1500);
         });
+    </script>
+    <script src="./js/workflow-tools.js"></script>
+    <script>
+        // Initialize Workflow Tools & Collaboration when App is ready
+        const toolsInitInterval = setInterval(async () => {
+            if (window.workflowApp && window.workflowApp.projectId && typeof window.initWorkflowTools === 'function') {
+                clearInterval(toolsInitInterval);
+
+                // Fetch user for collaboration
+                let currentUser = null;
+                try {
+                    const token = localStorage.getItem('simvex_token') || sessionStorage.getItem('simvex_token');
+                    if (token) {
+                        const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                        const data = await res.json();
+                        if (data.success) currentUser = data.user;
+                    }
+                } catch (e) { console.error('Auth check failed', e); }
+
+                // Initialize Collaboration
+                if (typeof WorkspaceCollaboration !== 'undefined') {
+                    window.workspaceCollaboration = new WorkspaceCollaboration({
+                        projectId: window.workflowApp.projectId,
+                        currentUser: currentUser,
+                        containerId: 'collaboration-users'
+                    });
+                }
+
+                console.log('Initializing Workflow Tools...');
+                window.workflowTools = new WorkflowTools(window.workflowApp);
+            }
+        }, 500);
     </script>
     <script src="/js/pwa.js"></script>
 </body>

@@ -60,6 +60,19 @@ class WorkflowApp {
         this.bindButton('run-workflow-btn', () => this.runWorkflow());
         this.bindButton('share-btn', () => this.shareWorkflow());
 
+        // Delete Node button
+        this.bindButton('delete-node-btn', () => this.deleteSelectedNode());
+
+        // Back to list button
+        const backBtn = document.getElementById('back-to-list-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                if (typeof window.showWorkflowListView === 'function') {
+                    window.showWorkflowListView();
+                }
+            });
+        }
+
         // Panel Controls
         const closeBtn = document.querySelector('.close-panel-btn');
         if (closeBtn) {
@@ -68,6 +81,23 @@ class WorkflowApp {
                 this.deselectAll();
             });
         }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Delete or Backspace to delete selected node
+            if ((e.key === 'Delete' || e.key === 'Backspace') && this.selectedNode) {
+                // Don't delete if user is typing in an input/textarea
+                const tag = document.activeElement?.tagName;
+                if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+                e.preventDefault();
+                this.deleteSelectedNode();
+            }
+            // Ctrl+S to save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                this.saveWorkflow(true);
+            }
+        });
 
         // Drag and Drop from Palette
         this.setupPalette();
@@ -173,15 +203,8 @@ class WorkflowApp {
         }, 5000);
     }
 
-    broadcastCursor(e) {
-        if (!this.socket || !this.workflowId) return;
 
-        // Send raw Client coordinates (screen space)
-        const x = e.clientX;
-        const y = e.clientY;
 
-        this.socket.emit('workflow:cursor', { x, y });
-    }
 
     // --- Auth Helper ---
     async authFetch(url, options = {}) {
@@ -268,6 +291,8 @@ class WorkflowApp {
         this.socket.on('workflow:connection:delete', (id) => this.deleteRemoteConnection(id));
         this.socket.on('workflow:node:doc-update', (data) => this.updateNodeDoc(data));
 
+        // Use centralized WorkspaceCollaboration for cursor and presence
+        /*
         // Remote Cursor
         this.socket.on('workflow:cursor', (data) => {
             this.updateRemoteCursor(data);
@@ -283,6 +308,7 @@ class WorkflowApp {
         });
         this.socket.on('workflow:user-left', (data) => this.handleUserLeave(data));
         this.socket.on('workflow:room-users', (users) => this.updateOnlineUsers(users));
+        */
 
         this.onlineUsers = new Map();
     }
@@ -363,69 +389,7 @@ class WorkflowApp {
         });
     }
 
-    // --- Cursor Tracking ---
 
-    getUserColor(userId) {
-        const colors = ['#667eea', '#f093fb', '#43e97b', '#f5576c', '#fa709a', '#4facfe'];
-        let hash = 0;
-        if (userId) {
-            for (let i = 0; i < userId.length; i++) {
-                hash = userId.charCodeAt(i) + ((hash << 5) - hash);
-            }
-        }
-        return colors[Math.abs(hash) % colors.length];
-    }
-
-    updateRemoteCursor(data) {
-        // Create container if missing
-        let container = document.getElementById('workflow-cursor-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'workflow-cursor-container';
-            container.style.position = 'fixed';
-            container.style.top = '0';
-            container.style.left = '0';
-            container.style.width = '100%';
-            container.style.height = '100%';
-            container.style.pointerEvents = 'none';
-            container.style.zIndex = '99999';
-            document.body.appendChild(container);
-        }
-
-        // Ensure cursor exists
-        let cursor = document.getElementById(`cursor-${data.userId}`);
-        if (!cursor) {
-            const color = this.getUserColor(data.userId); // Use dynamic color
-            cursor = document.createElement('div');
-            cursor.id = `cursor-${data.userId}`;
-            cursor.className = 'remote-cursor';
-            cursor.style.position = 'absolute'; // Absolute within the fixed container
-            cursor.style.pointerEvents = 'none';
-            cursor.style.transition = 'transform 0.1s linear';
-            cursor.style.willChange = 'transform';
-            cursor.style.display = 'block'; // Force display
-            cursor.style.zIndex = '100000'; // Higher than container
-            cursor.style.width = '24px';
-            cursor.style.height = '24px';
-
-            cursor.innerHTML = `
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
-                    <path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19177L11.7841 12.3673H5.65376Z" fill="${color}" stroke="white" stroke-width="1.5"/>
-                </svg>
-                <div style="background:${color}; color:white; padding:2px 6px; border-radius:4px; font-size:10px; white-space:nowrap; margin-left:12px; margin-top:-4px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); font-family:sans-serif; font-weight:bold;">${data.userName || 'User'}</div>
-            `;
-            container.appendChild(cursor);
-        }
-
-        // Update position (x,y are client coordinates)
-        cursor.style.transform = `translate(${data.x}px, ${data.y}px)`;
-
-        // Timeout to remove inactive cursors
-        clearTimeout(cursor.removeTimeout);
-        cursor.removeTimeout = setTimeout(() => {
-            cursor.remove();
-        }, 5000);
-    }
 
     setupCanvas() {
         this.canvas.addEventListener('dragover', (e) => e.preventDefault());
@@ -442,14 +406,7 @@ class WorkflowApp {
             this.lastMouseX = e.clientX;
             this.lastMouseY = e.clientY;
 
-            // Broadcast FIRST to ensure it happens
-            try {
-                this.broadcastCursor(e);
-            } catch (err) {
-                console.error('Broadcast failed', err);
-            }
-
-            // Then handle internal move
+            // Handle internal move (dragging nodes etc)
             try {
                 this.handleMouseMove(e);
             } catch (err) {
@@ -504,10 +461,11 @@ class WorkflowApp {
                 if (urlWorkflowId) {
                     console.log('Loading workflow from URL:', urlWorkflowId);
                     this.loadWorkflow(urlWorkflowId);
-                } else if (this.availableWorkflows.length > 0 && !this.workflowId) {
-                    this.loadWorkflow(this.availableWorkflows[0]._id);
-                } else if (this.availableWorkflows.length === 0) {
-                    this.createNewWorkflow(true);
+                } else {
+                    // Show list view instead of auto-loading first workflow
+                    if (typeof window.showWorkflowListView === 'function') {
+                        window.showWorkflowListView();
+                    }
                 }
             }
         } catch (e) {
@@ -533,7 +491,9 @@ class WorkflowApp {
                 this.nodesLayer.innerHTML = '';
                 this.connectionsLayer.innerHTML = '';
 
-                document.querySelector('.workflow-title').innerText = wf.name;
+                // Update title in header save button area
+                const saveText = document.getElementById('save-status-text');
+                if (saveText) saveText.textContent = 'Save';
 
                 if (wf.nodes) wf.nodes.forEach(n => this.addNode(n.type, n.x, n.y, true, n.id, n.data, n.documentation));
                 if (wf.connections) wf.connections.forEach(c => this.addConnection(c, true));
@@ -542,9 +502,17 @@ class WorkflowApp {
                     this.socket.emit('workflow:join', this.workflowId);
                 }
 
+                // Hide the list view and show the editor
+                if (typeof window.hideWorkflowListView === 'function') {
+                    window.hideWorkflowListView();
+                }
+
                 // Update URL to reflect current workflow
                 const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?id=${this.workflowId}`;
                 window.history.pushState({ path: newUrl }, '', newUrl);
+
+                // Update page title
+                document.title = `${wf.name} - SIMVEX Workflow`;
             }
         } catch (e) {
             console.error('Failed to load workflow', e);
@@ -570,7 +538,7 @@ class WorkflowApp {
         const payload = {
             nodes: nodesPayload,
             connections: this.connections,
-            name: document.querySelector('.workflow-title').innerText
+            name: document.title.replace(' - SIMVEX Workflow', '') || 'Untitled Workflow'
         };
 
         try {
@@ -584,8 +552,8 @@ class WorkflowApp {
                 throw new Error(errData.message || 'Server returned error');
             }
 
-            const status = document.querySelector('.save-status');
-            if (status) status.innerText = 'Saved ' + new Date().toLocaleTimeString();
+            const status = document.getElementById('save-status-text');
+            if (status) status.innerText = 'Saved \u2713';
 
             if (manual) this.showModal('Saved', 'Workflow saved successfully!');
         } catch (e) {
@@ -674,97 +642,31 @@ class WorkflowApp {
     }
 
     async openWorkflow() {
-        if (!this.projectId) {
-            await this.identifyProject();
-        }
-
-        try {
-            const res = await this.authFetch(`/api/workflow/project/${this.projectId}/list`);
-            const data = await res.json();
-
-            if (data.success) {
-                this.availableWorkflows = data.data;
-                if (!this.availableWorkflows || this.availableWorkflows.length === 0) {
-                    this.showModal('Open Workflow', 'No saved workflows found for this project.');
-                    return;
-                }
-
-                // ... (rest of the logic)
-
-
-                let html = '<div style="display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto;">';
-                this.availableWorkflows.forEach((wf, i) => {
-                    const date = new Date(wf.updatedAt).toLocaleDateString();
-                    html += `
-                        <button class="workflow-select-item" data-id="${wf._id}" style="
-                            text-align: left;
-                            padding: 12px;
-                            background: rgba(255,255,255,0.05);
-                            border: 1px solid rgba(255,255,255,0.1);
-                            border-radius: 6px;
-                            color: #e2e8f0;
-                            cursor: pointer;
-                            transition: all 0.2s;
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            width: 100%;
-                        ">
-                            <span style="font-weight: 500;">${i + 1}. ${wf.name}</span>
-                            <span style="font-size: 12px; color: #94a3b8;">${date}</span>
-                        </button>
-                    `;
-                });
-                html += '</div>';
-
-                this.modalTitle.innerText = 'Open Workflow';
-                this.modalMessage.innerHTML = html;
-                this.modal.style.display = 'flex';
-                // Force reflow and add active class (Fix for invisible modal)
-                this.modal.offsetHeight;
-                this.modal.classList.add('active');
-
-                this.modalCancelBtn.style.display = 'block';
-                this.modalConfirmBtn.style.display = 'none';
-
-                const items = this.modalMessage.querySelectorAll('.workflow-select-item');
-                items.forEach(item => {
-                    item.addEventListener('click', () => {
-                        const id = item.dataset.id;
-                        this.loadWorkflow(id);
-                        // Cleanup
-                        this.modal.classList.remove('active');
-                        setTimeout(() => this.modal.style.display = 'none', 300);
-                    });
-                    item.addEventListener('mouseenter', () => item.style.background = 'rgba(255,255,255,0.1)');
-                    item.addEventListener('mouseleave', () => item.style.background = 'rgba(255,255,255,0.05)');
-                });
-
-                this.modalCancelBtn.onclick = () => {
-                    this.modal.classList.remove('active');
-                    setTimeout(() => this.modal.style.display = 'none', 300);
-                };
-            } else {
-                this.showModal('Error', data.message || 'Failed to load workflow list');
-            }
-        } catch (e) {
-            console.error(e);
-            this.showModal('Error', 'Failed to load workflow list: ' + e.message);
+        // Show the list view instead of a modal
+        if (typeof window.showWorkflowListView === 'function') {
+            window.showWorkflowListView();
         }
     }
 
     runWorkflow() {
         const btn = document.getElementById('run-workflow-btn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="material-icons-round">hourglass_empty</span> Running...';
-        btn.disabled = true;
+        if (btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="material-icons-round">hourglass_empty</span> Running...';
+            btn.disabled = true;
 
-        this.executeGraph().then(results => {
-            console.log('Execution Results:', results);
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            this.showModal('Execution Complete', `Workflow executed!\n\nProcessed ${results.steps} steps.\nCheck console for details.`);
-        });
+            this.executeGraph().then(results => {
+                console.log('Execution Results:', results);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                this.showModal('Execution Complete', `Workflow executed!\n\nProcessed ${results.steps} steps.\nCheck console for details.`);
+            });
+        } else {
+            this.executeGraph().then(results => {
+                console.log('Execution Results:', results);
+                this.showModal('Execution Complete', `Workflow executed!\n\nProcessed ${results.steps} steps.\nCheck console for details.`);
+            });
+        }
     }
 
     async executeGraph() {
@@ -836,21 +738,8 @@ class WorkflowApp {
         });
     }
 
-    // --- Canvas Interactions ---
-
-    setupCanvas() {
-        this.canvas.addEventListener('dragover', (e) => e.preventDefault());
-        this.canvas.addEventListener('drop', (e) => this.handleDrop(e));
-
-        this.canvas.addEventListener('mousedown', (e) => {
-            if (e.target === this.canvas || e.target === this.activeLayer || e.target === this.nodesLayer) {
-                this.deselectAll();
-            }
-        });
-
-        document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-        document.addEventListener('mouseup', (e) => this.handleMouseUp(e));
-    }
+    // --- Canvas Interactions (Drag & Drop) ---
+    // Note: Primary canvas event handling is in setupCanvas() above (line 364)
 
     handleDrop(e) {
         e.preventDefault();
@@ -907,7 +796,7 @@ class WorkflowApp {
         }
 
         el.innerHTML = `
-            <div class="node-header">
+            <div class="node-header" data-category="${config.category}">
                 <span class="workflow-node-title">${config.label}</span>
                 <span class="material-icons-round node-icon">${config.icon}</span>
             </div>
@@ -1135,6 +1024,40 @@ class WorkflowApp {
         this.selectedNode = null;
         document.querySelectorAll('.workflow-node.selected').forEach(el => el.classList.remove('selected'));
         this.propertiesPanel.classList.add('closed');
+    }
+
+    deleteSelectedNode() {
+        if (!this.selectedNode) return;
+        this.deleteNode(this.selectedNode.id);
+    }
+
+    deleteNode(id, remote = false) {
+        const idx = this.nodes.findIndex(n => n.id === id);
+        if (idx === -1) return;
+
+        // Remove related connections
+        const relatedConns = this.connections.filter(c => c.source === id || c.target === id);
+        relatedConns.forEach(c => this.deleteConnection(c.id, remote));
+
+        // Animate then remove the node
+        const el = document.getElementById(id);
+        if (el) {
+            el.classList.add('deleting');
+            setTimeout(() => el.remove(), 300);
+        }
+
+        this.nodes.splice(idx, 1);
+
+        // Deselect
+        if (this.selectedNode && this.selectedNode.id === id) {
+            this.deselectAll();
+        }
+
+        // Broadcast
+        if (!remote && this.socket) {
+            this.socket.emit('workflow:node:delete', id);
+        }
+        if (!remote) this.saveWorkflow();
     }
 
     showProperties(node) {
