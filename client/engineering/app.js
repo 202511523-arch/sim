@@ -34,7 +34,17 @@ const state = {
   objects: [],
   measurePoints: [],
   isMeasuring: false,
-  history: { undo: [], redo: [] }
+  history: { undo: [], redo: [] },
+  appMode: 'study' // 'study' or 'cad'
+};
+
+// ============================================
+// CAD State Persistence
+// ============================================
+const cadState = {
+  objects: [],
+  selectedObject: null,
+  transformMode: 'translate'
 };
 
 // ============================================
@@ -94,7 +104,37 @@ function initScene() {
   controls.maxDistance = 100;
   controls.target.set(0, 0, 0);
 
-  // Transform Controls
+  // Blender-style Controls
+  controls.mouseButtons = {
+    LEFT: null,                // Reserved for selection
+    MIDDLE: THREE.MOUSE.ROTATE,
+    RIGHT: THREE.MOUSE.PAN     // Standard Pan fallback
+  };
+
+  // Dynamic MMB Mapping (Shift=Pan, Ctrl=Zoom)
+  const updateMiddleButtonMode = (e) => {
+    if (e.shiftKey) {
+      controls.mouseButtons.MIDDLE = THREE.MOUSE.PAN;
+    } else {
+      controls.mouseButtons.MIDDLE = THREE.MOUSE.ROTATE;
+    }
+  };
+
+  renderer.domElement.addEventListener('mousedown', (e) => {
+    if (e.button === 1) { // Middle Button
+      updateMiddleButtonMode(e);
+      // Prevent autoscroll on Windows
+      e.preventDefault();
+    }
+  }, true);
+
+  // Reset to Rotate on mouseup to prevent "sticky" behavior
+  window.addEventListener('mouseup', (e) => {
+    if (e.button === 1) {
+      controls.mouseButtons.MIDDLE = THREE.MOUSE.ROTATE;
+    }
+  }, true);
+
   // Transform Controls
   transformControls = new TransformControls(camera, renderer.domElement);
 
@@ -252,7 +292,7 @@ function animate() {
   updateStats();
 
   // Physics Update
-  if (physics && physics.isRunning) {
+  if (state.appMode === 'study' && physics && physics.isRunning) {
     physics.update(1 / 60);
 
     // Update lesson info if active
@@ -262,7 +302,7 @@ function animate() {
   }
 
   // Lesson-specific Update
-  if (learningState.currentLessonModule && learningState.currentLessonModule.onUpdate && learningState.lessonObjects.length > 0) {
+  if (state.appMode === 'study' && learningState.currentLessonModule && learningState.currentLessonModule.onUpdate && learningState.lessonObjects.length > 0) {
     learningState.currentLessonModule.onUpdate(learningState.lessonObjects, 1 / 60);
   }
 
@@ -377,13 +417,27 @@ function selectObject(obj) {
     const item = document.querySelector(`.hierarchy-item[data-uuid="${obj.uuid}"]`);
     if (item) item.classList.add('selected');
 
-    // Outline
-    if (outlinePass) outlinePass.selectedObjects = [obj];
+    // Outline - Highlight meshes within selection
+    if (outlinePass) {
+      const selectedMeshes = [];
+      if (obj.userData && obj.userData.groupMembers) {
+        selectedMeshes.push(...obj.userData.groupMembers);
+      } else if (obj.isMesh) {
+        selectedMeshes.push(obj);
+      } else {
+        obj.traverse(child => {
+          if (child.isMesh) selectedMeshes.push(child);
+        });
+      }
+      outlinePass.selectedObjects = selectedMeshes;
+    }
 
     updatePropertiesPanel();
     showAnnotation(obj);
   } else {
+    // DESELECT
     if (outlinePass) outlinePass.selectedObjects = [];
+    if (transformControls) transformControls.detach(); // Hide G/R/S gizmo
     updatePropertiesPanel(); // Reset panel
     hideAnnotation();
   }
@@ -478,7 +532,9 @@ function deleteSelectedObject() {
 // UI Updates
 // ============================================
 function updateHierarchy() {
-  const tree = document.getElementById('hierarchy-tree');
+  const treeId = state.appMode === 'cad' ? 'cad-hierarchy-tree' : 'hierarchy-tree';
+  const tree = document.getElementById(treeId);
+  if (!tree) return;
 
   let html = `
         <div class="hierarchy-item scene-root">
@@ -916,7 +972,7 @@ function onMouseClick(event) {
   }
 
   // Skip if clicking on transform controls
-  if (transformControls.dragging) return;
+  if (transformControls && transformControls.dragging) return;
 
   const rect = renderer.domElement.getBoundingClientRect();
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -924,27 +980,49 @@ function onMouseClick(event) {
 
   raycaster.setFromCamera(mouse, camera);
 
-  const objects = state.objects.filter(o => o.isMesh || o.isGroup);
-  const intersects = raycaster.intersectObjects(objects, true);
+  const filterObjects = state.objects.filter(o => o.isMesh || o.isGroup);
+  const intersects = raycaster.intersectObjects(filterObjects, true);
 
   if (intersects.length > 0) {
     let obj = intersects[0].object;
-    // Find parent if it's part of a group, unless it's explicitly selectable
-    while (obj.parent && !state.objects.includes(obj) && !obj.userData.isSelectable) {
-      obj = obj.parent;
+
+    // 1. Prefer logical units (groupMembers) or explicitly selectable parts
+    // Walk up to find the nearest parent that is either in state.objects or explicitly selectable
+    let current = obj;
+    let fallback = null;
+    while (current) {
+      // If we find a node that has groupMembers with actual multiple members, it's a logical unit
+      if (current.userData && current.userData.groupMembers && current.userData.groupMembers.length > 1) {
+        obj = current;
+        break;
+      }
+      // If we find a node that HAS a parentGroup that is a multi-member group
+      if (current.userData && current.userData.parentGroup) {
+        const pg = current.userData.parentGroup;
+        if (pg.userData && pg.userData.groupMembers && pg.userData.groupMembers.length > 1) {
+          obj = pg;
+          break;
+        }
+      }
+
+      // If we find a node in state.objects, it's a candidate for selection
+      if (state.objects.includes(current)) {
+        fallback = current;
+      }
+      // If selectable part metadata is present
+      if (current.userData && (current.userData.isSelectable || current.userData.displayName)) {
+        obj = current;
+        break;
+      }
+      current = current.parent;
     }
 
-    // Logic: If obj is selectable (part), but its parent (group) is NOT exploded,
-    // we should select the parent instead.
-    if (obj.userData.isSelectable && obj.parent &&
-      state.objects.includes(obj.parent) &&
-      obj.parent.userData.isExploded === false) {
-      obj = obj.parent;
+    // If no explicit selectable unit found, use the fallback from state.objects
+    if (current === null && fallback) {
+      obj = fallback;
     }
 
-    // If we walked up to the Scene (no parent) and it's not in objects, ignore
-    // But if we stopped because it isSelectable, or it is in objects, select it
-    if (state.objects.includes(obj) || obj.userData.isSelectable) {
+    if (state.objects.includes(obj) || obj.userData.isSelectable || obj.userData.groupMembers) {
       selectObject(obj);
     }
   } else {
@@ -1132,10 +1210,10 @@ function setupEventListeners() {
     btn.addEventListener('click', () => setViewPreset(btn.dataset.view));
   });
 
-  // Primitive buttons
-  document.querySelectorAll('.primitive-btn').forEach(btn => {
-    btn.addEventListener('click', () => addPrimitive(btn.dataset.shape));
-  });
+  // Primitive buttons (Handled in CAD setup within setupLearningPlatform)
+  // document.querySelectorAll('.primitive-btn').forEach(btn => {
+  //   btn.addEventListener('click', () => addPrimitive(btn.dataset.shape));
+  // });
 
   // Toolbar buttons (Removed for simplification)
   // document.getElementById('btn-new').addEventListener('click', newScene);
@@ -1763,6 +1841,58 @@ function setupLearningPlatform() {
     // For now just log or handle if modal exists
     console.log('Settings clicked');
   });
+
+  // ========================================
+  // CAD Mode Setup
+  // ========================================
+  const btnStudy = document.getElementById('nav-study');
+  const btnCad = document.getElementById('nav-cad');
+
+  if (btnStudy && btnCad) {
+    btnStudy.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchWorkspaceMode('study');
+    });
+    btnCad.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchWorkspaceMode('cad');
+    });
+  }
+
+  // CAD Sidebar Primitive Buttons
+  document.querySelectorAll('#cad-sidebar .primitive-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (state.appMode === 'cad') {
+        addPrimitive(btn.dataset.shape);
+      }
+    });
+  });
+
+  // CAD Sidebar Transform Buttons
+  document.querySelectorAll('#cad-sidebar .tool-btn[data-tool]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (state.appMode === 'cad') {
+        setTool(btn.dataset.tool);
+      }
+    });
+  });
+
+  // CAD Import Button
+  const btnImport = document.getElementById('cad-import-btn');
+  const fileInput = document.getElementById('cad-file-input');
+
+  if (btnImport && fileInput) {
+    btnImport.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        loadModel(e.target.files[0]);
+      }
+      e.target.value = ''; // Reset input to allow re-importing same file
+    });
+  }
 }
 
 function addChatMessage(text, role) {
@@ -1822,6 +1952,99 @@ function updateApiKeyStatus() {
     if (statusText) statusText.textContent = 'API Key Not Configured';
   }
 }
+
+// ============================================
+// switchWorkspaceMode: Study <-> CAD
+// ============================================
+// ============================================
+// switchWorkspaceMode: Study <-> CAD (Persisted)
+// ============================================
+function switchWorkspaceMode(mode) {
+  if (state.appMode === mode) return;
+
+  const btnStudy = document.getElementById('nav-study');
+  const btnCad = document.getElementById('nav-cad');
+  const studySidebar = document.getElementById('study-sidebar');
+  const cadSidebar = document.getElementById('cad-sidebar');
+  const landingOverlay = document.getElementById('study-landing-overlay');
+
+  if (mode === 'study') {
+    // ----------------------------
+    // Switching TO Study Mode
+    // ----------------------------
+    state.appMode = 'study';
+
+    // 1. Stash CAD State
+    cadState.objects = [...state.objects]; // Copy references
+    cadState.selectedObject = state.selectedObject;
+    cadState.transformMode = transformControls.mode;
+
+    // Remove CAD objects from scene (hide them)
+    cadState.objects.forEach(obj => scene.remove(obj));
+    transformControls.detach();
+    state.objects = [];
+    state.selectedObject = null;
+
+    // 2. UI Updates
+    btnStudy?.classList.add('active');
+    btnCad?.classList.remove('active');
+    if (studySidebar) studySidebar.style.display = 'block';
+    if (cadSidebar) cadSidebar.style.display = 'none';
+
+    // 3. Restore Study Mode
+    // Check if we have a paused/stopped lesson state?
+    // For now, reload last lesson or default, assuming simple restore
+    const lessonId = learningState.currentLessonId || 'robotArm';
+    // loadLesson clears the scene (which is now empty) and loads new lesson
+    loadLesson(lessonId);
+
+  } else {
+    // ----------------------------
+    // Switching TO CAD Mode
+    // ----------------------------
+    state.appMode = 'cad';
+
+    // 1. Stash/Clear Study State
+    if (physics) physics.stop();
+    // We don't really "stash" study objects, we just re-load lessons
+    // Identify current study objects to remove
+    // (loadLesson creates new objects every time anyway)
+    state.objects.forEach(obj => scene.remove(obj));
+    state.objects = [];
+    state.selectedObject = null;
+    learningState.currentLessonModule = null;
+    learningState.lessonObjects = []; // Clear study refs
+    transformControls.detach();
+
+    // 2. UI Updates
+    btnStudy?.classList.remove('active');
+    btnCad?.classList.add('active');
+    if (studySidebar) studySidebar.style.display = 'none';
+    if (cadSidebar) cadSidebar.style.display = 'block';
+    if (landingOverlay) landingOverlay.style.display = 'none';
+
+    // 3. Restore CAD State
+    cadState.objects.forEach(obj => {
+      scene.add(obj);
+      state.objects.push(obj);
+    });
+
+    if (cadState.selectedObject) {
+      // Re-select if it was selected
+      // Check if it's still valid?
+      selectObject(cadState.selectedObject);
+    }
+
+    if (cadState.transformMode) {
+      setTool(cadState.transformMode === 'translate' ? 'move' : cadState.transformMode);
+    }
+
+    setStatus('CAD Mode Active');
+    updateHierarchy();
+  }
+}
+
+window.switchWorkspaceMode = switchWorkspaceMode;
 
 // ============================================
 // Initialize Application

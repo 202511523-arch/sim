@@ -508,6 +508,154 @@ const WorkspaceState = {
 // DRAWING TOOL FUNCTIONS
 // ==========================================
 
+function initStudyNotes() {
+    console.log('📝 Initializing Card-based Study Notes...');
+
+    const notesList = document.getElementById('popup-notes-list');
+    const editor = document.getElementById('popup-note-editor');
+    const noteListView = document.getElementById('note-list-view');
+    const addBtn = document.getElementById('popup-add-note');
+    const backBtn = document.getElementById('popup-back-list');
+    const saveBtn = document.getElementById('popup-save-note');
+    const titleInput = document.getElementById('popup-note-title');
+    const contentInput = document.getElementById('popup-note-content');
+    const searchInput = document.getElementById('note-search');
+
+    // Use localStorage key consistent with workspace
+    const STORAGE_KEY = `engineering-notes-${WorkspaceState.projectId || 'demo'}`;
+    let notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    function renderNotes(filter = '') {
+        if (!notesList) return;
+        notesList.innerHTML = '';
+
+        const filtered = notes.filter(n =>
+            (n.title && n.title.toLowerCase().includes(filter.toLowerCase())) ||
+            (n.content && n.content.toLowerCase().includes(filter.toLowerCase()))
+        );
+
+        if (filtered.length === 0) {
+            notesList.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons-round" style="font-size: 48px; margin-bottom: 12px; opacity: 0.5;">note_add</span>
+                    <p>No notes found.</p>
+                    ${filter ? '<p style="font-size: 12px; opacity: 0.7;">Try a different search term.</p>' : '<p style="font-size: 12px; opacity: 0.7;">Create your first study note!</p>'}
+                </div>`;
+            return;
+        }
+
+        filtered.forEach((note, index) => {
+            // Find actual index in main array to handle deletions correctly
+            const mainIndex = notes.indexOf(note);
+
+            const card = document.createElement('div');
+            card.className = 'note-card';
+            card.innerHTML = `
+                <h3>${note.title || 'Untitled Note'}</h3>
+                <p>${note.content || 'No content'}</p>
+                <small>
+                    ${note.date || 'Just now'}
+                    ${note.tags ? ` • ${note.tags.join(', ')}` : ''}
+                </small>
+                <button class="delete-note" data-index="${mainIndex}" title="Delete Note">
+                    <span class="material-icons-round" style="font-size: 18px;">delete</span>
+                </button>
+            `;
+
+            // Click to edit
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.delete-note')) return;
+                openEditor(note, mainIndex);
+            });
+
+            notesList.appendChild(card);
+        });
+
+        // Add delete listeners
+        document.querySelectorAll('.delete-note').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.index);
+                if (confirm('Are you sure you want to delete this note?')) {
+                    notes.splice(idx, 1);
+                    saveNotes();
+                    renderNotes(searchInput.value);
+                }
+            });
+        });
+    }
+
+    function saveNotes() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+    }
+
+    function openEditor(note = null, index = -1) {
+        noteListView.style.display = 'none';
+        editor.style.display = 'flex';
+
+        if (note) {
+            titleInput.value = note.title || '';
+            contentInput.value = note.content || '';
+            editor.dataset.editingIndex = index;
+        } else {
+            titleInput.value = '';
+            contentInput.value = '';
+            delete editor.dataset.editingIndex;
+            // Focus title for new notes
+            setTimeout(() => titleInput.focus(), 100);
+        }
+    }
+
+    function closeEditor() {
+        editor.style.display = 'none';
+        noteListView.style.display = 'flex';
+        renderNotes(searchInput.value);
+    }
+
+    // Event Listeners
+    if (addBtn) addBtn.addEventListener('click', () => openEditor());
+    if (backBtn) backBtn.addEventListener('click', closeEditor);
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => renderNotes(e.target.value));
+    }
+
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            const title = titleInput.value.trim() || 'Untitled Note';
+            const content = contentInput.value.trim();
+
+            if (!content && !title) {
+                alert('Please enter some content.');
+                return;
+            }
+
+            const noteData = {
+                title,
+                content,
+                date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+            };
+
+            const editingIndex = editor.dataset.editingIndex;
+            if (editingIndex !== undefined) {
+                // Update existing
+                notes[parseInt(editingIndex)] = { ...notes[parseInt(editingIndex)], ...noteData };
+            } else {
+                // Add new
+                notes.unshift(noteData);
+            }
+
+            saveNotes();
+            closeEditor();
+            showToast('Note saved successfully');
+        });
+    }
+
+    // Initial render
+    renderNotes();
+}
+
 function initDrawingTool() {
     drawingInitialized = true;
     drawCanvas = document.getElementById('draw-canvas');
@@ -864,17 +1012,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Chat & Notes FABs
     document.getElementById('fab-chat')?.addEventListener('click', () => togglePopup('chat-popup'));
-    document.getElementById('fab-notes')?.addEventListener('click', () => togglePopup('notes-popup'));
+    document.getElementById('fab-notes')?.addEventListener('click', () => {
+        togglePopup('notes-popup');
+        // Refresh notes on open
+        // (Helper function inside initStudyNotes handles this if we expose it, but for now relies on init)
+    });
 
-    // Notes Popup Actions
-    document.getElementById('btn-save-note')?.addEventListener('click', async () => await window.workspaceNotes?.manualSave());
-    document.getElementById('btn-screenshot')?.addEventListener('click', async () => await window.workspaceNotes?.attachScreenshot());
-    document.getElementById('btn-new-note')?.addEventListener('click', async () => await window.workspaceNotes?.createNewNote());
-    document.getElementById('btn-pdf-export')?.addEventListener('click', async () => await window.workspaceNotes?.exportToPDF());
+    // Notes Popup Actions (Legacy/Simple removal - now handled by initStudyNotes)
+    // kept for reference if needed, but replaced by the new UI logic
+    // document.getElementById('btn-save-note')?.addEventListener('click', async () => await window.workspaceNotes?.manualSave());
 
     // Initialize after a small delay to ensure DOM is ready
     setTimeout(() => {
         if (!drawingInitialized) initDrawingTool();
+        initStudyNotes(); // Initialize the new Note System
         WorkspaceState.init();
     }, 100);
 });

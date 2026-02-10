@@ -246,8 +246,8 @@
       <div id="collaboration-users" style="margin-left: 16px;"></div>
       <nav class="nav-pills header-center">
         <a href="/dashboard.html" class="nav-pill">Dashboard</a>
-        <a href="#" class="nav-pill active" onclick="showLandingPage(); return false;">Study</a>
-        <a href="#" class="nav-pill">Cad</a>
+        <a href="#" class="nav-pill active" id="nav-study" onclick="showLandingPage(); return false;">Study</a>
+        <a href="#" class="nav-pill" id="nav-cad">CAD</a>
       </nav>
       <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
         <button id="project-save-btn" class="save-button" title="Save project">
@@ -262,27 +262,88 @@
     <main class="workspace-main">
       <!-- Left Panel: Lessons -->
       <aside class="left-sidebar panel-card">
-        <div class="panel-header">
-          <div class="panel-title">
-            <span class="material-icons-round">settings_input_component</span>
-            Mechanical Engineering
-          </div>
-        </div>
-        <div class="panel-content">
-          <div id="lessons-list" style="padding: 12px; display: flex; flex-direction: column; gap: 10px;">
-            <!-- Dynamically populated -->
-          </div>
-          <div class="panel-header"
-            style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+
+        <!-- STUDY MODE SIDEBAR -->
+        <div id="study-sidebar">
+          <div class="panel-header">
             <div class="panel-title">
-              <span class="material-icons-round">account_tree</span>
-              Hierarchy
+              <span class="material-icons-round">settings_input_component</span>
+              Mechanical Engineering
             </div>
           </div>
-          <div id="hierarchy-tree" style="padding: 12px;">
-            <!-- Scene Hierarchy -->
+          <div class="panel-content">
+            <div id="lessons-list" style="padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+              <!-- Dynamically populated -->
+            </div>
+            <div class="panel-header"
+              style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+              <div class="panel-title">
+                <span class="material-icons-round">account_tree</span>
+                Hierarchy
+              </div>
+            </div>
+            <div id="hierarchy-tree" style="padding: 12px;">
+              <!-- Scene Hierarchy -->
+            </div>
           </div>
         </div>
+
+        <!-- CAD MODE SIDEBAR (Hidden by default) -->
+        <div id="cad-sidebar" style="display: none;">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="material-icons-round">design_services</span>
+              CAD Tools
+            </div>
+          </div>
+          <div class="panel-content" style="padding: 12px;">
+
+            <div class="property-section">
+              <div class="section-header">Add Primitive</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="btn-secondary primitive-btn" data-shape="cube">Cube</button>
+                <button class="btn-secondary primitive-btn" data-shape="sphere">Sphere</button>
+                <button class="btn-secondary primitive-btn" data-shape="cylinder">Cylinder</button>
+                <button class="btn-secondary primitive-btn" data-shape="cone">Cone</button>
+                <button class="btn-secondary primitive-btn" data-shape="torus">Torus</button>
+                <button class="btn-secondary primitive-btn" data-shape="plane">Plane</button>
+              </div>
+            </div>
+
+            <div class="property-section">
+              <div class="section-header">Transform</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
+                <button class="tool-btn" data-tool="move" title="Move (G)"><span
+                    class="material-icons-round">open_with</span></button>
+                <button class="tool-btn" data-tool="rotate" title="Rotate (R)"><span
+                    class="material-icons-round">rotate_left</span></button>
+                <button class="tool-btn" data-tool="scale" title="Scale (S)"><span
+                    class="material-icons-round">aspect_ratio</span></button>
+              </div>
+            </div>
+
+            <div class="property-section">
+              <div class="section-header">Import</div>
+              <button class="btn-secondary" id="cad-import-btn"
+                style="width:100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span class="material-icons-round">upload_file</span> Import Model
+              </button>
+              <input type="file" id="cad-file-input" accept=".glb,.gltf,.obj,.stl,.fbx" style="display:none" />
+            </div>
+
+            <div class="panel-header"
+              style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+              <div class="panel-title">
+                <span class="material-icons-round">layers</span>
+                Scene Collection
+              </div>
+            </div>
+            <!-- CAD hierarchy tree container -->
+            <div id="cad-hierarchy-tree" style="padding: 12px;"></div>
+
+          </div>
+        </div>
+
       </aside>
       <!-- Center Viewport -->
       <div class="viewport-area">
@@ -385,24 +446,53 @@
         <button class="popup-close" onclick="closePopup('notes-popup')"><span
             class="material-icons-round">close</span></button>
       </div>
-      <div class="popup-body">
-        <textarea id="notepad" placeholder="Design/Analysis Notes..."></textarea>
-      </div>
-      <div
-        style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
-        <button class="btn-circle" id="btn-new-note" title="New Note">
-          <span class="material-icons-round">add</span>
-        </button>
-        <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot">
-          <span class="material-icons-round">camera_alt</span>
-        </button>
-        <button class="btn-circle" id="btn-pdf-export" title="Export PDF">
-          <span class="material-icons-round">download</span>
-        </button>
-        <button class="btn-circle" id="btn-save-note" title="Save" style="flex: 1; width: auto; border-radius: 8px;">
-          <span class="material-icons-round">save</span>
-          <span style="margin-left: 6px;">Save</span>
-        </button>
+      <div class="popup-body" style="padding: 0; display: flex; flex-direction: column; overflow: hidden;">
+        <!-- Note List View -->
+        <div id="note-list-view" style="display: flex; flex-direction: column; height: 100%;">
+          <div style="padding: 12px; border-bottom: 1px solid var(--border-color);">
+            <input type="text" id="note-search" placeholder="Search notes..."
+              style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; color: white;">
+          </div>
+          <div id="popup-notes-list" style="flex: 1; overflow-y: auto; padding: 12px;">
+            <!-- Notes injected here -->
+            <div class="empty-state" style="text-align: center; color: var(--text-secondary); padding: 20px;">
+              No notes yet. Create one!
+            </div>
+          </div>
+          <div style="padding: 12px; border-top: 1px solid var(--border-color);">
+            <button id="popup-add-note" class="action-btn" style="text-align: center; justify-content: center;">
+              <span class="material-icons-round">add</span> Create New Note
+            </button>
+          </div>
+        </div>
+
+        <!-- Note Editor View (Hidden by default) -->
+        <div id="popup-note-editor" style="display: none; flex-direction: column; height: 100%;">
+          <div style="padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; gap: 8px;">
+            <button id="popup-back-list" class="btn-circle"
+              style="background: transparent; border: none; color: var(--text-secondary);">
+              <span class="material-icons-round">arrow_back</span>
+            </button>
+            <input type="text" id="popup-note-title" placeholder="Note Title"
+              style="flex: 1; background: transparent; border: none; font-weight: 600; font-size: 16px; color: white;">
+          </div>
+          <textarea id="popup-note-content" placeholder="Type your note here..."
+            style="flex: 1; background: transparent; border: none; padding: 16px; resize: none; color: var(--text-primary); font-family: 'Inter', sans-serif; line-height: 1.5;"></textarea>
+
+          <div
+            style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+            <button class="btn-circle" id="btn-screenshot-note" title="Attach Screenshot">
+              <span class="material-icons-round">camera_alt</span>
+            </button>
+            <button class="btn-circle" id="btn-pdf-note" title="Export PDF">
+              <span class="material-icons-round">picture_as_pdf</span>
+            </button>
+            <div style="flex: 1;"></div>
+            <button id="popup-save-note" class="action-btn primary" style="width: auto; padding: 8px 20px;">
+              Save Note
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -503,12 +593,14 @@
         });
       }
       // Initialize Chatbot
-      const chatbot = new WorkspaceChatbot({
-        workspace: 'engineering',
-        projectId: projectId,
-        containerId: 'ai-panel',
-        inputId: 'omni-input'
-      });
+      if (typeof WorkspaceChatbot !== 'undefined') {
+        const chatbot = new WorkspaceChatbot({
+          workspace: 'engineering',
+          projectId: projectId,
+          containerId: 'ai-panel',
+          inputId: 'omni-input'
+        });
+      }
       // Initialize Workspace Notes
       if (typeof WorkspaceNotes !== 'undefined') {
         window.workspaceNotes = new WorkspaceNotes({
@@ -521,6 +613,9 @@
         document.getElementById('btn-screenshot')?.addEventListener('click', async () => await workspaceNotes.attachScreenshot());
         document.getElementById('btn-new-note')?.addEventListener('click', async () => await workspaceNotes.createNewNote());
         document.getElementById('btn-pdf-export')?.addEventListener('click', async () => await workspaceNotes.exportToPDF());
+        // Wire up popup note editor handlers
+        document.getElementById('btn-screenshot-note')?.addEventListener('click', async () => await workspaceNotes.attachScreenshot());
+        document.getElementById('btn-pdf-note')?.addEventListener('click', async () => await workspaceNotes.exportToPDF());
       }
       // Check if we should start in viewer mode (url param)
       const startLesson = params.get('lesson');

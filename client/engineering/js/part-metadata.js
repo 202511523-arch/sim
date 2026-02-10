@@ -1,41 +1,42 @@
 export const PartMetadata = {
   // --- V4 Engine Specific ---
   v4Engine: {
-    'Solid1003_22': { name: 'Piston', description: 'Core component that converts combustion chamber pressure into mechanical force.' },
-    'Solid1003_24': { name: 'Piston', description: 'Core component that converts combustion chamber pressure into mechanical force.' },
-    'Solid1003_15': { name: 'Piston', description: 'Core component that converts combustion chamber pressure into mechanical force.' },
-    'Solid1003_3': { name: 'Piston', description: 'Core component that converts combustion chamber pressure into mechanical force.' },
+    '솔리드1003_22': { name: 'Piston', description: 'Core component that converts combustion chamber pressure into mechanical force.' },
+    '솔리드1003_24': { name: 'Piston', description: 'Core component that converts combustion chamber pressure into mechanical force.' },
+    '솔리드1003_15': { name: 'Piston', description: 'Core component that converts combustion chamber pressure into mechanical force.' },
+    '솔리드1003_3': { name: 'Piston', description: 'Core component that converts combustion chamber pressure into mechanical force.' },
 
-    'Solid1003_23': { name: 'Connecting Rod', description: 'Connects the piston to the crankshaft, converting reciprocating motion into rotary motion.' },
-    'Solid1003_25': { name: 'Connecting Rod', description: 'Connects the piston to the crankshaft, converting reciprocating motion into rotary motion.' },
-    'Solid1003_16': { name: 'Connecting Rod', description: 'Connects the piston to the crankshaft, converting reciprocating motion into rotary motion.' },
-    'Solid1003_4': { name: 'Connecting Rod', description: 'Connects the piston to the crankshaft, converting reciprocating motion into rotary motion.' },
+    '솔리드1003_23': { name: 'Connecting Rod', description: 'Connects the piston to the crankshaft, converting reciprocating motion into rotary motion.' },
+    '솔리드1003_25': { name: 'Connecting Rod', description: 'Connects the piston to the crankshaft, converting reciprocating motion into rotary motion.' },
+    '솔리드1003_16': { name: 'Connecting Rod', description: 'Connects the piston to the crankshaft, converting reciprocating motion into rotary motion.' },
+    '솔리드1003_4': { name: 'Connecting Rod', description: 'Connects the piston to the crankshaft, converting reciprocating motion into rotary motion.' },
 
-    'Solid1003_19': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
-    'Solid1003_28': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
-    'Solid1003_12': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
-    'Solid1003_7': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
-    'Solid1003_20': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
-    'Solid1003_29': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
-    'Solid1003_13': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
-    'Solid1003_8': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
+    '솔리드1003_19': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
+    '솔리드1003_28': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
+    '솔리드1003_12': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
+    '솔리드1003_7': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
+    '솔리드1003_20': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
+    '솔리드1003_29': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
+    '솔리드1003_13': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
+    '솔리드1003_8': { name: 'Crankshaft', description: 'Core shaft that transfers power by converting reciprocating motion into rotary motion.' },
 
-    'Solid1003_17': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
-    'Solid1003_18': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
-    'Solid1003_27': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
-    'Solid1003_26': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
-    'Solid1003_10': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
-    'Solid1003_11': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
-    'Solid1003_6': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
-    'Solid1003_5': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
+    '솔리드1003_17': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
+    '솔리드1003_18': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
+    '솔리드1003_27': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
+    '솔리드1003_26': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
+    '솔리드1003_10': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
+    '솔리드1003_11': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
+    '솔리드1003_6': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
+    '솔리드1003_5': { name: 'Bolt', description: 'Precision machined bolt maintaining a secure connection between components.' },
 
-    'Solid1003_1': { name: 'Engine Block', description: 'The main body of the engine containing cylinders and cooling passages.' },
-    'Solid1003_2': { name: 'Engine Block', description: 'The main body of the engine containing cylinders and cooling passages.' }
+    '솔리드1003_1': { name: 'Engine Block', description: 'The main body of the engine containing cylinders and cooling passages.' },
+    '솔리드1003_2': { name: 'Engine Block', description: 'The main body of the engine containing cylinders and cooling passages.' }
   },
 
   // --- Robot Gripper Specific ---
   robotGripper: {
     'Solid1008': { name: 'Gripper Base', description: 'The main structure of the gripper attached to the robot arm end.' },
+    'Solid1007': { name: 'Hinge', description: 'A rotational hinge component allowing finger movement.' },
     'Solid1011': { name: 'Finger', description: 'A finger component used for directly grasping objects.' },
     'Solid1016': { name: 'Finger', description: 'A finger component used for directly grasping objects.' },
     'Solid1002': { name: 'Base Gear', description: 'A drive gear that transfers rotational force to finger movement.' },
@@ -64,7 +65,18 @@ export const PartMetadata = {
     'Solid1_1001': { name: 'Axis 1', description: 'The first rotational joint of the robot arm.' },
     'Solid1_2002': { name: 'Axis 2', description: 'The second rotational joint (Pitching Axis) of the robot arm.' },
     'Solid1_3001': { name: 'Axis 2', description: 'The second rotational joint (Pitching Axis) of the robot arm.' },
-    'Solid1_1002': { name: 'Axis 2', description: 'The second rotational joint (Pitching Axis) of the robot arm.' }
+    'Solid1_1002': { name: 'Axis 2', description: 'The second rotational joint (Pitching Axis) of the robot arm.' },
+
+    // Additional Robot Arm Parts
+    'Solid1001': { name: 'Link', description: 'Structural arm component (링크).' },
+    'Solid1001_1': { name: 'Link', description: 'Structural arm component (링크).' },
+    'Solid1002': { name: 'Vertical Joint', description: 'A vertical rotation joint (관절(상하)).' },
+    'Solid1002_1': { name: 'Vertical Joint', description: 'A vertical rotation joint (관절(상하)).' },
+    'Solid1003': { name: 'Link', description: 'Structural arm component (링크).' },
+    'Solid1004': { name: 'Link', description: 'Structural arm component (링크).' },
+    'Solid1005': { name: 'Vertical Joint', description: 'A vertical rotation joint (관절(상하)).' },
+    'Solid1006': { name: 'Horizontal Joint', description: 'A horizontal rotation joint (관절(좌우)).' },
+    'Solid1011': { name: 'Gripper', description: 'The end effector for grasping objects (집게).' }
   },
 
   // --- Leaf Spring Specific ---
@@ -81,12 +93,14 @@ export const PartMetadata = {
     'Solid1': { name: 'Spring Support', description: 'A structure supporting the connection between the vehicle body and leaf spring.' },
     'Solid1001': { name: 'Spring Support', description: 'A structure supporting the connection between the vehicle body and leaf spring.' },
     'Solid2': { name: 'Support Rigid', description: 'High-strength frame connection with high rigidity.' },
-    'Solid2002': { name: 'Support Rigid', description: 'High-strength frame connection with high rigidity.' }
+    'Solid2002': { name: 'Support Rigid', description: 'High-strength frame connection with high rigidity.' },
+    'Solid2001_2': { name: 'Main Clamp', description: 'A clamp used to keep stacked springs in alignment.' }
   },
 
   // --- Suspension Specific ---
   suspension: {
     'Solid1020_1': { name: 'Suspension Base', description: 'The bottom base supporting the shock absorbing device.' },
+    'SOLID1020': { name: 'Suspension Base', description: 'The bottom base supporting the shock absorbing device.' },
     'Solid1007': { name: 'Piston Rod', description: 'A precision piston shaft that transfers damping force via reciprocating motion.' },
     'Solid1008': { name: 'Coil Spring', description: 'An elastic spring that supports vehicle weight and absorbs shock.' },
     'Solid1002': { name: 'Nut', description: 'A precision screw part that secures the top portion to the mount.' }
@@ -120,8 +134,9 @@ export const normalizePartName = (str) => {
     return s.replace(/[^a-z0-9]/g, '') + '1';
   }
 
-  // 3. General normalization (remove all punctuation but NOT leading zeros in the middle)
-  return s.replace(/[^a-z0-9]/g, '');
+  // 3. General normalization (allow alphanumeric, underscore, and Korean)
+  // Remove spaces and special chars that are NOT underscore or dot
+  return s.replace(/[^a-z0-9가-힣_.]/g, '');
 };
 
 export function getPartInfo(childName, section = 'common') {
