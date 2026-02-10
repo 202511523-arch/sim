@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMVEX Workflow Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <!-- Reusing existing main styles -->
+    <!-- Reusing existing main styles -->
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/workspace.css">
+    <link rel="stylesheet" href="css/editor.css">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+<body>
+    <div class="editor-container">
+        <!-- Header -->
+        <header class="editor-header">
+            <div class="header-left">
+                <a href="../dashboard.html" class="back-btn">
+                    <span class="material-icons-round">arrow_back</span>
+                </a>
+                <div class="workflow-info">
+                    <h1 class="workflow-title" contenteditable="true">Untitled Workflow</h1>
+                    <span class="save-status">All changes saved</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="collaborators-list" id="collaborators-list">
+                    <!-- Avatars will be injected here -->
+                </div>
+                <button class="btn btn-secondary" id="new-project-btn"
+                    style="margin-right: 10px; background: rgba(99, 102, 241, 0.1); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3);">
+                    <span class="material-icons-round">create_new_folder</span>
+                    New Project
+                </button>
+                <button class="btn btn-secondary" id="new-workflow-btn" style="margin-right: 10px;">
+                    <span class="material-icons-round">add</span>
+                    New Workflow
+                </button>
+                <button class="btn btn-secondary" id="open-workflow-btn" style="margin-right: 10px;">
+                    <span class="material-icons-round">folder_open</span>
+                    Open
+                </button>
+                <button class="btn btn-primary" id="save-workflow-btn" style="margin-right: 10px;">
+                    <span class="material-icons-round">save</span>
+                    Save
+                </button>
+                <button class="btn btn-primary" id="run-workflow-btn">
+                    <span class="material-icons-round">play_arrow</span>
+                    Run
+                </button>
+                <button class="btn btn-secondary" id="share-btn">
+                    <span class="material-icons-round">share</span>
+                    Share
+                </button>
+            </div>
+        </header>
+        <!-- Custom Modal -->
+        <div id="custom-modal" class="modal-overlay"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="modal-content"
+                style="background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid #334155; width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                <h3 id="modal-title" style="margin: 0 0 12px 0; color: #f8fafc; font-size: 18px;">Title</h3>
+                <p id="modal-message" style="color: #cbd5e1; font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
+                    Message</p>
+                <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <button id="modal-cancel-btn" class="btn btn-secondary" style="display: none;">Cancel</button>
+                    <button id="modal-confirm-btn" class="btn btn-primary">OK</button>
+                </div>
+            </div>
+        </div>
+        <!-- Main Workspace -->
+        <main class="editor-workspace">
+            <!-- Node Palette (Sidebar) -->
+            <aside class="node-palette">
+                <h3>Nodes</h3>
+                <div class="node-category">
+                    <h4>Input</h4>
+                    <div class="draggable-item" draggable="true" data-type="input-data">
+                        <span class="material-icons-round">input</span>
+                        Data Source
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="input-params">
+                        <span class="material-icons-round">tune</span>
+                        Parameters
+                    </div>
+                </div>
+                <div class="node-category">
+                    <h4>Processing</h4>
+                    <div class="draggable-item" draggable="true" data-type="process-filter">
+                        <span class="material-icons-round">filter_alt</span>
+                        Filter
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="process-analyze">
+                        <span class="material-icons-round">analytics</span>
+                        Analyze
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="process-simulate">
+                        <span class="material-icons-round">science</span>
+                        Simulate
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="process-script">
+                        <span class="material-icons-round">code</span>
+                        Script
+                    </div>
+                </div>
+                <div class="node-category">
+                    <h4>Output</h4>
+                    <div class="draggable-item" draggable="true" data-type="output-chart">
+                        <span class="material-icons-round">bar_chart</span>
+                        Chart
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="output-report">
+                        <span class="material-icons-round">description</span>
+                        Report
+                    </div>
+                </div>
+            </aside>
+            <!-- Node Canvas -->
+            <div class="node-canvas" id="node-canvas">
+                <!-- SVG Layer for connections -->
+                <svg class="connections-layer" id="connections-layer"></svg>
+                <!-- HTML Layer for nodes -->
+                <div class="nodes-layer" id="nodes-layer">
+                    <!-- Nodes will be injected here -->
+                </div>
+            </div>
+            <!-- Properties Panel -->
+            <aside class="properties-panel" id="properties-panel">
+                <div class="panel-header">
+                    <h3>Properties</h3>
+                    <button class="close-panel-btn"><span class="material-icons-round">close</span></button>
+                </div>
+                <div class="panel-content" id="properties-content">
+                    <p class="placeholder-text">Select a node to view properties</p>
+                </div>
+            </aside>
+        </main>
+    </div>
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="js/workflow-main.js"></script>
+<script src="/js/pwa.js"></script>
+</body>
+</html>

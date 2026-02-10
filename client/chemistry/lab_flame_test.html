@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMVEX Lab - Metal Flame Test</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="chemistry-theme.css">
+    <link rel="stylesheet" href="../css/workspace-new.css">
+    <link rel="stylesheet" href="../css/popup-panels.css">
+    <style>
+        .lab-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            padding: 20px;
+            height: calc(100vh - 70px);
+        }
+
+        .experiment-area {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .bunsen-burner {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 150px;
+            background: linear-gradient(to right, #555, #888, #555);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .flame {
+            position: absolute;
+            bottom: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 80px;
+            background: radial-gradient(circle at bottom, #4A9EFF, transparent 70%);
+            border-radius: 50% 50% 20% 20%;
+            filter: blur(5px);
+            animation: flicker 0.1s infinite alternate;
+            transition: background 0.5s ease;
+        }
+
+        @keyframes flicker {
+            0% {
+                transform: translateX(-50%) scale(1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: translateX(-50%) scale(1.05);
+                opacity: 1;
+            }
+        }
+
+        .wire-tool {
+            position: absolute;
+            width: 200px;
+            height: 6px;
+            background: #aaa;
+            border-radius: 3px;
+            cursor: move;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .wire-tip {
+            position: absolute;
+            right: 0;
+            width: 15px;
+            height: 15px;
+            background: #eee;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            transition: background 0.3s;
+        }
+
+        .test-tubes {
+            position: absolute;
+            bottom: 30px;
+            right: 50px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .test-tube {
+            width: 30px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0 0 15px 15px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .test-tube:hover {
+            transform: translateY(-10px);
+        }
+
+        .solution {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            right: 2px;
+            height: 60%;
+            border-radius: 0 0 13px 13px;
+            opacity: 0.6;
+        }
+
+        .tube-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .experiment-log {
+            padding: 20px;
+            background: var(--bg-sidebar);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 12px;
+        }
+    </style>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+
+<body class="premium-theme">
+    <div class="app-shell">
+        <!-- Unified Header -->
+        <header class="simvex-header">
+            <div class="logo-section">
+                <span class="logo-icon material-icons-round" style="color: var(--accent-primary);">science</span>
+                <span class="logo-text">SIMVEX Chemistry</span>
+            </div>
+            <!-- Collaboration Users -->
+            <div id="collaboration-users" style="margin-left: 16px;"></div>
+            <nav class="nav-pills header-center">
+                <a href="/dashboard.html" class="nav-pill">Dashboard</a>
+                <a href="study.html" class="nav-pill">Study</a>
+                <a href="simulation.html" class="nav-pill">Simulation</a>
+                <a href="lab.html" class="nav-pill active">Lab</a>
+            </nav>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+                <!-- Project Save Button -->
+                <button id="project-save-btn" class="save-button" title="Save project">
+                    <span class="material-icons-round" style="font-size: 18px;">save</span>
+                    <span id="save-status-text">Save</span>
+                </button>
+                <div id="navbar-controls" style="display: flex; align-items: center;">
+                    <!-- Timer here -->
+                </div>
+            </div>
+        </header>
+        <main class="lab-container">
+            <div class="experiment-area" id="lab-canvas">
+                <div class="flame" id="main-flame"></div>
+                <div class="bunsen-burner"></div>
+                <div class="wire-tool" id="wire">
+                    <div class="wire-tip" id="wire-tip"></div>
+                </div>
+                <div class="test-tubes">
+                    <div class="test-tube" data-element="Li" title="Lithium">
+                        <div class="solution" style="background: #ff4d4d;"></div>
+                        <div class="tube-label">LiCl</div>
+                    </div>
+                    <div class="test-tube" data-element="Na" title="Sodium">
+                        <div class="solution" style="background: #ffcc00;"></div>
+                        <div class="tube-label">NaCl</div>
+                    </div>
+                    <div class="test-tube" data-element="K" title="Potassium">
+                        <div class="solution" style="background: #e6b3ff;"></div>
+                        <div class="tube-label">KCl</div>
+                    </div>
+                    <div class="test-tube" data-element="Cu" title="Copper">
+                        <div class="solution" style="background: #33ccff;"></div>
+                        <div class="tube-label">CuCl2</div>
+                    </div>
+                    <div class="test-tube" data-element="Sr" title="Strontium">
+                        <div class="solution" style="background: #ff3399;"></div>
+                        <div class="tube-label">SrCl2</div>
+                    </div>
+                    <div class="test-tube" data-element="Ba" title="Barium">
+                        <div class="solution" style="background: #ccff66;"></div>
+                        <div class="tube-label">BaCl2</div>
+                    </div>
+                </div>
+            </div>
+            <aside class="experiment-log">
+                <div class="side-panel">
+                    <div class="panel-header">
+                        <span class="material-icons-round">info</span>
+                        <h3>Experiment Guide</h3>
+                    </div>
+                    <div class="panel-content">
+                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                            1. Move the mouse to move the platinum wire.<br>
+                            2. Dip the wire tip into a test tube to pick up the sample.<br>
+                            3. Place the wire into the flame and observe the color change.<br>
+                            4. Identify the element based on the flame color.
+                        </p>
+                    </div>
+                </div>
+                <div class="side-panel">
+                    <div class="panel-header">
+                        <div class="accent yellow"></div>
+                        <span class="material-icons-round">history</span>
+                        <h3>Observation Log</h3>
+                    </div>
+                    <div id="observation-log" class="panel-content"
+                        style="max-height: 300px; overflow-y: auto; font-size: 12px;">
+                        <div class="empty-state">No records yet.</div>
+                    </div>
+                </div>
+                <button class="action-btn" onclick="location.reload()">Reset Experiment</button>
+            </aside>
+        </main>
+    </div>
+    <!-- Custom Eraser Cursor -->
+    <div id="custom-cursor"
+        style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
+        <div id="cursor-circle"
+            style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
+        </div>
+        <span class="material-icons-round" id="cursor-icon"
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
+    </div>
+    <!-- Drawing Canvas (Global Overlay) -->
+    <canvas id="draw-canvas"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
+    <script>
+        const wire = document.getElementById('wire');
+        const wireTip = document.getElementById('wire-tip');
+        const flame = document.getElementById('main-flame');
+        const labCanvas = document.getElementById('lab-canvas');
+        const tubes = document.querySelectorAll('.test-tube');
+        const log = document.getElementById('observation-log');
+        let currentElement = null;
+        let isOverFlame = false;
+        const flameColors = {
+            'Li': 'radial-gradient(circle at bottom, #ff0055, #ff4d4d, transparent 70%)',
+            'Na': 'radial-gradient(circle at bottom, #ffcc00, #ffff00, transparent 70%)',
+            'K': 'radial-gradient(circle at bottom, #e6b3ff, #cc99ff, transparent 70%)',
+            'Cu': 'radial-gradient(circle at bottom, #00ffcc, #33ff99, transparent 70%)',
+            'Sr': 'radial-gradient(circle at bottom, #ff3300, #ff6633, transparent 70%)',
+            'Ba': 'radial-gradient(circle at bottom, #ccff33, #99ff66, transparent 70%)',
+            'default': 'radial-gradient(circle at bottom, #4A9EFF, rgba(74, 158, 255, 0.5), transparent 70%)'
+        };
+        const elementNames = {
+            'Li': 'Lithium (Li)', 'Na': 'Sodium (Na)', 'K': 'Potassium (K)',
+            'Cu': 'Copper (Cu)', 'Sr': 'Strontium (Sr)', 'Ba': 'Barium (Ba)'
+        };
+        document.addEventListener('mousemove', (e) => {
+            const rect = labCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            wire.style.left = (x - 180) + 'px';
+            wire.style.top = (y - 3) + 'px';
+            checkInteractions(x, y);
+        });
+        function checkInteractions(x, y) {
+            // Check tubes
+            tubes.forEach(tube => {
+                const rect = tube.getBoundingClientRect();
+                const labRect = labCanvas.getBoundingClientRect();
+                const tx = rect.left - labRect.left + rect.width / 2;
+                const ty = rect.top - labRect.top + rect.height / 2;
+                const dist = Math.sqrt(Math.pow(x - tx, 2) + Math.pow(y - ty, 2));
+                if (dist < 30) {
+                    const el = tube.dataset.element;
+                    if (currentElement !== el) {
+                        currentElement = el;
+                        wireTip.style.background = tube.querySelector('.solution').style.background;
+                        wireTip.style.boxShadow = `0 0 15px ${wireTip.style.background}`;
+                    }
+                }
+            });
+            // Check flame
+            const flameRect = flame.getBoundingClientRect();
+            const labRect = labCanvas.getBoundingClientRect();
+            const fx = flameRect.left - labRect.left + flameRect.width / 2;
+            const fy = flameRect.top - labRect.top + flameRect.height / 2;
+            const distFlame = Math.sqrt(Math.pow(x - fx, 2) + Math.pow(y - fy, 2));
+            if (distFlame < 50) {
+                if (!isOverFlame && currentElement) {
+                    isOverFlame = true;
+                    applyFlameColor(currentElement);
+                }
+            } else {
+                if (isOverFlame) {
+                    isOverFlame = false;
+                    resetFlameColor();
+                }
+            }
+        }
+        function applyFlameColor(el) {
+            flame.style.background = flameColors[el];
+            flame.style.height = '120px';
+            flame.style.width = '60px';
+            flame.style.filter = 'blur(8px)';
+            // Log entry
+            if (log.querySelector('.empty-state')) log.innerHTML = '';
+            const entry = document.createElement('div');
+            entry.style.padding = '8px';
+            entry.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+            entry.innerHTML = `[${new Date().toLocaleTimeString()}] <b style="color:var(--accent-blue)">${elementNames[el]}</b> Observed: Flame color change confirmed`;
+            log.prepend(entry);
+        }
+        function resetFlameColor() {
+            flame.style.background = flameColors['default'];
+            flame.style.height = '80px';
+            flame.style.width = '40px';
+            flame.style.filter = 'blur(5px)';
+        }
+    </script>
+    <!-- Floating Action Buttons -->
+    <div class="floating-actions">
+        <button class="fab" id="fab-notes" title="Notes">
+            <span class="material-icons-round">edit_note</span>
+        </button>
+        <button class="fab" id="fab-chat" title="AI Assistant">
+            <span class="material-icons-round">smart_toy</span>
+        </button>
+        <button class="fab" id="fab-sticky" title="Sticky Note">
+            <span class="material-icons-round">sticky_note_2</span>
+        </button>
+        <button class="fab" id="fab-draw" title="Drawing Tool">
+            <span class="material-icons-round">draw</span>
+        </button>
+    </div>
+    <!-- Sticky Notes Container -->
+    <div id="sticky-notes-container"></div>
+    <!-- Chat Popup -->
+    <div class="popup-panel" id="chat-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">smart_toy</span>
+                Chemistry Tutor
+            </div>
+            <button class="popup-close" onclick="closePopup('chat-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="ai-panel">
+            <div id="chat-messages" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+        <div class="popup-footer">
+            <div class="ai-omni-input" style="display: flex; gap: 10px;">
+                <input type="text" id="omni-input" class="input" placeholder="Ask about chemistry concepts..."
+                    style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 20px; padding: 10px 15px; color: white;">
+                <button class="btn-circle" id="omni-send"
+                    style="background: var(--accent-blue); border: none; border-radius: 50%; width: 40px; height: 40px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-icons-round">send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Notes Popup -->
+    <div class="popup-panel" id="notes-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">edit_note</span>
+                Notes
+            </div>
+            <button class="popup-close" onclick="closePopup('notes-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="notes-panel">
+            <textarea id="notepad" placeholder="Study notes..."
+                style="width: 100%; height: 100%; background: transparent; border: none; color: white; padding: 15px; resize: none; outline: none;"></textarea>
+        </div>
+        <div
+            style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+            <button class="btn-circle" id="btn-new-note" title="New Note"
+                style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer;"><span
+                    class="material-icons-round">add</span></button>
+            <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot"
+                style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer;"><span
+                    class="material-icons-round">camera_alt</span></button>
+            <button class="btn-circle" id="btn-pdf-export" title="Export PDF"
+                style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer;"><span
+                    class="material-icons-round">download</span></button>
+            <button class="btn-circle" id="btn-save-note" title="Save"
+                style="flex: 1; border-radius: 20px; background: var(--accent-blue); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                <span class="material-icons-round">save</span> Save
+            </button>
+        </div>
+    </div>
+    <!-- Draw Tool Popup -->
+    <div class="popup-panel" id="draw-popup">
+        <div class="popup-header">
+            <div class="popup-title"><span class="material-icons-round">draw</span> Drawing Tool</div>
+            <button class="popup-close" onclick="closePopup('draw-popup')"><span
+                    class="material-icons-round">close</span></button>
+        </div>
+        <div class="popup-body" style="padding: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
+                    <div style="display: flex; gap: 8px;"><button class="draw-tool-btn active" data-tool="pen"
+                            title="Pen"><span class="material-icons-round">edit</span></button><button
+                            class="draw-tool-btn" data-tool="eraser" title="Eraser"><span
+                                class="material-icons-round">ink_eraser</span></button><button class="draw-tool-btn"
+                            data-tool="highlighter" title="Highlighter"><span
+                                class="material-icons-round">format_paint</span></button></div>
+                </div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;"><button class="color-btn active"
+                            data-color="#8b5cf6" style="background: #8b5cf6;"></button><button class="color-btn"
+                            data-color="#FF6B6B" style="background: #FF6B6B;"></button><button class="color-btn"
+                            data-color="#4ECDC4" style="background: #4ECDC4;"></button><button class="color-btn"
+                            data-color="#45B7D1" style="background: #45B7D1;"></button><button class="color-btn"
+                            data-color="#FFFFFF" style="background: #FFFFFF;"></button></div>
+                </div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Brush
+                        Size: <span id="brush-size-value">3</span>px</label><input type="range" id="brush-size" min="1"
+                        max="20" value="3" style="width: 100%; accent-color: var(--accent-primary);"></div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Opacity:
+                        <span id="opacity-value">100</span>%</label><input type="range" id="draw-opacity" min="10"
+                        max="100" value="100" style="width: 100%; accent-color: var(--accent-primary);"></div>
+                <!-- Actions -->
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                    <button class="btn-circle" id="btn-clear-canvas" title="Clear All"
+                        style="width: 100%; border-radius: 8px; background: rgba(220, 38, 38, 0.15); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.3); justify-content: center;">
+                        <span class="material-icons-round">close</span>
+                        <span style="margin-left: 6px;">Clear</span>
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
+                        style="flex: 1; border-radius: 8px; background: rgba(30, 58, 138, 0.4); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; justify-content: center;">
+                        <span class="material-icons-round">visibility</span>
+                        <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
+                    </button>
+                    <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
+                        style="flex: 1; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: var(--text-secondary); justify-content: center;">
+                        <span class="material-icons-round">edit_off</span>
+                        <span style="margin-left: 6px;" id="toggle-draw-text">Enable Drawing</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
+    <script src="../js/workspace-common/workspace-chatbot.js"></script>
+    <script src="../js/workspace-common/workspace-notes.js"></script>
+    <script src="../js/workspace-common/time-tracker.js"></script>
+    <script src="../js/workspace-common/study-timer.js"></script>
+    <script src="js/study-lab-logic.js"></script>
+    <script src="../js/workspace-common/chemistry-quiz-data.js"></script>
+    <script src="../js/workspace-common/workspace-quiz.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Parse URL Params first
+            const urlParams = new URLSearchParams(window.location.search);
+            let projectId = urlParams.get('id') || urlParams.get('project') || urlParams.get('projectId');
+            if (!projectId) {
+                console.warn('No projectId in URL - using dev fallback');
+                projectId = 'dev-demo-project';
+            }
+            // Init Collaboration
+            if (typeof WorkspaceCollaboration !== 'undefined') {
+                window.workspaceCollaboration = new WorkspaceCollaboration({
+                    projectId: projectId,
+                    containerId: 'collaboration-users'
+                });
+            }
+            // Init Study Timer
+            if (typeof StudyTimer !== 'undefined') {
+                new StudyTimer({ projectId: projectId, containerId: 'navbar-controls' });
+            }
+            // Initialize Quiz
+            if (typeof WorkspaceQuiz !== 'undefined') {
+                new WorkspaceQuiz({
+                    workspace: 'chemistry',
+                    containerId: 'navbar-controls'
+                });
+            }
+        });
+    </script>
+    <script src="/js/pwa.js"></script>
+</body>
+
+</html>

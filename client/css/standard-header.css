@@ -1,0 +1,144 @@
+/* Standardized Header Styles */
+
+:root {
+    --header-height: 60px;
+    --accent-primary: #0088FF;
+    /* Default blue, override per module */
+    --accent-secondary: #00C2FF;
+    --accent-glow: 0 0 15px rgba(0, 136, 255, 0.4);
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0b0;
+    --bg-header: rgba(20, 20, 25, 0.7);
+    /* Glassy */
+    --border-color: rgba(255, 255, 255, 0.1);
+}
+
+.simvex-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: var(--header-height);
+    position: relative;
+    z-index: 100;
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text-primary);
+}
+
+.logo-icon {
+    font-size: 24px;
+}
+
+/* Centered Navigation */
+.nav-pills {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.nav-pill {
+    padding: 8px 24px;
+    border-radius: 999px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.nav-pill:hover:not(.active) {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-pill.active {
+    background: var(--accent-primary);
+    color: white;
+    box-shadow: var(--accent-glow);
+}
+
+/* Save Button */
+.save-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 20px;
+    background: rgba(20, 25, 35, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.save-button:hover {
+    background: rgba(30, 35, 45, 0.8);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.save-button.unsaved {
+    background: rgba(255, 171, 0, 0.15) !important;
+    border-color: #ffab00 !important;
+    color: #ffab00 !important;
+    box-shadow: 0 0 0 1px rgba(255, 171, 0, 0.2), 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+    animation: pulse-warning 2s infinite !important;
+}
+
+@keyframes pulse-warning {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 171, 0, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 171, 0, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 171, 0, 0);
+    }
+}
+
+/* Header Icon Button (Quiz, etc) */
+.header-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 12px;
+}
+
+.header-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}

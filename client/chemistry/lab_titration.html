@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMVEX Lab - Acid-Base Titration</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="chemistry-theme.css">
+    <link rel="stylesheet" href="../css/workspace-new.css">
+    <link rel="stylesheet" href="../css/popup-panels.css">
+    <style>
+        .lab-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            padding: 20px;
+            height: calc(100vh - 70px);
+        }
+
+        .experiment-area {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.4);
+        }
+
+        /* titration Setup */
+        .setup-container {
+            position: relative;
+            width: 300px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .burette-container {
+            position: relative;
+            width: 20px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0 0 5px 5px;
+        }
+
+        .burette-liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(100, 200, 255, 0.4);
+            height: 100%;
+            transition: height 0.1s linear;
+        }
+
+        .burette-marks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: linear-gradient(to bottom, #fff 1px, transparent 1px);
+            background-size: 100% 20px;
+        }
+
+        .stopcock {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 10px;
+            background: #444;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 5;
+            transition: transform 0.2s;
+        }
+
+        .stopcock.open {
+            transform: translateX(-50%) rotate(90deg);
+        }
+
+        .drop {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(100, 200, 255, 0.6);
+            border-radius: 50%;
+            top: 310px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+        }
+
+        .flask {
+            position: absolute;
+            bottom: 0;
+            width: 120px;
+            height: 140px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .flask-liquid {
+            width: 100%;
+            height: 40%;
+            background: rgba(255, 255, 255, 0.4);
+            transition: background 0.5s ease;
+        }
+
+        /* Controls */
+        .controls-panel {
+            padding: 20px;
+            background: var(--bg-sidebar);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .gauge-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .ph-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .ph-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+
+<body class="premium-theme">
+    <div class="app-shell">
+        <!-- Unified Header -->
+        <header class="simvex-header">
+            <div class="logo-section">
+                <span class="logo-icon material-icons-round" style="color: var(--accent-primary);">science</span>
+                <span class="logo-text">SIMVEX Chemistry</span>
+            </div>
+            <!-- Collaboration Users -->
+            <div id="collaboration-users" style="margin-left: 16px;"></div>
+            <nav class="nav-pills header-center">
+                <a href="/dashboard.html" class="nav-pill">Dashboard</a>
+                <a href="study.html" class="nav-pill">Study</a>
+                <a href="simulation.html" class="nav-pill">Simulation</a>
+                <a href="lab.html" class="nav-pill active">Lab</a>
+            </nav>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+                <!-- Project Save Button -->
+                <button id="project-save-btn" class="save-button" title="Save project">
+                    <span class="material-icons-round" style="font-size: 18px;">save</span>
+                    <span id="save-status-text">Save</span>
+                </button>
+                <div id="navbar-controls" style="display: flex; align-items: center;">
+                    <!-- Timer here -->
+                </div>
+            </div>
+        </header>
+        <main class="lab-container">
+            <div class="experiment-area">
+                <div class="setup-container">
+                    <div class="burette-container">
+                        <div class="burette-liquid" id="burette-volume" style="height: 100%;"></div>
+                        <div class="burette-marks"></div>
+                        <div class="stopcock" id="stopcock"></div>
+                    </div>
+                    <div class="drop" id="liquid-drop"></div>
+                    <div class="flask">
+                        <div class="flask-liquid" id="flask-contents"></div>
+                    </div>
+                </div>
+            </div>
+            <aside class="controls-panel">
+                <div class="ph-display">
+                    <div class="gauge-label"><span>pH Meter</span><span id="ph-status">Acidic</span></div>
+                    <div class="ph-value" id="ph-val">1.00</div>
+                </div>
+                <div class="side-panel">
+                    <div class="panel-header">
+                        <h3>Experiment Setup</h3>
+                    </div>
+                    <div class="panel-content">
+                        <div class="gauge-label"><span>Sample</span><b>HCl (0.1M, 20mL)</b></div>
+                        <div class="gauge-label"><span>Titrant</span><b>NaOH (0.1M)</b></div>
+                        <div class="gauge-label"><span>Indicator</span><b>Phenolphthalein</b></div>
+                    </div>
+                </div>
+                <div class="side-panel">
+                    <div class="panel-header">
+                        <div class="accent yellow"></div>
+                        <h3>Data Log</h3>
+                    </div>
+                    <div class="panel-content">
+                        <div class="gauge-label"><span>Added NaOH</span><b id="added-vol">0.00 mL</b></div>
+                        <div id="titration-log"
+                            style="font-size: 11px; margin-top: 10px; max-height: 150px; overflow-y: auto;">
+                            <div class="empty-state">Waiting for observation...</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="action-btn" id="start-btn">Start/Stop</button>
+                <button class="action-btn secondary" onclick="location.reload()">Reset</button>
+            </aside>
+        </main>
+    </div>
+    <!-- Custom Eraser Cursor -->
+    <div id="custom-cursor"
+        style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
+        <div id="cursor-circle"
+            style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
+        </div>
+        <span class="material-icons-round" id="cursor-icon"
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
+    </div>
+    <!-- Drawing Canvas (Global Overlay) -->
+    <canvas id="draw-canvas"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
+    <script>
+        let isFlowing = false;
+        let addedVolume = 0;
+        let ph = 1.00;
+        let flowInterval = null;
+        const stopcock = document.getElementById('stopcock');
+        const buretteVol = document.getElementById('burette-volume');
+        const flaskContents = document.getElementById('flask-contents');
+        const drop = document.getElementById('liquid-drop');
+        const phVal = document.getElementById('ph-val');
+        const phStatus = document.getElementById('ph-status');
+        const addedVolDisplay = document.getElementById('added-vol');
+        const log = document.getElementById('titration-log');
+        const startBtn = document.getElementById('start-btn');
+        startBtn.onclick = toggleFlow;
+        stopcock.onclick = toggleFlow;
+        function toggleFlow() {
+            isFlowing = !isFlowing;
+            stopcock.classList.toggle('open', isFlowing);
+            startBtn.textContent = isFlowing ? 'Stop Experiment' : 'Resume Experiment';
+            if (isFlowing) {
+                flowInterval = setInterval(animateDrop, 100);
+            } else {
+                clearInterval(flowInterval);
+                drop.style.opacity = '0';
+            }
+        }
+        function animateDrop() {
+            // Drop animation
+            drop.style.opacity = '1';
+            drop.style.top = '310px';
+            setTimeout(() => {
+                drop.style.transition = 'top 0.3s linear, opacity 0.3s';
+                drop.style.top = '450px';
+                setTimeout(() => {
+                    drop.style.transition = 'none';
+                    drop.style.opacity = '0';
+                    processTitration(0.1); // Add 0.1mL per drop
+                }, 300);
+            }, 10);
+        }
+        function processTitration(amount) {
+            if (addedVolume >= 50) {
+                toggleFlow();
+                alert('Burette solution depleted.');
+                return;
+            }
+            addedVolume += amount;
+            addedVolDisplay.textContent = addedVolume.toFixed(2) + ' mL';
+            buretteVol.style.height = (100 - (addedVolume / 50 * 100)) + '%';
+            // PH Calculation (Simplified strong acid-strong base)
+            // HCl 20mL 0.1M = 2 mmol H+
+            // NaOH added mmol = addedVolume * 0.1
+            const h_init = 2; // mmol
+            const oh_added = addedVolume * 0.1;
+            const total_vol = 20 + addedVolume;
+            if (oh_added < h_init) {
+                // Acidic
+                const h_rem = h_init - oh_added;
+                ph = -Math.log10(h_rem / total_vol);
+            } else if (Math.abs(oh_added - h_init) < 0.001) {
+                // Neutral
+                ph = 7.00;
+            } else {
+                // Basic
+                const oh_rem = oh_added - h_init;
+                const pOH = -Math.log10(oh_rem / total_vol);
+                ph = 14 - pOH;
+            }
+            phVal.textContent = ph.toFixed(2);
+            updateUI();
+        }
+        function updateUI() {
+            // Color change logic (Phenolphthalein: colorless to pink at pH 8.3-10)
+            if (ph >= 8.3) {
+                const intensity = Math.min((ph - 8.3) / 1.7, 1);
+                flaskContents.style.background = `rgba(255, 0, 127, ${0.1 + intensity * 0.5})`;
+                if (log.innerHTML.includes('empty-state')) {
+                    log.innerHTML = `[${new Date().toLocaleTimeString()}] <b style="color:#ff3399">Color change observed:</b> Colorless → Pink`;
+                }
+            } else {
+                flaskContents.style.background = 'rgba(255, 255, 255, 0.4)';
+            }
+            if (ph < 6.5) phStatus.textContent = 'Strongly Acidic';
+            else if (ph < 7.5) {
+                phStatus.textContent = 'Neutral (Near endpoint)';
+                phVal.style.color = '#00ffaa';
+            }
+            else phStatus.textContent = 'Basic';
+        }
+    </script>
+    <!-- Floating Action Buttons -->
+    <div class="floating-actions">
+        <button class="fab" id="fab-notes" title="Notes">
+            <span class="material-icons-round">edit_note</span>
+        </button>
+        <button class="fab" id="fab-chat" title="AI Assistant">
+            <span class="material-icons-round">smart_toy</span>
+        </button>
+        <button class="fab" id="fab-sticky" title="Sticky Note">
+            <span class="material-icons-round">sticky_note_2</span>
+        </button>
+        <button class="fab" id="fab-draw" title="Drawing Tool">
+            <span class="material-icons-round">draw</span>
+        </button>
+    </div>
+    <!-- Sticky Notes Container -->
+    <div id="sticky-notes-container"></div>
+    <!-- Chat Popup -->
+    <div class="popup-panel" id="chat-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">smart_toy</span>
+                Chemistry Tutor
+            </div>
+            <button class="popup-close" onclick="closePopup('chat-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="ai-panel">
+            <div id="chat-messages" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+        <div class="popup-footer">
+            <div class="ai-omni-input" style="display: flex; gap: 10px;">
+                <input type="text" id="omni-input" class="input" placeholder="Ask about chemistry concepts..."
+                    style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 20px; padding: 10px 15px; color: white;">
+                <button class="btn-circle" id="omni-send"
+                    style="background: var(--accent-blue); border: none; border-radius: 50%; width: 40px; height: 40px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-icons-round">send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Notes Popup -->
+    <div class="popup-panel" id="notes-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">edit_note</span>
+                Notes
+            </div>
+            <button class="popup-close" onclick="closePopup('notes-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="notes-panel">
+            <textarea id="notepad" placeholder="Study notes..."
+                style="width: 100%; height: 100%; background: transparent; border: none; color: white; padding: 15px; resize: none; outline: none;"></textarea>
+        </div>
+        <div
+            style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+            <button class="btn-circle" id="btn-new-note" title="New Note"
+                style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer;"><span
+                    class="material-icons-round">add</span></button>
+            <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot"
+                style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer;"><span
+                    class="material-icons-round">camera_alt</span></button>
+            <button class="btn-circle" id="btn-pdf-export" title="Export PDF"
+                style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer;"><span
+                    class="material-icons-round">download</span></button>
+            <button class="btn-circle" id="btn-save-note" title="Save"
+                style="flex: 1; border-radius: 20px; background: var(--accent-blue); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                <span class="material-icons-round">save</span> Save
+            </button>
+        </div>
+    </div>
+    <!-- Draw Tool Popup -->
+    <div class="popup-panel" id="draw-popup">
+        <div class="popup-header">
+            <div class="popup-title"><span class="material-icons-round">draw</span> Drawing Tool</div>
+            <button class="popup-close" onclick="closePopup('draw-popup')"><span
+                    class="material-icons-round">close</span></button>
+        </div>
+        <div class="popup-body" style="padding: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
+                    <div style="display: flex; gap: 8px;"><button class="draw-tool-btn active" data-tool="pen"
+                            title="Pen"><span class="material-icons-round">edit</span></button><button
+                            class="draw-tool-btn" data-tool="eraser" title="Eraser"><span
+                                class="material-icons-round">ink_eraser</span></button><button class="draw-tool-btn"
+                            data-tool="highlighter" title="Highlighter"><span
+                                class="material-icons-round">format_paint</span></button></div>
+                </div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;"><button class="color-btn active"
+                            data-color="#8b5cf6" style="background: #8b5cf6;"></button><button class="color-btn"
+                            data-color="#FF6B6B" style="background: #FF6B6B;"></button><button class="color-btn"
+                            data-color="#4ECDC4" style="background: #4ECDC4;"></button><button class="color-btn"
+                            data-color="#45B7D1" style="background: #45B7D1;"></button><button class="color-btn"
+                            data-color="#FFFFFF" style="background: #FFFFFF;"></button></div>
+                </div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Brush
+                        Size: <span id="brush-size-value">3</span>px</label><input type="range" id="brush-size" min="1"
+                        max="20" value="3" style="width: 100%; accent-color: var(--accent-primary);"></div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Opacity:
+                        <span id="opacity-value">100</span>%</label><input type="range" id="draw-opacity" min="10"
+                        max="100" value="100" style="width: 100%; accent-color: var(--accent-primary);"></div>
+                <!-- Actions -->
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                    <button class="btn-circle" id="btn-clear-canvas" title="Clear All"
+                        style="width: 100%; border-radius: 8px; background: rgba(220, 38, 38, 0.15); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.3); justify-content: center;">
+                        <span class="material-icons-round">close</span>
+                        <span style="margin-left: 6px;">Clear</span>
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
+                        style="flex: 1; border-radius: 8px; background: rgba(30, 58, 138, 0.4); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; justify-content: center;">
+                        <span class="material-icons-round">visibility</span>
+                        <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
+                    </button>
+                    <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
+                        style="flex: 1; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: var(--text-secondary); justify-content: center;">
+                        <span class="material-icons-round">edit_off</span>
+                        <span style="margin-left: 6px;" id="toggle-draw-text">Enable Drawing</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
+    <script src="../js/workspace-common/workspace-chatbot.js"></script>
+    <script src="../js/workspace-common/workspace-notes.js"></script>
+    <script src="../js/workspace-common/time-tracker.js"></script>
+    <script src="../js/workspace-common/study-timer.js"></script>
+    <script src="js/study-lab-logic.js"></script>
+    <script src="../js/workspace-common/chemistry-quiz-data.js"></script>
+    <script src="../js/workspace-common/workspace-quiz.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Parse URL Params first
+            const urlParams = new URLSearchParams(window.location.search);
+            let projectId = urlParams.get('id') || urlParams.get('project') || urlParams.get('projectId');
+            if (!projectId) {
+                console.warn('No projectId in URL - using dev fallback');
+                projectId = 'dev-demo-project';
+            }
+            // Init Collaboration
+            if (typeof WorkspaceCollaboration !== 'undefined') {
+                window.workspaceCollaboration = new WorkspaceCollaboration({
+                    projectId: projectId,
+                    containerId: 'collaboration-users'
+                });
+            }
+            // Init Study Timer
+            if (typeof StudyTimer !== 'undefined') {
+                new StudyTimer({ projectId: projectId, containerId: 'navbar-controls' });
+            }
+            // Initialize Quiz
+            if (typeof WorkspaceQuiz !== 'undefined') {
+                new WorkspaceQuiz({
+                    workspace: 'chemistry',
+                    containerId: 'navbar-controls'
+                });
+            }
+        });
+    </script>
+    <script src="/js/pwa.js"></script>
+</body>
+
+</html>

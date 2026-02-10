@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMVEX - Workspace</title>
+    <meta name="description" content="SIMVEX Real-time Collaboration Workspace">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/workspace.css">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0e1a; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+        <div class="loader"
+            style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #0088FF; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;">
+        </div>
+        <h2 style="font-weight: 500; font-size: 1.2rem;">Loading project...</h2>
+        <style>
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+    </div>
+    <div class="workspace" style="display: none;">
+        <!-- Toolbar -->
+        <header class="toolbar">
+            <div class="toolbar-left">
+                <a href="dashboard.html" class="btn btn-ghost back-btn" title="To Dashboard">
+                    <span class="material-icons-round">arrow_back</span>
+                </a>
+                <div class="project-title">
+                    <span class="project-status"></span>
+                    <h1 id="projectName">Loading project...</h1>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="saveBtn">
+                    <span class="material-icons-round" style="font-size: 14px; margin-right: 4px;">save</span>
+                    Save
+                </button>
+            </div>
+            <div class="toolbar-center">
+                <button class="tool-btn active" data-tool="select" title="Select (V)">
+                    <span class="material-icons-round">near_me</span>
+                </button>
+                <button class="tool-btn" data-tool="move" title="Move (H)">
+                    <span class="material-icons-round">open_with</span>
+                </button>
+                <div class="tool-separator"></div>
+                <button class="tool-btn" data-tool="rectangle" title="Rectangle (R)">
+                    <span class="material-icons-round">crop_square</span>
+                </button>
+                <button class="tool-btn" data-tool="circle" title="Circle (O)">
+                    <span class="material-icons-round">circle</span>
+                </button>
+                <button class="tool-btn" data-tool="line" title="Line (L)">
+                    <span class="material-icons-round">horizontal_rule</span>
+                </button>
+                <button class="tool-btn" data-tool="text" title="Text (T)">
+                    <span class="material-icons-round">title</span>
+                </button>
+                <div class="tool-separator"></div>
+                <button class="tool-btn" data-tool="pencil" title="Pencil (P)">
+                    <span class="material-icons-round">edit</span>
+                </button>
+                <button class="tool-btn" data-tool="eraser" title="Eraser (E)">
+                    <span class="material-icons-round">auto_fix_normal</span>
+                </button>
+            </div>
+            <div class="toolbar-right">
+                <div class="collaborators" id="collaborators">
+                    <!-- Collaborators will be loaded here -->
+                </div>
+                <button class="btn btn-secondary" id="inviteBtn">
+                    <span class="material-icons-round" style="font-size: 16px; margin-right: 4px;">person_add</span>
+                    Invite
+                </button>
+                <button class="btn btn-ghost btn-icon" id="versionBtn" title="Version History">
+                    <span class="material-icons-round">history</span>
+                </button>
+                <button class="btn btn-ghost btn-icon" id="settingsBtn" title="Settings">
+                    <span class="material-icons-round">settings</span>
+                </button>
+            </div>
+        </header>
+        <!-- Left Panel -->
+        <aside class="left-panel">
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-panel="objects">Objects</button>
+                <button class="panel-tab" data-panel="assets">Assets</button>
+                <button class="panel-tab" data-panel="layers">Layers</button>
+            </div>
+            <div class="panel-content">
+                <!-- Objects Panel -->
+                <div id="objectsPanel">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-md);">
+                        <span class="text-muted" style="font-size: 0.75rem;">Object List</span>
+                        <button class="btn btn-ghost btn-sm" id="addObjectBtn">
+                            <span class="material-icons-round" style="font-size: 16px;">add</span>
+                        </button>
+                    </div>
+                    <ul class="objects-list" id="objectsList">
+                        <!-- Objects will be loaded dynamically -->
+                    </ul>
+                </div>
+                <!-- Assets Panel -->
+                <div id="assetsPanel" style="display: none;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-md);">
+                        <span class="text-muted" style="font-size: 0.75rem;">Asset Library</span>
+                        <button class="btn btn-ghost btn-sm" id="uploadAssetBtn">
+                            <span class="material-icons-round" style="font-size: 16px;">cloud_upload</span>
+                        </button>
+                    </div>
+                    <div class="assets-grid" id="assetsGrid">
+                        <!-- Assets will be loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!-- Canvas Area -->
+        <main class="canvas-area">
+            <div class="canvas-container">
+                <canvas id="mainCanvas"></canvas>
+                <!-- Remote cursors will be injected here -->
+                <div id="remoteCursors"></div>
+                <!-- Selection box for drag selection -->
+                <div class="selection-box" id="selectionBox" style="display: none;"></div>
+            </div>
+        </main>
+        <!-- Right Panel -->
+        <aside class="right-panel">
+            <button class="tool-btn" id="layersBtn" title="Layer Order">
+                <span class="material-icons-round">layers</span>
+            </button>
+            <button class="tool-btn" id="chatToggleBtn" title="Chat">
+                <span class="material-icons-round">chat</span>
+            </button>
+            <button class="tool-btn" id="commentsBtn" title="Comments">
+                <span class="material-icons-round">comment</span>
+            </button>
+            <div style="flex: 1;"></div>
+            <button class="tool-btn" id="helpBtn" title="Help">
+                <span class="material-icons-round">help_outline</span>
+            </button>
+        </aside>
+        <!-- Bottom Bar -->
+        <footer class="bottom-bar">
+            <div class="zoom-controls">
+                <button class="btn btn-ghost btn-sm" id="zoomOutBtn">
+                    <span class="material-icons-round" style="font-size: 16px;">zoom_out</span>
+                </button>
+                <span class="zoom-level" id="zoomLevel">100%</span>
+                <button class="btn btn-ghost btn-sm" id="zoomInBtn">
+                    <span class="material-icons-round" style="font-size: 16px;">zoom_in</span>
+                </button>
+                <button class="btn btn-ghost btn-sm" id="zoomFitBtn">
+                    <span class="material-icons-round" style="font-size: 16px;">center_focus_strong</span>
+                </button>
+            </div>
+            <div class="connection-status">
+                <span class="connection-indicator" id="connectionIndicator"></span>
+                <span id="connectionText">Connected</span>
+                <span class="text-muted" style="margin-left: var(--spacing-sm);" id="lastSaved">Last saved: Just
+                    now</span>
+            </div>
+            <div>
+                <span class="text-muted">Mouse: </span>
+                <span id="mousePosition">0, 0</span>
+            </div>
+        </footer>
+    </div>
+    <!-- Version Panel -->
+    <div class="version-panel" id="versionPanel">
+        <div class="version-header">
+            <h3>Version History</h3>
+            <button class="btn btn-ghost btn-sm" id="closeVersionBtn">
+                <span class="material-icons-round" style="font-size: 16px;">close</span>
+            </button>
+        </div>
+        <div class="version-list" id="versionList">
+            <!-- Versions will be loaded here -->
+        </div>
+        <div style="padding: var(--spacing-md);">
+            <button class="btn btn-primary" style="width: 100%;" id="createVersionBtn">
+                <span class="material-icons-round" style="font-size: 16px; margin-right: 4px;">save</span>
+                Save Current Version
+            </button>
+        </div>
+    </div>
+    <!-- Chat Panel -->
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+            <h4>Team Chat</h4>
+            <button class="btn btn-ghost btn-sm" id="closeChatBtn">
+                <span class="material-icons-round" style="font-size: 16px;">close</span>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be loaded here -->
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Enter message...">
+            <button class="btn btn-primary btn-sm" id="sendChatBtn">Send</button>
+        </div>
+    </div>
+    <!-- Invite Modal -->
+    <div class="modal-overlay" id="inviteModal">
+        <div class="modal">
+            <h2 style="margin-bottom: var(--spacing-lg);">Invite Team Member</h2>
+            <div class="share-link-box">
+                <input type="text" class="input share-link-input" id="shareLink" readonly
+                    placeholder="Generating share link...">
+                <button class="btn btn-secondary" id="copyLinkBtn">Copy</button>
+            </div>
+            <div class="invite-section">
+                <h4>Invite by Email</h4>
+                <div style="display: flex; gap: var(--spacing-sm); margin-top: var(--spacing-md);">
+                    <input type="email" class="input" id="inviteEmail" placeholder="Email Address">
+                    <select class="role-select" id="inviteRole">
+                        <option value="editor">Editor</option>
+                        <option value="viewer">Viewer</option>
+                    </select>
+                    <button class="btn btn-primary" id="sendInviteBtn">Invite</button>
+                </div>
+            </div>
+            <div class="invite-section">
+                <h4>Current Members</h4>
+                <div class="member-list" id="memberList">
+                    <!-- Members will be loaded here -->
+                </div>
+            </div>
+            <div style="margin-top: var(--spacing-xl); text-align: right;">
+                <button class="btn btn-secondary" id="closeInviteBtn">Close</button>
+            </div>
+        </div>
+    </div>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    <!-- Hidden file input -->
+    <input type="file" id="fileInput" style="display: none;" multiple accept="image/*,.obj,.stl,.gltf,.glb,.csv,.xlsx">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="js/api.js?v=1.1"></script>
+    <script src="js/workspace-common/workspace-collaboration.js?v=20260210"></script>
+    <script src="/js/pwa.js"></script>
+</body>
+
+</html>

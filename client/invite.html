@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMVEX - Project Invite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        body {
+            background: radial-gradient(circle at top right, #1a1a2e, #0a0a12);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .invite-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .app-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            color: #4f46e5;
+            font-size: 32px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .inviter-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #4f46e5;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .project-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .invite-desc {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .loader {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #4f46e5;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-msg {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+
+<body>
+    <div class="invite-card" id="inviteCard">
+        <div class="app-logo">
+            <span class="material-icons-round logo-icon">view_in_ar</span>
+            <span class="logo-text">SIMVEX</span>
+        </div>
+        <div id="loadingState">
+            <div class="loader"></div>
+            <p>Verifying invitation...</p>
+        </div>
+        <div id="errorState" style="display: none;">
+            <div class="error-msg" id="errorMessage">Invalid invitation link.</div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="location.href='dashboard.html'">Go to
+                Dashboard</button>
+        </div>
+        <div id="readyState" style="display: none;">
+            <img src="" alt="Inviter" class="inviter-avatar" id="inviterAvatar" referrerpolicy="no-referrer"
+                style="object-fit: cover;">
+            <h2 id="inviterName">User</h2>
+            <p class="invite-desc">
+                You have been invited to <strong id="projectName">Project</strong><br>
+                with <span id="roleText">edit permission</span>.
+            </p>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="acceptBtn" style="width: 100%; padding: 12px;">Accept
+                    Invitation</button>
+                <button class="btn btn-ghost" onclick="location.href='dashboard.html'">Decline</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/api.js"></script>
+    <script>
+        async function initInvite() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token') || window.location.pathname.split('/').pop();
+            const projectId = urlParams.get('id');
+            // Authentication check
+            const userToken = localStorage.getItem('simvex_token') || sessionStorage.getItem('simvex_token');
+            if (!userToken) {
+                // Save redirect URL
+                sessionStorage.setItem('simvex_redirect', window.location.href);
+                location.href = 'index.html?mode=login';
+                return;
+            }
+            if (!token && !projectId) {
+                showError('Invalid access.');
+                return;
+            }
+            try {
+                if (token) {
+                    const res = await api.getInvitation(token);
+                    if (res.success) {
+                        showReady(res.data.invitation, token);
+                    } else {
+                        showError('Invitation expired or invalid.');
+                    }
+                } else if (projectId) {
+                    // Direct project ID handling (simpler for testing on localhost)
+                    const res = await api.getProject(projectId);
+                    if (res.success) {
+                        // If already a member, redirect
+                        location.href = `dashboard.html`; // Or directly to workspace
+                    } else {
+                        showError('Unable to load project information.');
+                    }
+                }
+            } catch (err) {
+                showError(err.message || 'Failed to load invitation info.');
+            }
+        }
+        function showReady(invitation, token) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('readyState').style.display = 'block';
+            document.getElementById('inviterName').textContent = `${invitation.invitedBy}`;
+            document.getElementById('projectName').textContent = invitation.projectName;
+            document.getElementById('roleText').textContent = invitation.role === 'editor' ? 'Edit Permission' : 'View Permission';
+
+            const avatar = invitation.invitedByAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${invitation.invitedBy}`;
+            document.getElementById('inviterAvatar').src = avatar;
+
+            document.getElementById('acceptBtn').onclick = async () => {
+                try {
+                    const res = await api.acceptInvitation(token);
+                    console.log('=== API Response ===', res);
+                    if (res.success) {
+                        const projectId = res.data.projectId;
+                        const category = res.data.projectCategory;
+                        console.log('=== Redirect Debug ===');
+                        console.log('Project ID:', projectId);
+                        console.log('Category:', category);
+                        console.log('Category Type:', typeof category);
+                        // Redirect to correct path based on category
+                        const normalizedCategory = String(category).toLowerCase();
+                        let redirectUrl;
+                        if (normalizedCategory === 'chemistry') {
+                            redirectUrl = `chemistry/study.html?id=${projectId}`;
+                        } else if (normalizedCategory === 'biology') {
+                            redirectUrl = `biology/index.html?id=${projectId}`;
+                        } else if (normalizedCategory === 'earthscience' || normalizedCategory === 'earth') {
+                            redirectUrl = `earthscience/index.html?id=${projectId}`;
+                        } else {
+                            // engineering or others
+                            redirectUrl = `engineering/index.html?id=${projectId}`;
+                        }
+                        console.log('✅ Redirecting to:', redirectUrl);
+                        window.location.replace(redirectUrl);
+                    }
+                } catch (err) {
+                    console.error('❌ Accept error:', err);
+                    alert('Accept failed: ' + err.message);
+                }
+            };
+        }
+        function showError(msg) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = msg;
+        }
+        initInvite();
+    </script>
+    <script src="/js/pwa.js"></script>
+</body>
+
+</html>

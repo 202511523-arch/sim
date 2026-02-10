@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMVEX - Dashboard</title>
+  <meta name="description" content="SIMVEX Engineering Simulation Platform Dashboard">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/dashboard.css?v=1.5">
+  <link rel="stylesheet" href="css/dashboard_notifications.css">
+  <link rel="stylesheet" href="css/dashboard_select.css">
+  <link rel="stylesheet" href="css/chatbot.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+  <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+
+<body>
+  <div class="dashboard">
+    <!-- Header -->
+    <header class="header">
+      <a href="dashboard.html" class="logo" style="text-decoration: none; color: inherit;">
+        <span class="material-icons-round" style="font-size: 24px; color: var(--primary);">view_in_ar</span>
+        <span class="logo-text">SIMVEX</span>
+      </a>
+      <div class="header-actions">
+        <div class="notification-wrapper" style="position: relative;">
+          <button class="btn btn-icon btn-ghost notification-btn" id="notificationBtn">
+            <span class="material-icons-round">notifications</span>
+            <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+          </button>
+          <div class="notification-dropdown" id="notificationDropdown">
+            <div class="notification-header">
+              <h3>Notifications</h3>
+              <button class="btn-text btn-sm" onclick="dashboard.markAllRead()">Mark all read</button>
+            </div>
+            <div class="notification-list" id="notificationList">
+              <!-- Notifications loaded here -->
+              <div class="text-center p-3 text-muted">No notifications</div>
+            </div>
+          </div>
+        </div>
+        <div class="user-menu" id="userMenu" style="cursor: default;">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="Avatar" class="avatar" id="headerAvatar">
+          <span class="user-name" id="userName">User</span>
+        </div>
+      </div>
+    </header>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <button class="btn btn-primary create-btn" id="newProjectBtn">
+        <span class="material-icons-round" style="font-size: 20px;">add</span>
+        New Project
+      </button>
+      <nav class="sidebar-section">
+        <h3 class="sidebar-title">Menu</h3>
+        <li class="nav-item">
+          <a href="#" class="nav-link active" data-page="dashboard">
+            <span class="nav-icon">
+              <span class="material-icons-round">dashboard</span>
+            </span>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-page="projects">
+            <span class="nav-icon">
+              <span class="material-icons-round">folder</span>
+            </span>
+            My Projects
+            <span class="nav-badge" id="projectCount">0</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-page="library">
+            <span class="nav-icon">
+              <span class="material-icons-round">library_books</span>
+            </span>
+            Library
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-page="workflow">
+            <span class="nav-icon">
+              <span class="material-icons-round">schema</span>
+            </span>
+            Workflow
+            <span class="nav-badge" id="workflowCount">0</span>
+          </a>
+        </li>
+        <!-- Notepad removed, integrated into Library -->
+        </ul>
+      </nav>
+      <nav class="sidebar-section">
+        <h3 class="sidebar-title">Categories</h3>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#" class="nav-link" data-category="chemistry">
+              <span class="nav-icon">
+                <span class="material-icons-round">science</span>
+              </span>
+              Chemistry
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link" data-category="engineering">
+              <span class="nav-icon">
+                <span class="material-icons-round">precision_manufacturing</span>
+              </span>
+              Mechanical Eng.
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link" data-category="biology">
+              <span class="nav-icon">
+                <span class="material-icons-round">biotech</span>
+              </span>
+              Biology
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link" data-category="earthscience">
+              <span class="nav-icon">
+                <span class="material-icons-round">public</span>
+              </span>
+              Earth Science
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <nav class="sidebar-section">
+        <!-- Collaboration moved to main menu -->
+        <h3 class="sidebar-title">Settings</h3>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#" class="nav-link" data-page="profile">
+              <span class="nav-icon"><span class="material-icons-round">manage_accounts</span></span>
+              Profile Settings
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+      <!-- Dashboard View -->
+      <div id="dashboardView">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Check your learning status and activities at a glance</p>
+          </div>
+          <select id="dashboardCategorySelect" class="form-select" style="width: 150px;">
+            <option value="">All Categories</option>
+            <option value="chemistry">Chemistry</option>
+            <option value="engineering">Mechanical Engineering</option>
+            <option value="biology">Biology</option>
+            <option value="earthscience">Earth Science</option>
+          </select>
+        </div>
+        <!-- Enhanced Stats Grid -->
+        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(79, 70, 229, 0.1); color: #4f46e5;">
+              <span class="material-icons-round">folder</span>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Total Projects</span>
+              <h3 class="stat-value" id="statTotalProjects">-</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+              <span class="material-icons-round">cloud</span>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Storage Used</span>
+              <h3 class="stat-value" id="statStorage">-</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(236, 72, 153, 0.1); color: #ec4899;">
+              <span class="material-icons-round">schedule</span>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Work this week</span>
+              <h3 class="stat-value" id="statWorkTime">-</h3>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-grid" style="margin-top: 24px; display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+          <!-- Report Graph Section -->
+          <div class="content-section">
+            <div class="section-header">
+              <h2 class="section-title">Learning Report</h2>
+              <select id="reportTimeframe" class="form-select-sm">
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+              </select>
+            </div>
+            <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+              <canvas id="reportChart"></canvas>
+            </div>
+          </div>
+          <!-- Recent Activity -->
+          <div class="content-section">
+            <div class="section-header">
+              <h2 class="section-title">Recent Activity</h2>
+            </div>
+            <div class="activity-list" id="activityList">
+              <!-- Activities -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Library View (PDFs + Notes) -->
+      <div id="libraryView" class="view-section" style="display: none;">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Library</h1>
+            <p class="page-subtitle">Manage saved PDFs and notes</p>
+          </div>
+          <div class="library-tabs">
+            <button class="btn btn-sm btn-primary" id="tabPdf">PDF Archive</button>
+            <button class="btn btn-sm btn-ghost" id="tabNotes">My Notes</button>
+          </div>
+        </div>
+        <div id="libraryContentPdf">
+          <div class="content-grid" id="pdfList">
+            <!-- PDFs -->
+          </div>
+        </div>
+        <div id="libraryContentNotes" style="display: none;">
+          <div class="content-grid" id="notesList">
+            <!-- Notes -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <!-- New Project Modal -->
+  <div class="modal-overlay" id="newProjectModal">
+    <div class="modal">
+      <h2 style="margin-bottom: var(--spacing-lg);">Create New Project</h2>
+      <form id="newProjectForm">
+        <div style="margin-bottom: var(--spacing-md);">
+          <label
+            style="display: block; margin-bottom: var(--spacing-xs); color: var(--text-secondary); font-size: 0.875rem;">
+            Project Name
+          </label>
+          <input type="text" class="input" id="projectName" placeholder="Enter project name" required>
+        </div>
+        <div style="margin-bottom: var(--spacing-md);">
+          <label
+            style="display: block; margin-bottom: var(--spacing-xs); color: var(--text-secondary); font-size: 0.875rem;">
+            Description (Optional)
+          </label>
+          <textarea class="input" id="projectDescription" placeholder="Enter project description" rows="3"
+            style="resize: vertical;"></textarea>
+        </div>
+        <div>
+          <label
+            style="display: block; margin-bottom: var(--spacing-sm); color: var(--text-secondary); font-size: 0.875rem;">
+            Select Category
+          </label>
+          <div class="category-grid">
+            <div class="category-option" data-category="chemistry">
+              <div class="icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path
+                    d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
+                  <path d="M8.5 2h7" />
+                  <path d="M7 16h10" />
+                </svg>
+              </div>
+              <div class="label">Chemistry</div>
+            </div>
+            <div class="category-option" data-category="engineering">
+              <div class="icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3" />
+                  <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </div>
+              <div class="label">Mechanical Eng.</div>
+            </div>
+            <div class="category-option" data-category="biology">
+              <div class="icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path
+                    d="M2 22c1.25-.987 2.27-1.975 3.9-2.2a5.56 5.56 0 0 1 3.8 1.5 4 4 0 0 0 6.187-2.353 3.5 3.5 0 0 0 3.69-5.116A3.5 3.5 0 0 0 20.95 8 3.5 3.5 0 1 0 16 3.05a3.5 3.5 0 0 0-5.831 1.373 3.5 3.5 0 0 0-5.116 3.69 4 4 0 0 0-2.348 6.155C3.499 15.42 4.409 16.712 4.2 18.1 3.926 19.743 3.014 20.732 2 22" />
+                </svg>
+              </div>
+              <div class="label">Biology</div>
+            </div>
+            <div class="category-option" data-category="earthscience">
+              <div class="icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="2" y1="12" x2="22" y2="12" />
+                  <path
+                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+              </div>
+              <div class="label">Earth Science</div>
+            </div>
+          </div>
+          <input type="hidden" id="projectCategory" required>
+        </div>
+        <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-xl);">
+          <button type="button" class="btn btn-secondary" style="flex: 1;" id="cancelProjectBtn">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" style="flex: 1;">
+            Create Project
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- Rename Project Modal -->
+  <div class="modal-overlay" id="renameProjectModal">
+    <div class="modal" style="width: 500px; max-width: 90vw;">
+      <h2 style="margin-bottom: var(--spacing-lg);">Rename Project</h2>
+      <form id="renameProjectForm">
+        <input type="hidden" id="renameProjectId">
+        <div style="margin-bottom: var(--spacing-lg);">
+          <label
+            style="display: block; margin-bottom: var(--spacing-xs); color: var(--text-secondary); font-size: 0.875rem;">
+            New Name
+          </label>
+          <input type="text" class="input" id="renameProjectInput" placeholder="Enter project name" required>
+        </div>
+        <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" id="cancelRenameBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Rename</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- Share Project Modal -->
+  <div class="modal-overlay" id="shareProjectModal">
+    <div class="modal" style="width: 500px; max-width: 90vw; border-radius: 20px; overflow: hidden; padding: 0;">
+      <div style="padding: 30px;">
+        <h2 style="margin-bottom: var(--spacing-lg); font-size: 1.5rem; font-weight: 700;">Share Project</h2>
+        <div style="margin-bottom: var(--spacing-xl);">
+          <label class="profile-label" style="display: block; margin-bottom: 12px; font-weight: 600;">Permission
+            Settings</label>
+          <div class="role-segmented-control"
+            style="display: flex; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <button type="button" class="segment-btn role-opt active" data-role="editor"
+              style="flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-weight: 600;">
+              Can Edit (Editor)</button>
+            <button type="button" class="segment-btn role-opt" data-role="viewer"
+              style="flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-weight: 600;">
+              Can View (Viewer)</button>
+          </div>
+          <style>
+            .segment-btn {
+              background: transparent;
+              color: var(--text-muted);
+            }
+
+            .segment-btn.active {
+              background: var(--primary);
+              color: white;
+              box-shadow: 0 4px 12px rgba(0, 136, 255, 0.3);
+            }
+          </style>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: var(--spacing-sm); font-size: 0.9rem;">Share Link</p>
+        <div style="display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-xl);">
+          <input type="text" class="input" id="shareLinkInput" readonly
+            style="flex: 1; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); padding: 12px;">
+          <button type="button" class="btn btn-primary" id="copyShareLinkBtn" style="padding: 0 20px;">Copy</button>
+        </div>
+        <div
+          style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+          <button type="button" class="btn btn-ghost" id="closeShareBtn"
+            style="color: var(--text-muted);">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Delete Project Modal -->
+  <div class="modal-overlay" id="deleteProjectModal">
+    <div class="modal" style="width: 400px; max-width: 90vw;">
+      <h2 style="margin-bottom: var(--spacing-lg); color: var(--danger);">Delete Project</h2>
+      <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg); font-size: 0.95rem; line-height: 1.5;">
+        Are you sure you want to delete this project?<br>
+        Deleted projects are <strong style="color: #ef4444;">permanently deleted</strong> and cannot be recovered.
+      </p>
+      <input type="hidden" id="deleteProjectId">
+      <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn"
+          style="background: #ef4444; color: white; border: none;">Delete</button>
+      </div>
+    </div>
+  </div>
+  <!-- Rename Note Modal -->
+  <div class="modal-overlay" id="renameNoteModal">
+    <div class="modal" style="width: 500px; max-width: 90vw;">
+      <h2 style="margin-bottom: var(--spacing-lg);">Rename Note</h2>
+      <form id="renameNoteForm">
+        <input type="hidden" id="renameNoteId">
+        <div style="margin-bottom: var(--spacing-lg);">
+          <label
+            style="display: block; margin-bottom: var(--spacing-xs); color: var(--text-secondary); font-size: 0.875rem;">
+            New Title
+          </label>
+          <input type="text" class="input" id="renameNoteInput" placeholder="Enter note title" required>
+        </div>
+        <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" id="cancelRenameNoteBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Rename</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- Delete Note Modal -->
+  <div class="modal-overlay" id="deleteNoteConfirmModal">
+    <div class="modal" style="width: 400px; max-width: 90vw;">
+      <h2 style="margin-bottom: var(--spacing-lg); color: var(--danger);">Delete Note</h2>
+      <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg); font-size: 0.95rem; line-height: 1.5;">
+        Are you sure you want to delete this note?<br>
+        Deleted content cannot be recovered.
+      </p>
+      <input type="hidden" id="deleteNoteId">
+      <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="cancelDeleteNoteBtn">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteNoteBtn"
+          style="background: #ef4444; color: white; border: none;">Delete</button>
+      </div>
+    </div>
+  </div>
+  <!-- Note Editor Modal -->
+  <div class="modal-overlay" id="noteModal">
+    <div class="modal" style="width: 600px; max-width: 90vw;">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
+        <h2>Memo</h2>
+        <div style="display: flex; gap: var(--spacing-sm);">
+          <button class="btn btn-ghost btn-sm btn-icon" id="pinNoteBtn" title="Pin">
+            <span class="material-icons-round">push_pin</span>
+          </button>
+          <button class="btn btn-ghost btn-sm btn-icon" id="deleteNoteBtn" title="Delete" style="color: var(--danger);">
+            <span class="material-icons-round">delete</span>
+          </button>
+        </div>
+      </div>
+      <form id="noteForm">
+        <input type="hidden" id="noteId">
+        <div class="form-group">
+          <input type="text" class="input" id="noteTitle" placeholder="No Title"
+            style="font-size: 1.25rem; font-weight: 600; border: none; padding-left: 0;">
+        </div>
+        <div class="form-group">
+          <textarea class="input" id="noteContent" placeholder="Enter content..."
+            style="min-height: 300px; resize: vertical; line-height: 1.6;"></textarea>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--spacing-lg);">
+          <div class="color-picker" style="display: flex; gap: 8px;">
+            <div class="color-option selected" data-color="#667eea"
+              style="width: 24px; height: 24px; border-radius: 50%; background: #667eea; cursor: pointer;"></div>
+            <div class="color-option" data-color="#10b981"
+              style="width: 24px; height: 24px; border-radius: 50%; background: #10b981; cursor: pointer;"></div>
+            <div class="color-option" data-color="#f59e0b"
+              style="width: 24px; height: 24px; border-radius: 50%; background: #f59e0b; cursor: pointer;"></div>
+            <div class="color-option" data-color="#ef4444"
+              style="width: 24px; height: 24px; border-radius: 50%; background: #ef4444; cursor: pointer;"></div>
+            <div class="color-option" data-color="#8b5cf6"
+              style="width: 24px; height: 24px; border-radius: 50%; background: #8b5cf6; cursor: pointer;"></div>
+          </div>
+          <div style="display: flex; gap: var(--spacing-sm);">
+            <button type="button" class="btn btn-secondary" id="closeNoteBtn">Close</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- Report Modal (Placeholder) -->
+  <div class="modal-overlay" id="reportModal">
+    <div class="modal" style="width: 800px; max-width: 95vw;">
+      <div class="modal-header" style="margin-bottom: 20px;">
+        <h2>Weekly Report</h2>
+        <button class="btn btn-icon btn-ghost"
+          onclick="document.getElementById('reportModal').classList.remove('active')">✕</button>
+      </div>
+      <div class="report-content"
+        style="min-height: 400px; background: #f8fafc; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #64748b;">
+        <div style="font-size: 48px; margin-bottom: 16px;"><span class="material-icons-round"
+            style="font-size: 48px;">analytics</span></div>
+        <h3>Analyzing Data...</h3>
+        <p>Generating report based on this week's activity data.</p>
+        <div
+          style="margin-top: 20px; width: 100%; max-width: 300px; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden;">
+          <div style="width: 60%; height: 100%; background: var(--primary); border-radius: 2px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+  <!-- Chatbot UI -->
+  <button class="chatbot-fab" id="chatbotFab" title="AI Assistant">
+    <img src="assets/icons/panda-bot.png" alt="Panda Bot" style="width: 40px; height: 40px; border-radius: 50%;">
+  </button>
+  <div class="chatbot-window" id="chatbotWindow">
+    <div class="chat-header">
+      <div class="chat-avatar"><img src="assets/icons/panda-bot.png" alt="Panda"
+          style="width: 100%; height: 100%; object-fit: cover;"></div>
+      <div class="chat-info">
+        <h3>AI Assistant</h3>
+        <p>Ask me anything!</p>
+      </div>
+      <button class="btn btn-icon btn-ghost" id="closeChatBtn" style="color: white; margin-left: auto;">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <!-- Messages will appear here -->
+    </div>
+    <div class="chat-input-area">
+      <input type="text" class="chat-input" id="chatInput" placeholder="Type a message...">
+      <button class="chat-send-btn" id="chatSendBtn">
+        <span class="material-icons-round">send</span>
+      </button>
+    </div>
+  </div>
+  <!-- Profile Modal Removed (Replaced by Profile Page) -->
+  <script src="js/api.js?v=2.0"></script>
+  <script src="js/dashboard.js?v=2.0"></script>
+  <script src="js/chatbot.js?v=1.0"></script>
+  <script src="/js/pwa.js"></script>
+</body>
+
+</html>

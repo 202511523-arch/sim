@@ -1,0 +1,350 @@
+/* Study Landing Page - Engineering Premium Theme */
+:root {
+    --engineering-bg: #030712;
+    --engineering-grid: rgba(56, 189, 248, 0.05);
+    /* Sky blue grid */
+    --engineering-accent: #38bdf8;
+    /* Sky 400 */
+    --engineering-accent-glow: rgba(56, 189, 248, 0.4);
+    --card-bg: rgba(15, 23, 42, 0.6);
+    --card-border: rgba(56, 189, 248, 0.15);
+}
+
+.study-landing-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--engineering-bg);
+    background-image:
+        linear-gradient(var(--engineering-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--engineering-grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 90;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--toolbar-height, 60px);
+}
+
+/* Vignette overlay for depth */
+.study-landing-overlay::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, transparent 0%, var(--engineering-bg) 90%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Subtle moving glow in background */
+.hero-bg {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60vw;
+    height: 60vh;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: -1;
+    animation: pulse-glow 8s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+    0% {
+        opacity: 0.5;
+        transform: translateX(-50%) scale(1);
+    }
+
+    100% {
+        opacity: 0.8;
+        transform: translateX(-50%) scale(1.1);
+    }
+}
+
+.hero-section {
+    position: relative;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 20px 40px;
+}
+
+.hero-content {
+    max-width: 900px;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 4px;
+    /* More angular for engineering */
+    color: var(--engineering-accent);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.1);
+}
+
+.hero-title {
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.hero-subtitle {
+    font-size: 16px;
+    color: #94a3b8;
+    line-height: 1.6;
+    max-width: 500px;
+    margin: 0 auto;
+    font-weight: 400;
+}
+
+/* Grid Layout */
+.lessons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 30px;
+    padding: 20px 60px 100px;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Premium Card Styling */
+.lesson-card-item {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.lesson-card-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.lesson-card-item:hover {
+    transform: translateY(-8px) scale(1.01);
+    border-color: var(--engineering-accent);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.15);
+}
+
+.lesson-card-item:hover::before {
+    opacity: 1;
+}
+
+.card-image {
+    height: 220px;
+    background: #0f172a;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Blueprint Image Filter Effect */
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease, filter 0.6s ease;
+    opacity: 0.9;
+    /* Transformation to Blueprint Style */
+    filter: grayscale(100%) contrast(1.2) brightness(0.8) sepia(1) hue-rotate(170deg) saturate(2);
+    /* 
+       grayscale + contrast: high contrast b/w
+       sepia: makes it brown
+       hue-rotate 170deg: shifts brown to cyan/blue
+       saturate: intensifies the blue
+    */
+    mix-blend-mode: luminosity;
+    /* Blends with background color */
+}
+
+/* Add a blue overlay to ensure color consistency */
+.card-image::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(6, 182, 212, 0.2);
+    /* Cyan tint */
+    mix-blend-mode: overlay;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.lesson-card-item:hover .card-image img {
+    transform: scale(1.1);
+    opacity: 1;
+    filter: grayscale(0%) contrast(1.1) brightness(1.1);
+    /* Restore color on hover */
+    mix-blend-mode: normal;
+}
+
+.lesson-card-item:hover .card-image::before {
+    opacity: 0;
+    /* Remove tint on hover */
+    transition: opacity 0.4s ease;
+}
+
+
+/* Card overlay gradient */
+.card-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(3, 7, 18, 0.9) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.card-overlay {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 3;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    background: rgba(3, 7, 18, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 4px;
+    color: var(--engineering-accent);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.card-content {
+    padding: 28px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Technical decorations in corners */
+.card-content::after {
+    content: '';
+    position: absolute;
+    top: 28px;
+    right: 28px;
+    width: 20px;
+    height: 20px;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+    border-right: 2px solid rgba(255, 255, 255, 0.1);
+    transition: border-color 0.3s;
+}
+
+.lesson-card-item:hover .card-content::after {
+    border-color: var(--engineering-accent);
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+
+.card-desc {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: flex-end;
+    /* Align right for action */
+    align-items: center;
+}
+
+.action-btn {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--engineering-accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+}
+
+.lesson-card-item:hover .action-btn {
+    background: var(--engineering-accent);
+    color: #030712;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+}
+
+/* Specific theme overrides if handled in JS, but neutralized here for consistency */
+/* .theme-red .status-badge, .theme-yellow .status-badge, .theme-blue .status-badge {} */
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 36px;
+    }
+
+    .lessons-grid {
+        grid-template-columns: 1fr;
+        padding: 0 20px 80px;
+    }
+}

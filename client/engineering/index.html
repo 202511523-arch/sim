@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMVEX - Engineering</title>
+  <link rel="stylesheet" href="../css/workspace-new.css">
+  <link rel="stylesheet" href="../css/popup-panels.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="study-landing.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <style>
+    .workspace-main {
+      grid-template-columns: 280px 1fr !important;
+    }
+
+    .viewport-area {
+      grid-template-rows: 1fr !important;
+      background: #000 !important;
+    }
+
+    .property-section {
+      margin-bottom: 16px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 15px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--accent-primary);
+    }
+
+    .property-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 15px;
+      padding: 0 10px;
+    }
+
+    .panel-tab {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .panel-tab.active {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Lesson Cards Styling */
+    .lesson-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 10px;
+    }
+
+    .lesson-card:hover {
+      background: rgba(0, 136, 255, 0.08);
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
+
+    .lesson-card.active {
+      background: rgba(0, 136, 255, 0.12);
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 15px rgba(0, 136, 255, 0.2);
+    }
+
+    .lesson-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .lesson-icon {
+      width: 32px;
+      height: 32px;
+      background: rgba(0, 240, 255, 0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-primary);
+    }
+
+    .lesson-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .lesson-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin: 0;
+    }
+  </style>
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+  <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Study Landing Page Overlay -->
+    <div id="study-landing-overlay" class="study-landing-overlay">
+      <div class="hero-section">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+          <h1 class="hero-title">MECHANICAL ENGINEERING LAB</h1>
+          <p class="hero-subtitle">분석하고 학습할 기구학 모델을 선택하세요</p>
+        </div>
+      </div>
+      <div class="lessons-grid">
+        <!-- V4 Engine -->
+        <div class="lesson-card-item theme-red" onclick="selectLesson('v4-engine')">
+          <div class="card-image">
+            <!-- Engine: Cylinders/Pistons detail -->
+            <img src="https://images.unsplash.com/photo-1594950294862-520c8f566956?w=800&q=80" alt="V4 Engine">
+            <div class="card-overlay">
+              <span class="status-badge">Mechanical Analysis</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">V4 기통 엔진 구조 (Precise-Exploded)</h3>
+            <p class="card-desc">공학적 정밀 설계로 구현된 V4 엔진의 크랭크 및 피스톤 메커니즘을 시각적으로 학습합니다.</p>
+            <div class="card-footer">
+              <span class="action-btn">Start Simulation <span class="material-icons-round"
+                  style="font-size: 14px;">arrow_forward</span></span>
+            </div>
+          </div>
+        </div>
+        <!-- Robot Gripper -->
+        <div class="lesson-card-item theme-yellow" onclick="selectLesson('robot-gripper')">
+          <div class="card-image">
+            <!-- Robotic Hand/Gripper closeup -->
+            <img src="https://images.unsplash.com/photo-1561144257-e32e8efc6c4f?w=800&q=80" alt="Robot Gripper">
+            <div class="card-overlay">
+              <span class="status-badge">Mechanical Analysis</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">정밀 로봇 그리퍼 (Precise-Exploded)</h3>
+            <p class="card-desc">서보 모터와 기어 링크 기구가 결합된 2지형 평행 그리퍼의 작동 원리를 분석합니다.</p>
+            <div class="card-footer">
+              <span class="action-btn">Start Simulation <span class="material-icons-round"
+                  style="font-size: 14px;">arrow_forward</span></span>
+            </div>
+          </div>
+        </div>
+        <!-- Robot Arm -->
+        <div class="lesson-card-item theme-blue" onclick="selectLesson('robot-arm')">
+          <div class="card-image">
+            <!-- Industrial Robot Arm -->
+            <img src="https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?w=800&q=80" alt="Robot Arm">
+            <div class="card-overlay">
+              <span class="status-badge">Mechanical Analysis</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">6축 산업용 로봇팔 (Precise-Exploded)</h3>
+            <p class="card-desc">산업용 로봇의 6자유도 운동과 각 관절의 정밀 링크 구조를 분해도로 확인합니다.</p>
+            <div class="card-footer">
+              <span class="action-btn">Start Simulation <span class="material-icons-round"
+                  style="font-size: 14px;">arrow_forward</span></span>
+            </div>
+          </div>
+        </div>
+        <!-- Suspension -->
+        <div class="lesson-card-item theme-blue" onclick="selectLesson('suspension')">
+          <div class="card-image">
+            <!-- Chassis/Suspension detail -->
+            <img src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=80" alt="Suspension">
+            <div class="card-overlay">
+              <span class="status-badge">Mechanical Analysis</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">고하중 서스펜션 (Precise-Exploded)</h3>
+            <p class="card-desc">차량의 충격을 흡수하는 고성능 코일 스프링 서스펜션의 내부 구성 부품입니다.</p>
+            <div class="card-footer">
+              <span class="action-btn">Start Simulation <span class="material-icons-round"
+                  style="font-size: 14px;">arrow_forward</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Header -->
+    <!-- Unified Header -->
+    <header class="simvex-header">
+      <div class="logo-section">
+        <span class="logo-icon material-icons-round"
+          style="color: var(--accent-primary);">precision_manufacturing</span>
+        <span class="logo-text">SIMVEX Engineering</span>
+      </div>
+      <!-- Collaboration Users -->
+      <div id="collaboration-users" style="margin-left: 16px;"></div>
+      <nav class="nav-pills header-center">
+        <a href="/dashboard.html" class="nav-pill">Dashboard</a>
+        <a href="#" class="nav-pill active" onclick="showLandingPage(); return false;">Study</a>
+        <a href="#" class="nav-pill">Cad</a>
+      </nav>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+        <button id="project-save-btn" class="save-button" title="Save project">
+          <span class="material-icons-round" style="font-size: 20px;">save</span>
+          <span id="save-status-text">Save</span>
+        </button>
+        <!-- Timer/Controls -->
+        <div id="navbar-controls" style="display: flex; align-items: center;"></div>
+      </div>
+    </header>
+    <!-- Main Workspace -->
+    <main class="workspace-main">
+      <!-- Left Panel: Lessons -->
+      <aside class="left-sidebar panel-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="material-icons-round">settings_input_component</span>
+            Mechanical Engineering
+          </div>
+        </div>
+        <div class="panel-content">
+          <div id="lessons-list" style="padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+            <!-- Dynamically populated -->
+          </div>
+          <div class="panel-header"
+            style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+            <div class="panel-title">
+              <span class="material-icons-round">account_tree</span>
+              Hierarchy
+            </div>
+          </div>
+          <div id="hierarchy-tree" style="padding: 12px;">
+            <!-- Scene Hierarchy -->
+          </div>
+        </div>
+      </aside>
+      <!-- Center Viewport -->
+      <div class="viewport-area">
+        <div class="canvas-container" id="viewport-container">
+          <canvas id="viewport"></canvas>
+          <!-- Annotation Layer -->
+          <div id="annotation-layer" class="annotation-layer hidden">
+            <svg id="leader-line-svg" class="leader-line-svg">
+              <path id="leader-line-path" d="" />
+            </svg>
+            <div id="part-popup" class="part-popup">
+              <div class="popup-mini-header">
+                <span id="popup-part-name">Piston</span>
+                <button id="close-popup-btn"><span class="material-icons-round">close</span></button>
+              </div>
+              <div class="popup-mini-body">
+                <p id="popup-part-desc">Detailed description of the part will be displayed here.</p>
+              </div>
+            </div>
+          </div>
+          <!-- Viewer Tools -->
+          <div
+            style="position: absolute; top: 20px; left: 20px; display: flex; gap: 8px; background: rgba(0,0,0,0.7); padding: 6px; border-radius: 10px; border: 1px solid var(--border-color); backdrop-filter: blur(15px);">
+            <button class="tool-btn active" id="btn-viewer-mode" title="Viewer Mode"><span
+                class="material-icons-round">explore</span></button>
+            <div style="width: 1px; background: rgba(255,255,255,0.1); margin: 4px 0;"></div>
+            <button class="tool-btn" id="btn-screenshot-alt" title="Screenshot"><span
+                class="material-icons-round">photo_camera</span></button>
+            <button class="tool-btn" id="btn-fullscreen-alt" title="Fullscreen"><span
+                class="material-icons-round">fullscreen</span></button>
+          </div>
+          <!-- Floating Action Toolbar -->
+          <div class="floating-toolbar"
+            style="right: 20px; left: auto; top: 50%; transform: translateY(-50%); border-radius: 12px;">
+            <button class="tool-btn active" id="tool-select-only" title="Select Object"><span
+                class="material-icons-round">near_me</span></button>
+            <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 8px 0;"></div>
+            <button class="tool-btn" id="sim-explode-alt" title="Exploded View"><span
+                class="material-icons-round">view_in_ar</span></button>
+          </div>
+          <!-- Simulation Controls -->
+          <div
+            style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 35px; border: 1px solid var(--border-color); backdrop-filter: blur(15px); align-items: center;">
+            <button class="sim-btn" id="sim-play-mech" title="Start Simulation"><span
+                class="material-icons-round">play_arrow</span></button>
+            <button class="sim-btn" id="sim-pause-mech" title="Pause"><span
+                class="material-icons-round">pause</span></button>
+            <button class="sim-btn" id="sim-stop-mech" title="Reset"><span
+                class="material-icons-round">restart_alt</span></button>
+          </div>
+          <!-- Bottom Stats -->
+          <div id="status-bar"
+            style="position: absolute; bottom: 0; left: 0; right: 0; height: 35px; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font-size: 11px; color: var(--text-secondary); border-top: 1px solid var(--border-color);">
+            <div style="display: flex; gap: 20px;">
+              <span id="stats-objects">Objects: 0</span>
+              <span id="stats-triangles">Triangles: 0</span>
+              <span id="status-message">Ready</span>
+            </div>
+            <div id="fps-counter" style="color: var(--accent-primary);">60 FPS</div>
+          </div>
+        </div>
+      </div>
+      <!-- Right Panel: Info & AI (Hidden for full viewport) -->
+      <div class="panel-content" style="display: none;">
+    </main>
+    <!-- Overlays -->
+    <div id="drop-zone" class="modal hidden">
+      <div style="text-align: center; color: var(--accent-primary);">
+        <span class="material-icons-round" style="font-size: 64px;">upload_file</span>
+        <h2 style="margin-top: 16px;">Load File</h2>
+      </div>
+    </div>
+    <!-- Floating Popups -->
+    <div class="floating-actions">
+      <button class="fab" id="fab-notes"><span class="material-icons-round">edit_note</span></button>
+      <button class="fab" id="fab-chat"><span class="material-icons-round">smart_toy</span></button>
+      <button class="fab" id="fab-sticky" title="Sticky Note"><span
+          class="material-icons-round">sticky_note_2</span></button>
+      <button class="fab" id="fab-draw" title="Drawing Tool"><span class="material-icons-round">draw</span></button>
+    </div>
+    <div class="popup-panel" id="chat-popup">
+      <div class="popup-header">
+        <div class="popup-title"><span class="material-icons-round">smart_toy</span> Mechanical AI</div>
+        <button class="popup-close" onclick="closePopup('chat-popup')"><span
+            class="material-icons-round">close</span></button>
+      </div>
+      <div class="popup-body" id="ai-panel">
+        <div id="chat-messages" style="display: flex; flex-direction: column; gap: 12px;"></div>
+      </div>
+      <div class="popup-footer">
+        <div class="ai-omni-input">
+          <input type="text" id="omni-input" placeholder="Ask a question...">
+          <button class="btn-circle" id="omni-send"><span class="material-icons-round">send</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="popup-panel" id="notes-popup">
+      <div class="popup-header">
+        <div class="popup-title"><span class="material-icons-round">edit_note</span> Notes</div>
+        <button class="popup-close" onclick="closePopup('notes-popup')"><span
+            class="material-icons-round">close</span></button>
+      </div>
+      <div class="popup-body">
+        <textarea id="notepad" placeholder="Design/Analysis Notes..."></textarea>
+      </div>
+      <div
+        style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+        <button class="btn-circle" id="btn-new-note" title="New Note">
+          <span class="material-icons-round">add</span>
+        </button>
+        <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot">
+          <span class="material-icons-round">camera_alt</span>
+        </button>
+        <button class="btn-circle" id="btn-pdf-export" title="Export PDF">
+          <span class="material-icons-round">download</span>
+        </button>
+        <button class="btn-circle" id="btn-save-note" title="Save" style="flex: 1; width: auto; border-radius: 8px;">
+          <span class="material-icons-round">save</span>
+          <span style="margin-left: 6px;">Save</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="../js/api.js?v=1.0"></script>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
+  <script src="../js/workspace-common/workspace-chatbot.js"></script>
+  <script src="../js/workspace-common/workspace-notes.js"></script>
+  <script type="module" src="app.js"></script>
+  <!-- Draw Tool Popup -->
+  <div class="popup-panel" id="draw-popup">
+    <div class="popup-header">
+      <div class="popup-title"><span class="material-icons-round">draw</span> Drawing Tool</div>
+      <button class="popup-close" onclick="closePopup('draw-popup')"><span
+          class="material-icons-round">close</span></button>
+    </div>
+    <div class="popup-body" style="padding: 16px;">
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div><label
+            style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
+          <div style="display: flex; gap: 8px;"><button class="draw-tool-btn active" data-tool="pen" title="Pen"><span
+                class="material-icons-round">edit</span></button><button class="draw-tool-btn" data-tool="eraser"
+              title="Eraser"><span class="material-icons-round">ink_eraser</span></button><button class="draw-tool-btn"
+              data-tool="highlighter" title="Highlighter"><span
+                class="material-icons-round">format_paint</span></button></div>
+        </div>
+        <div><label
+            style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;"><button class="color-btn active" data-color="#fbbf24"
+              style="background: #fbbf24;"></button><button class="color-btn" data-color="#f472b6"
+              style="background: #f472b6;"></button><button class="color-btn" data-color="#22d3ee"
+              style="background: #22d3ee;"></button><button class="color-btn" data-color="#4ade80"
+              style="background: #4ade80;"></button><button class="color-btn" data-color="#FFFFFF"
+              style="background: #FFFFFF;"></button></div>
+        </div>
+        <div><label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Brush
+            Size: <span id="brush-size-value">3</span>px</label><input type="range" id="brush-size" min="1" max="20"
+            value="3" style="width: 100%; accent-color: var(--accent-primary);"></div>
+        <div><label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Opacity:
+            <span id="opacity-value">100</span>%</label><input type="range" id="draw-opacity" min="10" max="100"
+            value="100" style="width: 100%; accent-color: var(--accent-primary);"></div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;"><button class="btn-circle" id="btn-clear-canvas"
+            title="Clear All"
+            style="flex: 1; width: auto; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #ef4444;"><span
+              class="material-icons-round">clear</span><span style="margin-left: 6px;">Clear</span></button></div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
+            style="flex: 1; width: auto; border-radius: 8px;">
+            <span class="material-icons-round">visibility</span>
+            <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
+          </button>
+          <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
+            style="flex: 1; width: auto; border-radius: 8px;">
+            <span class="material-icons-round">edit_off</span>
+            <span style="margin-left: 6px;" id="toggle-draw-text">Enable Drawing</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Sticky Notes Container -->
+  <div id="sticky-notes-container"></div>
+  <!-- Custom Eraser Cursor -->
+  <div id="custom-cursor"
+    style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
+    <div id="cursor-circle"
+      style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
+    </div>
+    <span class="material-icons-round" id="cursor-icon"
+      style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
+  </div>
+  <!-- Drawing Canvas (Global Overlay) -->
+  <canvas id="draw-canvas"
+    style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
+  <!-- Required Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="../js/api.js?v=1.0"></script>
+  <!-- workspace-collaboration.js already loaded above -->
+  <script src="../js/workspace-common/workspace-chatbot.js"></script>
+  <script src="../js/workspace-common/workspace-notes.js"></script>
+  <script src="../js/workspace-common/study-timer.js"></script>
+  <script src="js/study-lab-logic.js"></script>
+  <script>
+    // Initialize Collaboration UI
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      let projectId = params.get('id');
+      if (!projectId) {
+        console.warn('No projectId in URL - using dev fallback');
+        projectId = 'dev-demo-project';
+      }
+      // Initialize Collaboration
+      if (typeof WorkspaceCollaboration !== 'undefined') {
+        window.workspaceCollaboration = new WorkspaceCollaboration({
+          projectId: projectId,
+          containerId: 'collaboration-users'
+        });
+      }
+      // Initialize Chatbot
+      const chatbot = new WorkspaceChatbot({
+        workspace: 'engineering',
+        projectId: projectId,
+        containerId: 'ai-panel',
+        inputId: 'omni-input'
+      });
+      // Initialize Workspace Notes
+      if (typeof WorkspaceNotes !== 'undefined') {
+        window.workspaceNotes = new WorkspaceNotes({
+          workspace: 'engineering',
+          projectId: projectId,
+          notepadId: 'notepad'
+        });
+        // Wire up notes button handlers
+        document.getElementById('btn-save-note')?.addEventListener('click', async () => await workspaceNotes.manualSave());
+        document.getElementById('btn-screenshot')?.addEventListener('click', async () => await workspaceNotes.attachScreenshot());
+        document.getElementById('btn-new-note')?.addEventListener('click', async () => await workspaceNotes.createNewNote());
+        document.getElementById('btn-pdf-export')?.addEventListener('click', async () => await workspaceNotes.exportToPDF());
+      }
+      // Check if we should start in viewer mode (url param)
+      const startLesson = params.get('lesson');
+      if (startLesson) {
+        selectLesson(startLesson);
+      }
+    });
+    function selectLesson(lessonId) {
+      // Hide overlay
+      document.getElementById('study-landing-overlay').style.display = 'none'; // Fade out ideally
+      // Trigger simulation load in app.js
+      if (window.app && window.app.loadLessonById) {
+        window.app.loadLessonById(lessonId);
+      } else {
+        // Fallback dispatch event
+        const event = new CustomEvent('load-lesson', { detail: { lessonId } });
+        window.dispatchEvent(event);
+      }
+    }
+    function showLandingPage() {
+      document.getElementById('study-landing-overlay').style.display = 'flex';
+    }
+  </script>
+  <script src="../js/workspace-common/engineering-quiz-data.js"></script>
+  <script src="../js/workspace-common/workspace-quiz.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Delay to ensure StudyTimer (initialized in study-lab-logic.js with 100ms delay) runs first
+      setTimeout(() => {
+        if (typeof WorkspaceQuiz !== 'undefined') {
+          new WorkspaceQuiz({
+            workspace: 'engineering',
+            containerId: 'navbar-controls'
+          });
+        }
+      }, 200);
+    });
+  </script>
+  <script src="/js/pwa.js"></script>
+</body>
+
+</html>

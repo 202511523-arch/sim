@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMVEX - Chemistry Lab</title>
+    <link rel="stylesheet" href="../css/popup-panels.css">
+    <link rel="stylesheet" href="../css/workspace-new.css">
+    <link rel="stylesheet" href="chemistry-theme.css">
+    <!-- Fonts & Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f18;
+            --bg-secondary: #0f1623;
+            --bg-tertiary: #161e2e;
+            --bg-elevated: #1e293b;
+            --surface-glass: rgba(15, 22, 35, 0.85);
+            --accent-primary: #0088FF;
+            --accent-light: #6dd5fa;
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+        }
+
+        /* Interactive Elements moved to chemistry-theme.css */
+        /* Lab Specific Styles - Premium Redesign */
+        .lab-header-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .lab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 30px;
+            padding-bottom: 40px;
+        }
+
+        .lab-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            height: 100%;
+        }
+
+        .lab-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(79, 172, 254, 0.1);
+            border-color: rgba(79, 172, 254, 0.3);
+        }
+
+        .lab-card-header {
+            height: 180px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .header-titration {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+        }
+
+        .header-flame {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        }
+
+        .header-calorimetry {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .header-kinetics {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .lab-card-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+            opacity: 0.7;
+        }
+
+        .lab-icon {
+            font-size: 72px;
+            color: white;
+            z-index: 1;
+            filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.2));
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .lab-card:hover .lab-icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .lab-card-body {
+            padding: 28px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(to bottom, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.9));
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .lab-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .lab-desc {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 28px;
+            flex-grow: 1;
+        }
+
+        .lab-btn {
+            width: 100%;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+
+        .lab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-gradient);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .lab-btn span,
+        .lab-btn .material-icons-round {
+            position: relative;
+            z-index: 1;
+        }
+
+        .lab-card:hover .lab-btn {
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+        }
+
+        .lab-card:hover .lab-btn::before {
+            opacity: 1;
+        }
+    </style>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+
+<body class="premium-theme">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="simvex-header">
+            <div class="logo-section">
+                <span class="logo-icon material-icons-round" style="color: var(--accent-primary);">science</span>
+                <span class="logo-text">SIMVEX Chemistry</span>
+            </div>
+            <!-- Collaboration Users -->
+            <div id="collaboration-users" style="margin-left: 16px;"></div>
+            <nav class="nav-pills header-center">
+                <a href="/dashboard.html" class="nav-pill">Dashboard</a>
+                <a href="study.html" class="nav-pill">Study</a>
+                <a href="simulation.html" class="nav-pill">Simulation</a>
+                <a href="lab.html" class="nav-pill active">Lab</a>
+            </nav>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+                <!-- Project Save Button -->
+                <button id="project-save-btn" class="save-button" title="Save project">
+                    <span class="material-icons-round" style="font-size: 18px;">save</span>
+                    <span id="save-status-text">Save</span>
+                </button>
+                <!-- Header Controls (Timer, Quiz) -->
+                <div id="navbar-controls" style="display: flex; align-items: center;"></div>
+            </div>
+        </header>
+        <!-- Main Content -->
+        <main class="workspace-main" style="display: block; padding: 3rem; overflow-y: auto;">
+            <div style="max-width: 1200px; margin: 0 auto;">
+                <h1 class="lab-header-title">Virtual Experiments Laboratory</h1>
+                <div class="lab-grid">
+                    <!-- Acid-Base Titration -->
+                    <div class="lab-card" onclick="navigateTo('lab_titration.html')">
+                        <div class="lab-card-header header-titration">
+                            <span class="material-icons-round lab-icon">science</span>
+                        </div>
+                        <div class="lab-card-body">
+                            <h3 class="lab-title">Acid-Base Titration</h3>
+                            <p class="lab-desc">Perform precise neutralizations using indicators. Calculate unknown
+                                concentrations through step-by-step titration analysis.</p>
+                            <button class="lab-btn">
+                                <span>Start Experiment</span>
+                                <span class="material-icons-round">arrow_forward</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Metal Flame Test -->
+                    <div class="lab-card" onclick="navigateTo('lab_flame_test.html')">
+                        <div class="lab-card-header header-flame">
+                            <span class="material-icons-round lab-icon">local_fire_department</span>
+                        </div>
+                        <div class="lab-card-body">
+                            <h3 class="lab-title">Metal Flame Test</h3>
+                            <p class="lab-desc">Identify metal cations by their characteristic emission spectra colors.
+                                Observe real-time flame color changes.</p>
+                            <button class="lab-btn">
+                                <span>Start Experiment</span>
+                                <span class="material-icons-round">arrow_forward</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Coming Soon 1 -->
+                    <div class="lab-card" style="opacity: 0.7; cursor: default;">
+                        <div class="lab-card-header header-calorimetry" style="filter: grayscale(0.5);">
+                            <span class="material-icons-round lab-icon">thermostat</span>
+                        </div>
+                        <div class="lab-card-body">
+                            <h3 class="lab-title">Calorimetry (Soon)</h3>
+                            <p class="lab-desc">Measure heat changes in chemical reactions using a virtual calorimeter.
+                                Explore endothermic and exothermic processes.</p>
+                            <button class="lab-btn"
+                                style="background: rgba(255,255,255,0.02); color: #666; border-color: rgba(255,255,255,0.05);">
+                                <span class="material-icons-round">lock</span>
+                                <span>Locked</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- Floating Action Buttons -->
+    <!-- Floating Action Buttons (Biology Style) -->
+    <div class="floating-actions">
+        <button class="fab" id="fab-notes" title="Notes">
+            <span class="material-icons-round">edit_note</span>
+        </button>
+        <button class="fab" id="fab-chat" title="AI Assistant">
+            <span class="material-icons-round">smart_toy</span>
+        </button>
+        <button class="fab" id="fab-sticky" title="Sticky Note">
+            <span class="material-icons-round">sticky_note_2</span>
+        </button>
+        <button class="fab" id="fab-draw" title="Drawing Tool">
+            <span class="material-icons-round">draw</span>
+        </button>
+    </div>
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+    <!-- Chat Popup -->
+    <div class="popup-panel" id="chat-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">smart_toy</span>
+                AI Chemistry Specialist
+            </div>
+            <button class="popup-close" onclick="closePopup('chat-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="ai-panel">
+            <div id="chat-messages" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+        <div class="popup-footer">
+            <div class="ai-omni-input">
+                <input type="text" id="omni-input" placeholder="Ask Chemistry AI...">
+                <button class="btn-circle" id="omni-send">
+                    <span class="material-icons-round">send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Notes Popup -->
+    <div class="popup-panel" id="notes-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">edit_note</span>
+                Study Notes
+            </div>
+            <button class="popup-close" onclick="closePopup('notes-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="notes-panel">
+            <textarea id="notepad" placeholder="Study notes..."></textarea>
+        </div>
+        <div
+            style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+            <button class="btn-circle" id="btn-new-note" title="New Note">
+                <span class="material-icons-round">add</span>
+            </button>
+            <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot">
+                <span class="material-icons-round">camera_alt</span>
+            </button>
+            <button class="btn-circle" id="btn-pdf-export" title="Export PDF">
+                <span class="material-icons-round">download</span>
+            </button>
+            <button class="btn-circle" id="btn-save-note" title="Save"
+                style="flex: 1; width: auto; border-radius: 8px;">
+                <span class="material-icons-round">save</span>
+                <span style="margin-left: 6px;">Save</span>
+            </button>
+        </div>
+    </div>
+    <!-- Sticky Notes Container -->
+    <div id="sticky-notes-container"></div>
+    <!-- Drawing Tool Popup -->
+    <div class="popup-panel" id="draw-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">draw</span>
+                Drawing Tool
+            </div>
+            <button class="popup-close" onclick="closePopup('draw-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" style="padding: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Tool Selection -->
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="draw-tool-btn active" data-tool="pen" title="Pen">
+                            <span class="material-icons-round">edit</span>
+                        </button>
+                        <button class="draw-tool-btn" data-tool="eraser" title="Eraser">
+                            <span class="material-icons-round">ink_eraser</span>
+                        </button>
+                        <button class="draw-tool-btn" data-tool="highlighter" title="Highlighter">
+                            <span class="material-icons-round">format_paint</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Color Selection -->
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="color-btn active" data-color="#8b5cf6" style="background: #8b5cf6;"></button>
+                        <button class="color-btn" data-color="#FF6B6B" style="background: #FF6B6B;"></button>
+                        <button class="color-btn" data-color="#4ECDC4" style="background: #4ECDC4;"></button>
+                        <button class="color-btn" data-color="#45B7D1" style="background: #45B7D1;"></button>
+                        <button class="color-btn" data-color="#FFA07A" style="background: #FFA07A;"></button>
+                        <button class="color-btn" data-color="#F7DC6F" style="background: #F7DC6F;"></button>
+                        <button class="color-btn" data-color="#FFFFFF" style="background: #FFFFFF;"></button>
+                    </div>
+                </div>
+                <!-- Brush Size -->
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">
+                        Brush Size: <span id="brush-size-value">3</span>px
+                    </label>
+                    <input type="range" id="brush-size" min="1" max="20" value="3"
+                        style="width: 100%; accent-color: var(--accent-primary);">
+                </div>
+                <!-- Opacity -->
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">
+                        Opacity: <span id="opacity-value">100</span>%
+                    </label>
+                    <input type="range" id="draw-opacity" min="10" max="100" value="100"
+                        style="width: 100%; accent-color: var(--accent-primary);">
+                </div>
+                <!-- Actions -->
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                    <button class="btn-circle" id="btn-clear-canvas" title="Clear All"
+                        style="width: 100%; border-radius: 8px; background: rgba(220, 38, 38, 0.15); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.3); justify-content: center;">
+                        <span class="material-icons-round">close</span>
+                        <span style="margin-left: 6px;">Clear</span>
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
+                        style="flex: 1; border-radius: 8px; background: rgba(30, 58, 138, 0.4); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; justify-content: center;">
+                        <span class="material-icons-round">visibility</span>
+                        <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
+                    </button>
+                    <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
+                        style="flex: 1; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: var(--text-secondary); justify-content: center;">
+                        <span class="material-icons-round">edit_off</span>
+                        <span style="margin-left: 6px;" id="toggle-draw-text">Enable Drawing</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
+    <script src="../js/workspace-common/workspace-chatbot.js"></script>
+    <script src="../js/workspace-common/workspace-notes.js"></script>
+    <script src="../js/workspace-common/time-tracker.js"></script>
+    <script src="../js/workspace-common/study-timer.js"></script>
+    <script src="../js/workspace-common/chemistry-quiz-data.js"></script>
+    <script src="../js/workspace-common/chemistry-quiz.js"></script>
+    <script>
+        // Parse URL Params first
+        const urlParams = new URLSearchParams(window.location.search);
+        let projectId = urlParams.get('id') || urlParams.get('project') || urlParams.get('projectId');
+        if (!projectId) {
+            console.warn('No projectId in URL - using dev fallback');
+            projectId = 'dev-demo-project';
+        }
+        // Init Collaboration
+        if (typeof WorkspaceCollaboration !== 'undefined') {
+            window.workspaceCollaboration = new WorkspaceCollaboration({
+                projectId: projectId,
+                containerId: 'collaboration-users'
+            });
+        }
+        // Init Study Timer
+        if (typeof StudyTimer !== 'undefined') {
+            new StudyTimer({ projectId: projectId, containerId: 'navbar-controls' });
+        }
+        // Initialize Workspace Chatbot
+        const chatbot = new WorkspaceChatbot({
+            workspace: 'chemistry',
+            containerId: 'ai-panel',
+            inputId: 'omni-input',
+            sendButtonId: 'omni-send',
+            projectId: projectId
+        });
+        // Initialize Workspace Notes
+        window.workspaceNotes = new WorkspaceNotes({
+            workspace: 'chemistry',
+            projectId: projectId,
+            notepadId: 'notepad'
+        });
+        // Initialize Study Timer
+        const timer = new StudyTimer({
+            projectId: projectId,
+            workspace: 'chemistry',
+            category: 'chemistry',
+            containerId: 'navbar-controls'
+        });
+        // Initialize Quiz
+        const quiz = new ChemistryQuiz();
+        // Add Quiz Button to Navbar
+        const navControls = document.getElementById('navbar-controls');
+        if (navControls) {
+            const quizBtn = document.createElement('button');
+            quizBtn.innerHTML = '<span class="material-icons-round">quiz</span>';
+            quizBtn.title = 'Take Chemistry Quiz';
+            quizBtn.style.cssText = `
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 8px;
+                cursor: pointer;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 12px;
+                color: var(--text-secondary);
+                transition: all 0.2s;
+            `;
+            quizBtn.onmouseover = () => { quizBtn.style.background = 'rgba(255,255,255,0.1)'; quizBtn.style.color = 'white'; };
+            quizBtn.onmouseout = () => { quizBtn.style.background = 'rgba(255,255,255,0.05)'; quizBtn.style.color = 'var(--text-secondary)'; };
+            quizBtn.addEventListener('click', () => quiz.show());
+            navControls.appendChild(quizBtn);
+        }
+        // Notes button handlers
+        document.getElementById('btn-save-note')?.addEventListener('click', async () => await workspaceNotes.manualSave());
+        document.getElementById('btn-screenshot')?.addEventListener('click', async () => await workspaceNotes.attachScreenshot());
+        document.getElementById('btn-new-note')?.addEventListener('click', async () => await workspaceNotes.createNewNote());
+        document.getElementById('btn-pdf-export')?.addEventListener('click', async () => await workspaceNotes.exportToPDF());
+        // Remaining logic for drawing, workspace state, and popups is now in study-lab-logic.js
+    </script>
+    <script src="js/study-lab-logic.js"></script>
+    <script>
+        // Placeholder to close the previous script tag properly in replacement context if needed,
+        // but here we are replacing inside the script tag?
+        // Wait, the target content includes the lines inside the script.
+    </script>
+    <script src="js/study-lab-logic.js"></script>
+    <!-- Drawing Canvas Overlay & Custom Cursor -->
+    <div id="custom-cursor"
+        style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
+        <div id="cursor-circle"
+            style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
+        </div>
+        <span class="material-icons-round" id="cursor-icon"
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
+    </div>
+    <canvas id="draw-canvas"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
+    <script src="/js/pwa.js"></script>
+</body>
+
+</html>

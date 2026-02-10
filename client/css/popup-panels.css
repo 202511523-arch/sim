@@ -1,0 +1,520 @@
+:root {
+    --accent-primary: #0088FF;
+    --accent-secondary: #00aaff;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0b0;
+    --border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Floating Action Buttons */
+.floating-actions {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1000;
+}
+
+.fab {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    transition: all 0.3s ease;
+}
+
+.fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(139, 92, 246, 0.5);
+}
+
+.fab .material-icons-round {
+    font-size: 24px;
+}
+
+/* Popup Panel */
+.popup-panel {
+    position: fixed;
+    right: 30px;
+    bottom: 110px;
+    width: 400px;
+    max-width: calc(100vw - 60px);
+    height: 600px;
+    max-height: calc(100vh - 140px);
+    background: rgba(20, 20, 25, 0.95);
+    /* More opaque background */
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    display: none;
+    flex-direction: column;
+    z-index: 999;
+    overflow: hidden;
+    animation: slideIn 0.3s ease;
+}
+
+.popup-panel.active {
+    display: flex;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.popup-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.popup-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.popup-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.popup-body {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.popup-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Chat Panel Specific */
+#chat-popup .popup-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+}
+
+/* Notes Panel Specific */
+#notes-popup .popup-body {
+    padding: 0;
+}
+
+#notes-popup textarea {
+    display: none;
+    /* Hide original textarea */
+}
+
+.ql-editor {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    font-size: 14px;
+    color: var(--text-primary);
+    min-height: 100%;
+}
+
+.ql-toolbar.ql-snow {
+    border: none !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ql-container.ql-snow {
+    border: none !important;
+}
+
+.ql-snow .ql-stroke {
+    stroke: var(--text-secondary) !important;
+}
+
+.ql-snow .ql-fill {
+    fill: var(--text-secondary) !important;
+}
+
+.ql-snow .ql-picker {
+    color: var(--text-secondary) !important;
+}
+
+/* Cropper Overlay */
+#cropper-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.cropper-container-wrapper {
+    width: 90%;
+    height: 80%;
+    margin-bottom: 20px;
+    background: #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.cropper-controls {
+    display: flex;
+    gap: 16px;
+}
+
+.btn-primary {
+    background: var(--accent-primary);
+    color: black;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid var(--border-color);
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .popup-panel {
+        right: 10px;
+        bottom: 90px;
+        width: calc(100vw - 20px);
+        height: calc(100vh - 120px);
+    }
+
+    .floating-actions {
+        right: 10px;
+        bottom: 10px;
+    }
+
+    .fab {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* Shared Components for Popups */
+.btn-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-circle:hover {
+    background: var(--accent-primary);
+    color: black;
+    border-color: var(--accent-primary);
+}
+
+.ai-omni-input {
+    width: 100%;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: border 0.3s;
+}
+
+.ai-omni-input:focus-within {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+.ai-omni-input input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 14px;
+    outline: none;
+}
+
+/* Chat Messages */
+.chat-message {
+    margin-bottom: 12px;
+    line-height: 1.5;
+    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    max-width: 85%;
+    word-break: break-word;
+}
+
+.chat-message.assistant {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+}
+
+.chat-message.user {
+    background: var(--accent-secondary);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+}
+
+/* Pinned Popup State */
+.popup-panel.pinned {
+    opacity: 0.95;
+}
+
+.popup-pin {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.popup-pin:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.popup-pin .material-icons-round {
+    transition: transform 0.3s ease;
+}
+
+/* Drawing Tool Buttons */
+.draw-tool-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.draw-tool-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-primary);
+}
+
+.draw-tool-btn.active {
+    background: var(--accent-primary);
+    color: black;
+    border-color: var(--accent-primary);
+}
+
+/* Color Buttons */
+.color-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.color-btn:hover {
+    transform: scale(1.1);
+}
+
+.color-btn.active {
+    border-color: white;
+    box-shadow: 0 0 0 2px var(--accent-primary);
+}
+
+.color-btn.active::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Prevent text selection when drawing */
+body {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* Allow text selection in specific elements */
+textarea,
+input,
+.popup-body,
+.sticky-note-card textarea {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+#draw-canvas {
+    cursor: crosshair;
+}
+
+#draw-canvas.drawing-active {
+    pointer-events: auto;
+}
+
+/* Sticky Note Card - Yellow Post-it Style */
+.sticky-note-card {
+    position: fixed;
+    width: 250px;
+    height: 250px;
+    background: linear-gradient(135deg, #ffd54f 0%, #ffecb3 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+    padding: 16px;
+    z-index: 999;
+    cursor: move;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Segoe Print', 'Comic Sans MS', cursive;
+    transition: transform 0.2s ease;
+}
+
+.sticky-note-card.active {
+    display: flex;
+}
+
+.sticky-note-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.sticky-note-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to bottom, rgba(255, 213, 79, 0.3), transparent);
+    border-radius: 2px 2px 0 0;
+}
+
+.sticky-note-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+}
+
+.sticky-delete-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.sticky-delete-btn:hover {
+    background: rgba(0, 0, 0, 0.2);
+    color: #333;
+    transform: scale(1.1);
+}
+
+.sticky-delete-btn .material-icons-round {
+    font-size: 18px;
+}
+
+.sticky-note-card textarea {
+    flex: 1;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #333;
+    font-size: 14px;
+    font-family: 'Segoe Print', 'Comic Sans MS', cursive;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+}
+
+.sticky-note-card textarea::placeholder {
+    color: rgba(51, 51, 51, 0.5);
+}

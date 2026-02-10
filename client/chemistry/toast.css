@@ -1,0 +1,43 @@
+/* === Notification Toast Style === */
+.notification-toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(30, 41, 59, 0.85);
+    /* Dark blue glass */
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 50px;
+    /* Rounded capsule shape */
+    z-index: 9999;
+    font-size: 0.95rem;
+    font-weight: 500;
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    /* Inner border */
+    backdrop-filter: blur(12px);
+    /* Blur effect */
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: toastSlideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    pointer-events: none;
+    /* Pointer events none */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes toastSlideDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+    }
+}

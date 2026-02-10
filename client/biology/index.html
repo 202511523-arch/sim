@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMVEX - Biology</title>
+    <link rel="stylesheet" href="../css/workspace-new.css">
+    <link rel="stylesheet" href="../css/popup-panels.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="biology-styles.css">
+    <script src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0f18;
+            --bg-secondary: #0f1623;
+            --bg-tertiary: #161e2e;
+            --bg-elevated: #1e293b;
+            --surface-glass: rgba(15, 22, 35, 0.85);
+            --accent-primary: #0088FF;
+            --accent-light: #60a5fa;
+            --accent-gradient: linear-gradient(135deg, #0088FF 0%, #00C2FF 100%);
+            --accent-secondary: #8b5cf6;
+            --accent-glow: 0 0 15px rgba(0, 136, 255, 0.4);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* Allow text selection in specific elements */
+        textarea,
+        input,
+        .popup-body,
+        .sticky-note-card textarea {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: var(--surface-glass);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .logo .material-icons-round {
+            font-size: 28px;
+            color: var(--accent-primary);
+        }
+
+        /* Save Button Styles */
+        /* Save Button Styles */
+        .save-button {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 20px;
+            background: rgba(20, 25, 35, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            margin-left: 20px;
+        }
+
+        .save-button:hover {
+            background: rgba(30, 35, 45, 0.8);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Unsaved State - Amber/Orange Warning */
+        .save-button.unsaved,
+        #project-save-btn.unsaved {
+            background: rgba(255, 171, 0, 0.15) !important;
+            border-color: #ffab00 !important;
+            color: #ffab00 !important;
+            box-shadow: 0 0 0 1px rgba(255, 171, 0, 0.2), 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+            animation: pulse-warning 2s infinite !important;
+        }
+
+        .save-button.unsaved:hover,
+        #project-save-btn.unsaved:hover {
+            background: rgba(255, 171, 0, 0.25) !important;
+            border-color: #ffab00 !important;
+            box-shadow: 0 0 0 1px rgba(255, 171, 0, 0.3), 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+            transform: translateY(-2px);
+        }
+
+        .save-button.saving {
+            opacity: 0.7;
+            cursor: wait;
+            pointer-events: none;
+        }
+
+        .save-button .material-icons-round {
+            font-size: 20px;
+        }
+
+        @keyframes pulse-warning {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 171, 0, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 171, 0, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 171, 0, 0);
+            }
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        /* Lobby View */
+        #lobby-view {
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 65px);
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .lobby-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .lobby-title h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .lobby-title p {
+            color: var(--text-muted);
+        }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .module-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 8px 32px rgba(0, 136, 255, 0.2);
+        }
+
+        .module-card .material-icons-round {
+            font-size: 64px;
+            margin-bottom: 16px;
+            color: var(--accent-primary);
+        }
+
+        .module-card h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .module-card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* Module Views */
+        .module-view {
+            display: none;
+            height: calc(100% - 65px);
+        }
+
+        .module-view.active {
+            display: flex;
+        }
+
+        /* Sketchfab Container */
+        .sketchfab-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sketchfab-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Hide Sketchfab top UI (title, author, icons) */
+        .sketchfab-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to bottom, #000000 0%, #000000 60%, transparent 100%);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Hide Sketchfab bottom UI (help, settings, VR buttons) */
+        .sketchfab-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: linear-gradient(to top, #000000 0%, #000000 60%, transparent 100%);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Hide Sketchfab left logo */
+        .sketchfab-overlay-left {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 60px;
+            background: #000000;
+            pointer-events: none;
+            z-index: 11;
+        }
+
+        /* Hide Sketchfab annotation tooltips (black boxes with text) */
+        #cell-sketchfab-container .annotation-tooltip-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Body Organ Markers */
+        #body-markers-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .organ-marker {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: var(--accent-primary);
+            border: 2px solid white;
+            border-radius: 50%;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: auto;
+            transform: translate(-50%, -50%);
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .organ-marker:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            background: var(--accent-light);
+        }
+
+        .organ-marker.active {
+            background: #22c55e;
+            transform: translate(-50%, -50%) scale(1.3);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            width: 320px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .info-panel h2 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .organ-info {
+            display: none;
+            padding: 16px;
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .organ-info.active {
+            display: block;
+        }
+
+        .organ-info h3 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: var(--accent-light);
+        }
+
+        .organ-info p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .click-hint {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .click-hint .material-icons-round {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* Canvas Container for other modules */
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: var(--bg-primary);
+        }
+
+        .canvas-container canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Graph Section */
+        .graph-section {
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--bg-elevated);
+            border-radius: 12px;
+        }
+
+        .graph-section h4 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+
+        .graph-section canvas {
+            width: 100%;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--bg-elevated);
+            border-radius: 12px;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .control-row label {
+            width: 70px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .control-row input[type="range"] {
+            flex: 1;
+        }
+
+        .control-row select {
+            flex: 1;
+            padding: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+        }
+
+        .status-display {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+    </style>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Unified Header -->
+        <header class="simvex-header">
+            <div class="logo-section">
+                <span class="logo-icon material-icons-round" style="color: var(--accent-primary);">biotech</span>
+                <span class="logo-text">SIMVEX Biology</span>
+            </div>
+            <!-- Collaboration Users -->
+            <div id="collaboration-users" style="margin-left: 16px;"></div>
+            <nav class="nav-pills header-center">
+                <a href="/dashboard.html" class="nav-pill">Dashboard</a>
+                <a href="javascript:void(0)" class="nav-pill active" id="pill-cell" onclick="switchPage('cell')">Cell
+                    Lab</a>
+                <a href="javascript:void(0)" class="nav-pill" id="pill-body" onclick="switchPage('body')">Anatomy</a>
+                <a href="javascript:void(0)" class="nav-pill" id="pill-culture" onclick="switchPage('culture')">Culture
+                    Lab</a>
+                <a href="javascript:void(0)" class="nav-pill" id="pill-ecosystem"
+                    onclick="switchPage('ecosystem')">Ecosystem</a>
+            </nav>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+                <!-- Project Save Button -->
+                <button id="project-save-btn" class="save-button" title="Save project">
+                    <span class="material-icons-round" style="font-size: 18px;">save</span>
+                    <span id="save-status-text">Save</span>
+                </button>
+                <!-- Header Controls (Timer, Quiz, etc.) -->
+                <div id="navbar-controls" style="display: flex; align-items: center;"></div>
+            </div>
+        </header>
+        <!-- Main Workspace -->
+        <main class="workspace-main">
+            <!-- Lobby View -->
+            <div id="lobby-view">
+                <div class="lobby-title">
+                    <h1>SIMVEX Biology Research Lab</h1>
+                    <p>Select a module to explore</p>
+                </div>
+                <div class="module-grid">
+                    <div class="module-card" onclick="switchPage('cell')">
+                        <span class="material-icons-round">science</span>
+                        <h3>Cell Lab</h3>
+                        <p>Explore cell structure and organelles</p>
+                    </div>
+                    <div class="module-card" onclick="switchPage('body')">
+                        <span class="material-icons-round">accessibility_new</span>
+                        <h3>Human Anatomy</h3>
+                        <p>Interactive 3D human body model</p>
+                    </div>
+                    <div class="module-card" onclick="switchPage('culture')">
+                        <span class="material-icons-round">biotech</span>
+                        <h3>Culture Lab</h3>
+                        <p>Virtual cell culture experiments</p>
+                    </div>
+                    <div class="module-card" onclick="switchPage('ecosystem')">
+                        <span class="material-icons-round">forest</span>
+                        <h3>Ecosystem Sim</h3>
+                        <p>Simulate ecological interactions</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Body Module (Sketchfab) -->
+            <div id="body-view" class="module-view">
+                <div class="sketchfab-container" id="body-sketchfab-container">
+                    <iframe id="sketchfab-frame" src="" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
+                    <div class="sketchfab-overlay-left"></div>
+                </div>
+                <aside class="info-panel">
+                    <h2>Organ Information</h2>
+                    <div id="organ-info" class="organ-info">
+                        <h3><span class="material-icons-round">favorite</span> <span id="organ-name"></span></h3>
+                        <p id="organ-description"></p>
+                    </div>
+                    <div id="click-hint" class="click-hint">
+                        <span class="material-icons-round">touch_app</span>
+                        <p>Click on the numbers on the 3D model<br>to view detailed information</p>
+                    </div>
+                    <!-- Organ list -->
+                    <div id="organ-list" style="margin-top: 20px;"></div>
+                </aside>
+            </div>
+            <!-- Cell Module (Sketchfab) -->
+            <div id="cell-view" class="module-view">
+                <div class="sketchfab-container" id="cell-sketchfab-container">
+                    <iframe id="cell-sketchfab-frame" src="" allow="autoplay; fullscreen; xr-spatial-tracking"></iframe>
+                    <div class="sketchfab-overlay-left"></div>
+                </div>
+                <aside class="info-panel">
+                    <h2>🔬 Cell Organelles</h2>
+                    <div id="cell-info" class="organ-info">
+                        <h3><span class="material-icons-round">category</span> <span id="cell-name"></span></h3>
+                        <p id="cell-description"></p>
+                    </div>
+                    <div id="cell-hint" class="click-hint">
+                        <span class="material-icons-round">touch_app</span>
+                        <p>Click on the numbers on the 3D cell<br>to view detailed information</p>
+                    </div>
+                    <div id="cell-list" style="margin-top: 20px;"></div>
+                </aside>
+            </div>
+            <!-- Culture Module - Cell Culture Simulation -->
+            <div id="culture-view" class="module-view">
+                <div class="canvas-container" id="culture-canvas-container">
+                    <canvas id="culture-canvas"></canvas>
+                    <!-- Interaction hint overlay -->
+                    <div id="culture-hint-overlay"
+                        style="position:absolute; bottom:20px; left:20px; background:rgba(0,0,0,0.8); padding:12px 16px; border-radius:8px; font-size:12px; color:#94a3b8; pointer-events:none;">
+                        <strong>Cell Culture Simulation</strong> | Culture cells and adjust environmental conditions to
+                        observe growth
+                    </div>
+                    <!-- Culture message -->
+                    <div id="evolution-message"
+                        style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.9); padding:24px 32px; border-radius:12px; text-align:center; color:white; font-size:16px; z-index:100;">
+                    </div>
+                </div>
+                <aside class="info-panel" style="overflow-y:auto;">
+                    <h2>Cell Culture Simulation</h2>
+                    <!-- Incubator Settings -->
+                    <div class="control-panel" style="margin-bottom:12px;">
+                        <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:13px;">🔬 Incubator Settings
+                        </h4>
+                        <div class="control-row">
+                            <label>Temperature</label>
+                            <input type="range" id="culture-temp" min="30" max="42" value="37">
+                            <span id="temp-val">37°C</span>
+                        </div>
+                        <div class="control-row">
+                            <label>CO₂</label>
+                            <input type="range" id="culture-co2" min="0" max="10" value="5">
+                            <span id="co2-val">5%</span>
+                        </div>
+                        <div
+                            style="margin-top:8px; padding:8px; background:var(--bg-tertiary); border-radius:6px; font-size:11px;">
+                            <div style="color:var(--text-muted); margin-bottom:4px;">Optimal: 37°C, 5% CO₂</div>
+                            <div id="condition-status" style="color:#22c55e;">Optimal Environment</div>
+                        </div>
+                    </div>
+                    <!-- Culture Actions -->
+                    <div class="control-panel" style="margin-bottom:12px;">
+                        <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:13px;">Culture Operations</h4>
+                        <div style="display:flex; gap:8px; margin-bottom:8px;">
+                            <button onclick="triggerMediaRefresh()"
+                                style="flex:1; padding:10px 8px; background:#059669; border:none; border-radius:6px; color:white; cursor:pointer; font-size:11px;">
+                                Change Media<br><small style="opacity:0.7;">Replenish Nutrients</small>
+                            </button>
+                            <button onclick="triggerPassage()"
+                                style="flex:1; padding:10px 8px; background:#8b5cf6; border:none; border-radius:6px; color:white; cursor:pointer; font-size:11px;">
+                                Subculture<br><small style="opacity:0.7;">Split Cells</small>
+                            </button>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="addNewCell()"
+                                style="flex:1; padding:8px; background:#3b82f6; border:none; border-radius:6px; color:white; cursor:pointer; font-size:12px;">
+                                Add Cells
+                            </button>
+                            <button onclick="triggerContamination()"
+                                style="flex:1; padding:8px; background:#dc2626; border:none; border-radius:6px; color:white; cursor:pointer; font-size:12px;">
+                                Trigger Contamination
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Environment Status -->
+                    <div class="control-panel">
+                        <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:13px;">Culture Environment
+                        </h4>
+                        <div class="control-row">
+                            <label>Speed</label>
+                            <input type="range" id="culture-speed" min="1" max="10" value="1">
+                            <span id="speed-val">1x</span>
+                        </div>
+                        <div
+                            style="margin-top:8px; padding:8px; background:var(--bg-tertiary); border-radius:6px; font-size:11px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                <span>Media Nutrients</span>
+                                <span id="nutrients-val" style="font-weight:600; color:#22c55e;">100%</span>
+                            </div>
+                            <div style="height:6px; background:#333; border-radius:3px; overflow:hidden;">
+                                <div id="nutrients-bar"
+                                    style="height:100%; width:100%; background:#22c55e; transition:width 0.3s;"></div>
+                            </div>
+                            <div
+                                style="display:flex; justify-content:space-between; margin-top:8px; margin-bottom:4px;">
+                                <span>Waste Accumulation</span>
+                                <span id="toxins-val" style="font-weight:600; color:#ef4444;">0%</span>
+                            </div>
+                            <div style="height:6px; background:#333; border-radius:3px; overflow:hidden;">
+                                <div id="toxins-bar"
+                                    style="height:100%; width:0%; background:#ef4444; transition:width 0.3s;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Statistics panel -->
+                    <div class="control-panel" style="margin-top:12px;">
+                        <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:13px;">Culture Statistics</h4>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
+                            <div style="background:var(--bg-tertiary); padding:8px; border-radius:6px;">
+                                <div style="color:var(--text-muted);">Total Cells</div>
+                                <div style="font-size:20px; font-weight:600;" id="stat-total">0</div>
+                            </div>
+                            <div style="background:var(--bg-tertiary); padding:8px; border-radius:6px;">
+                                <div style="color:var(--text-muted);">Passage Count</div>
+                                <div style="font-size:20px; font-weight:600;" id="stat-generation">0</div>
+                            </div>
+                            <div
+                                style="background:var(--bg-tertiary); padding:10px; border-radius:6px; border:2px solid #22c55e;">
+                                <div style="color:#22c55e;">Healthy Cells</div>
+                                <div style="font-size:18px; font-weight:600; color:#22c55e;" id="stat-normal">0</div>
+                                <div style="font-size:10px; color:var(--text-muted);" id="stat-normal-pct">0%</div>
+                            </div>
+                            <div
+                                style="background:var(--bg-tertiary); padding:10px; border-radius:6px; border:2px solid #ef4444;">
+                                <div style="color:#ef4444;">Dead Cells</div>
+                                <div style="font-size:18px; font-weight:600; color:#ef4444;" id="stat-mutant">0</div>
+                                <div style="font-size:10px; color:var(--text-muted);" id="stat-mutant-pct">0%</div>
+                            </div>
+                        </div>
+                        <!-- Confluence indicator -->
+                        <div style="margin-top:10px; padding:10px; background:var(--bg-tertiary); border-radius:6px;">
+                            <div style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">Confluency
+                                (Density)</div>
+                            <div style="height:12px; background:#333; border-radius:6px; overflow:hidden;">
+                                <div id="evolution-bar-normal"
+                                    style="height:100%; background:#22c55e; transition:width 0.5s; width:0%;">
+                                </div>
+                            </div>
+                            <div id="evolution-status"
+                                style="font-size:11px; margin-top:6px; color:var(--accent-light); text-align:center;">
+                                Cells cover 0% of the flask surface area
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Growth Graph -->
+                    <div class="graph-section" style="margin-top:12px;">
+                        <h4>Cell Growth Curve</h4>
+                        <div style="display:flex; gap:8px; margin-bottom:8px; font-size:10px; flex-wrap:wrap;">
+                            <span style="color:#22c55e;">● Healthy Cells</span>
+                            <span style="color:#ef4444;">● Dead Cells</span>
+                            <span style="color:#3b82f6;">● Nutrients</span>
+                        </div>
+                        <canvas id="culture-chart" style="height:200px !important;"></canvas>
+                    </div>
+                    <button onclick="resetCulture()"
+                        style="margin-top:12px; width:100%; padding:12px; background:var(--accent-primary); border:none; border-radius:8px; color:white; cursor:pointer; font-size:13px;">
+                        Start New Culture
+                    </button>
+                </aside>
+            </div>
+            <!-- Ecosystem Module -->
+            <div id="ecosystem-view" class="module-view">
+                <div class="canvas-container" id="eco-canvas-container">
+                    <canvas id="eco-canvas"></canvas>
+                    <!-- Setup overlay (shown before simulation starts) -->
+                    <div id="eco-setup-overlay"
+                        style="position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:100;">
+                        <h2 style="color:white; margin-bottom:20px;">Ecosystem Setup</h2>
+                        <p style="color:#94a3b8; margin-bottom:24px; text-align:center;">Optimal populations are set for
+                            the food chain.<br>
+                            Adjust with +/- buttons and start simulation.</p>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
+                            <!-- Plants -->
+                            <div
+                                style="background:#1a2a1a; padding:16px; border-radius:12px; text-align:center; border:2px solid #22c55e;">
+                                <div style="font-size:24px; margin-bottom:8px;">Plants</div>
+                                <div style="color:#22c55e; font-weight:600; margin-bottom:8px;">Producer (Plants)</div>
+                                <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
+                                    <button onclick="adjustInitialCount('plant', -5)"
+                                        style="width:32px; height:32px; border-radius:50%; border:none; background:#333; color:white; cursor:pointer; font-size:18px;">-</button>
+                                    <span id="init-plant"
+                                        style="font-size:28px; font-weight:700; color:white; min-width:40px;">40</span>
+                                    <button onclick="adjustInitialCount('plant', 5)"
+                                        style="width:32px; height:32px; border-radius:50%; border:none; background:#22c55e; color:white; cursor:pointer; font-size:18px;">+</button>
+                                </div>
+                            </div>
+                            <!-- Primary Consumer -->
+                            <div
+                                style="background:#1a1a2a; padding:16px; border-radius:12px; text-align:center; border:2px solid #3b82f6;">
+                                <div style="font-size:24px; margin-bottom:8px;">Rabbits</div>
+                                <div style="color:#3b82f6; font-weight:600; margin-bottom:8px;">Primary Consumer</div>
+                                <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
+                                    <button onclick="adjustInitialCount('primary', -1)"
+                                        style="width:32px; height:32px; border-radius:50%; border:none; background:#333; color:white; cursor:pointer; font-size:18px;">-</button>
+                                    <span id="init-primary"
+                                        style="font-size:28px; font-weight:700; color:white; min-width:40px;">16</span>
+                                    <button onclick="adjustInitialCount('primary', 1)"
+                                        style="width:32px; height:32px; border-radius:50%; border:none; background:#3b82f6; color:white; cursor:pointer; font-size:18px;">+</button>
+                                </div>
+                            </div>
+                            <!-- Secondary Consumer -->
+                            <div
+                                style="background:#2a1a0a; padding:16px; border-radius:12px; text-align:center; border:2px solid #f97316;">
+                                <div style="font-size:24px; margin-bottom:8px;">Foxes</div>
+                                <div style="color:#f97316; font-weight:600; margin-bottom:8px;">Secondary Consumer</div>
+                                <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
+                                    <button onclick="adjustInitialCount('secondary', -1)"
+                                        style="width:32px; height:32px; border-radius:50%; border:none; background:#333; color:white; cursor:pointer; font-size:18px;">-</button>
+                                    <span id="init-secondary"
+                                        style="font-size:28px; font-weight:700; color:white; min-width:40px;">8</span>
+                                    <button onclick="adjustInitialCount('secondary', 1)"
+                                        style="width:32px; height:32px; border-radius:50%; border:none; background:#f97316; color:white; cursor:pointer; font-size:18px;">+</button>
+                                </div>
+                            </div>
+                            <!-- Tertiary Consumer -->
+                            <div
+                                style="background:#2a0a0a; padding:16px; border-radius:12px; text-align:center; border:2px solid #ef4444;">
+                                <div style="font-size:24px; margin-bottom:8px;">Wolves</div>
+                                <div style="color:#ef4444; font-weight:600; margin-bottom:8px;">Tertiary Consumer</div>
+                                <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
+                                    <button onclick="adjustInitialCount('tertiary', -1)"
+                                        style="width:32px; height:32px; border-radius:50%; border:none; background:#333; color:white; cursor:pointer; font-size:18px;">-</button>
+                                    <span id="init-tertiary"
+                                        style="font-size:28px; font-weight:700; color:white; min-width:40px;">4</span>
+                                    <button onclick="adjustInitialCount('tertiary', 1)"
+                                        style="width:32px; height:32px; border-radius:50%; border:none; background:#ef4444; color:white; cursor:pointer; font-size:18px;">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="startEcosystemSimulation()"
+                            style="padding:16px 48px; background:linear-gradient(135deg, #22c55e, #16a34a); border:none; border-radius:12px; color:white; font-size:16px; font-weight:600; cursor:pointer;">
+                            ▶ Start Simulation
+                        </button>
+                    </div>
+                </div>
+                <aside class="info-panel" style="overflow-y:auto;">
+                    <h2>Ecosystem Simulator</h2>
+                    <!-- Food Chain Display -->
+                    <div class="control-panel" style="margin-bottom:12px;">
+                        <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:13px;">Food Chain</h4>
+                        <div
+                            style="display:flex; align-items:center; justify-content:center; gap:4px; font-size:20px; padding:8px; background:var(--bg-tertiary); border-radius:8px;">
+                            <span>Plants</span><span style="color:#666;">→</span>
+                            <span>Rabbits</span><span style="color:#666;">→</span>
+                            <span>Foxes</span><span style="color:#666;">→</span>
+                            <span>Wolves</span>
+                        </div>
+                    </div>
+                    <!-- Population Stats -->
+                    <div class="control-panel" style="margin-bottom:12px;">
+                        <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:13px;">Population Status</h4>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
+                            <div
+                                style="background:#1a2a1a; padding:10px; border-radius:8px; border-left:3px solid #22c55e;">
+                                <div style="color:#22c55e; font-size:11px;">Plants</div>
+                                <div style="font-size:20px; font-weight:600; color:white;" id="plant-count">0</div>
+                                <button onclick="addEcoAgent('plant')"
+                                    style="width:100%; margin-top:6px; padding:4px; background:#22c55e33; border:1px solid #22c55e; border-radius:4px; color:#22c55e; cursor:pointer; font-size:10px;">+1
+                                    Add</button>
+                            </div>
+                            <div
+                                style="background:#1a1a2a; padding:10px; border-radius:8px; border-left:3px solid #3b82f6;">
+                                <div style="color:#3b82f6; font-size:11px;">Primary Consumer</div>
+                                <div style="font-size:20px; font-weight:600; color:white;" id="primary-count">0</div>
+                                <button onclick="addEcoAgent('primary')"
+                                    style="width:100%; margin-top:6px; padding:4px; background:#3b82f633; border:1px solid #3b82f6; border-radius:4px; color:#3b82f6; cursor:pointer; font-size:10px;">+1
+                                    Add</button>
+                            </div>
+                            <div
+                                style="background:#2a1a0a; padding:10px; border-radius:8px; border-left:3px solid #f97316;">
+                                <div style="color:#f97316; font-size:11px;">Secondary Consumer</div>
+                                <div style="font-size:20px; font-weight:600; color:white;" id="secondary-count">0</div>
+                                <button onclick="addEcoAgent('secondary')"
+                                    style="width:100%; margin-top:6px; padding:4px; background:#f9731633; border:1px solid #f97316; border-radius:4px; color:#f97316; cursor:pointer; font-size:10px;">+1
+                                    Add</button>
+                            </div>
+                            <div
+                                style="background:#2a0a0a; padding:10px; border-radius:8px; border-left:3px solid #ef4444;">
+                                <div style="color:#ef4444; font-size:11px;">Tertiary Consumer</div>
+                                <div style="font-size:20px; font-weight:600; color:white;" id="tertiary-count">0</div>
+                                <button onclick="addEcoAgent('tertiary')"
+                                    style="width:100%; margin-top:6px; padding:4px; background:#ef444433; border:1px solid #ef4444; border-radius:4px; color:#ef4444; cursor:pointer; font-size:10px;">+1
+                                    Add</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Environment Controls -->
+                    <div class="control-panel" style="margin-bottom:12px;">
+                        <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:13px;">Environment Settings
+                        </h4>
+                        <div class="control-row">
+                            <label>Weather</label>
+                            <select id="eco-weather">
+                                <option value="sunny">Sunny</option>
+                                <option value="rain">Rain (Growth ↑)</option>
+                                <option value="drought">Drought (Growth ↓)</option>
+                            </select>
+                        </div>
+                        <div class="control-row">
+                            <label>Speed</label>
+                            <input type="range" id="eco-speed" min="1" max="5" value="1">
+                            <span id="eco-speed-val">1x</span>
+                        </div>
+                    </div>
+                    <!-- Ecosystem Status -->
+                    <div class="control-panel" style="margin-bottom:12px;">
+                        <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:13px;">Ecosystem Status</h4>
+                        <div id="eco-status"
+                            style="padding:12px; background:var(--bg-tertiary); border-radius:8px; text-align:center; font-size:13px; color:#22c55e;">
+                            Start the simulation
+                        </div>
+                    </div>
+                    <!-- Graph -->
+                    <div class="graph-section" style="margin-bottom:12px;">
+                        <h4>Population Graph</h4>
+                        <div style="display:flex; gap:6px; margin-bottom:8px; font-size:10px; flex-wrap:wrap;">
+                            <span style="color:#22c55e;">● Plants</span>
+                            <span style="color:#3b82f6;">● Primary</span>
+                            <span style="color:#f97316;">● Secondary</span>
+                            <span style="color:#ef4444;">● Tertiary</span>
+                        </div>
+                        <canvas id="eco-chart"></canvas>
+                        <button onclick="saveEcoGraphAsPDF()"
+                            style="width:100%; margin-top:8px; padding:8px; background:#8b5cf6; border:none; border-radius:6px; color:white; cursor:pointer; font-size:12px;">
+                            Save Graph as PDF
+                        </button>
+                    </div>
+                    <button onclick="resetEcosystem()"
+                        style="width:100%; padding:12px; background:var(--accent-primary); border:none; border-radius:8px; color:white; cursor:pointer; font-size:13px;">
+                        New Simulation
+                    </button>
+                </aside>
+            </div>
+        </main>
+        <!-- Floating Action Buttons -->
+        <div class="floating-actions">
+            <button class="fab" id="fab-notes" title="Notes">
+                <span class="material-icons-round">edit_note</span>
+            </button>
+            <button class="fab" id="fab-chat" title="AI Assistant">
+                <span class="material-icons-round">smart_toy</span>
+            </button>
+            <button class="fab" id="fab-sticky" title="Sticky Note">
+                <span class="material-icons-round">sticky_note_2</span>
+            </button>
+            <button class="fab" id="fab-draw" title="Drawing Tool">
+                <span class="material-icons-round">draw</span>
+            </button>
+        </div>
+        <!-- Chat Popup -->
+        <div class="popup-panel" id="chat-popup">
+            <div class="popup-header">
+                <div class="popup-title">
+                    <span class="material-icons-round">smart_toy</span>
+                    AI Biology Specialist
+                </div>
+                <button class="popup-close" onclick="closePopup('chat-popup')">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <div class="popup-body" id="ai-panel">
+                <div id="chat-messages" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </div>
+            <div class="popup-footer">
+                <div class="ai-omni-input">
+                    <input type="text" id="omni-input" placeholder="Ask Biology AI...">
+                    <button class="btn-circle" id="omni-send">
+                        <span class="material-icons-round">send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Notes Popup -->
+        <div class="popup-panel" id="notes-popup">
+            <div class="popup-header">
+                <div class="popup-title">
+                    <span class="material-icons-round">edit_note</span>
+                    Study Notes
+                </div>
+                <button class="popup-close" onclick="closePopup('notes-popup')">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <div class="popup-body" id="notes-panel">
+                <textarea id="notepad" placeholder="Study notes..."></textarea>
+            </div>
+            <div
+                style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+                <button class="btn-circle" id="btn-new-note" title="New Note">
+                    <span class="material-icons-round">add</span>
+                </button>
+                <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot">
+                    <span class="material-icons-round">camera_alt</span>
+                </button>
+                <button class="btn-circle" id="btn-pdf-export" title="Export PDF">
+                    <span class="material-icons-round">download</span>
+                </button>
+                <button class="btn-circle" id="btn-save-note" title="Save"
+                    style="flex: 1; width: auto; border-radius: 8px;">
+                    <span class="material-icons-round">save</span>
+                    <span style="margin-left: 6px;">Save</span>
+                </button>
+            </div>
+        </div>
+        <!-- Sticky Notes Container (for multiple notes) -->
+        <div id="sticky-notes-container"></div>
+        <!-- Drawing Tool Popup -->
+        <div class="popup-panel" id="draw-popup">
+            <div class="popup-header">
+                <div class="popup-title">
+                    <span class="material-icons-round">draw</span>
+                    Drawing Tool
+                </div>
+                <button class="popup-close" onclick="closePopup('draw-popup')">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <div class="popup-body" style="padding: 16px;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Tool Selection -->
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="draw-tool-btn active" data-tool="pen" title="Pen">
+                                <span class="material-icons-round">edit</span>
+                            </button>
+                            <button class="draw-tool-btn" data-tool="eraser" title="Eraser">
+                                <span class="material-icons-round">ink_eraser</span>
+                            </button>
+                            <button class="draw-tool-btn" data-tool="highlighter" title="Highlighter">
+                                <span class="material-icons-round">format_paint</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Color Selection -->
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="color-btn active" data-color="#FF6B6B" style="background: #FF6B6B;"></button>
+                            <button class="color-btn" data-color="#4ECDC4" style="background: #4ECDC4;"></button>
+                            <button class="color-btn" data-color="#45B7D1" style="background: #45B7D1;"></button>
+                            <button class="color-btn" data-color="#FFA07A" style="background: #FFA07A;"></button>
+                            <button class="color-btn" data-color="#98D8C8" style="background: #98D8C8;"></button>
+                            <button class="color-btn" data-color="#F7DC6F" style="background: #F7DC6F;"></button>
+                            <button class="color-btn" data-color="#BB8FCE" style="background: #BB8FCE;"></button>
+                            <button class="color-btn" data-color="#FFFFFF" style="background: #FFFFFF;"></button>
+                        </div>
+                    </div>
+                    <!-- Brush Size -->
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">
+                            Brush Size: <span id="brush-size-value">3</span>px
+                        </label>
+                        <input type="range" id="brush-size" min="1" max="20" value="3"
+                            style="width: 100%; accent-color: var(--accent-primary);">
+                    </div>
+                    <!-- Opacity -->
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">
+                            Opacity: <span id="opacity-value">100</span>%
+                        </label>
+                        <input type="range" id="draw-opacity" min="10" max="100" value="100"
+                            style="width: 100%; accent-color: var(--accent-primary);">
+                    </div>
+                    <!-- Actions -->
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="btn-circle" id="btn-clear-canvas" title="Clear All"
+                            style="flex: 1; width: auto; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                            <span class="material-icons-round">clear</span>
+                            <span style="margin-left: 6px;">Clear</span>
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
+                            style="flex: 1; width: auto; border-radius: 8px;">
+                            <span class="material-icons-round">visibility_off</span>
+                            <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
+                        </button>
+                        <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
+                            style="flex: 1; width: auto; border-radius: 8px;">
+                            <span class="material-icons-round">edit_off</span>
+                            <span style="margin-left: 6px;" id="toggle-draw-text">Enable Drawing</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Custom Confirmation Dialog -->
+        <div id="custom-confirm-overlay"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); z-index: 10000; align-items: center; justify-content: center;">
+            <div
+                style="background: rgba(20, 20, 25, 0.98); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; max-width: 400px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);">
+                <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 18px;">Confirm Action</h3>
+                <p id="confirm-message"
+                    style="margin: 0 0 20px 0; color: var(--text-secondary); font-size: 14px; line-height: 1.6;"></p>
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button id="confirm-cancel"
+                        style="padding: 10px 20px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-size: 14px;">
+                        Cancel
+                    </button>
+                    <button id="confirm-ok"
+                        style="padding: 10px 20px; background: var(--accent-primary); border: none; border-radius: 8px; color: black; cursor: pointer; font-size: 14px; font-weight: 600;">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Drawing Canvas Overlay -->
+        <!-- Custom Eraser Cursor -->
+        <div id="custom-cursor"
+            style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
+            <div id="cursor-circle"
+                style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
+            </div>
+            <span class="material-icons-round" id="cursor-icon"
+                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
+        </div>
+        <canvas id="draw-canvas"
+            style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+        <!-- Socket.io for real-time collaboration -->
+        <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+        <script src="../js/api.js?v=1.0"></script>
+        <script src="../js/workspace-common/workspace-chatbot.js"></script>
+        <script src="../js/workspace-common/workspace-notes.js"></script>
+        <script src="../js/workspace-common/time-tracker.js"></script>
+        <script src="../js/workspace-common/study-timer.js"></script>
+        <script src="app.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const params = new URLSearchParams(window.location.search);
+                let projectId = params.get('projectId') || params.get('id') || params.get('project');
+                if (!projectId) {
+                    console.warn('No projectId in URL - using dev fallback');
+                    projectId = 'dev-demo-project';
+                }
+                // Init Collaboration UI
+                // Init Study Timer
+                if (typeof StudyTimer !== 'undefined') {
+                    new StudyTimer({ projectId: projectId, containerId: 'navbar-controls' });
+                }
+                // Init Chatbot
+                const chatbot = new WorkspaceChatbot({
+                    workspace: 'biology',
+                    projectId: projectId,
+                    containerId: 'ai-panel',
+                    inputId: 'omni-input',
+                    sendButtonId: 'omni-send'
+                });
+                // Initialize Workspace Notes
+                // Initialize Workspace Notes
+                window.workspaceNotes = new WorkspaceNotes({
+                    workspace: 'biology',
+                    projectId: projectId,
+                    notepadId: 'notepad'
+                });
+                document.getElementById('btn-save-note')?.addEventListener('click', async () => {
+                    await workspaceNotes.manualSave();
+                });
+                document.getElementById('btn-screenshot')?.addEventListener('click', async () => {
+                    await workspaceNotes.attachScreenshot();
+                });
+                document.getElementById('btn-new-note')?.addEventListener('click', async () => {
+                    await workspaceNotes.createNewNote();
+                });
+                document.getElementById('btn-pdf-export')?.addEventListener('click', async () => {
+                    await workspaceNotes.exportToPDF();
+                });
+            });
+        </script>
+        <script>
+            document.getElementById('btn-pdf-export')?.addEventListener('click', async () => {
+                await workspaceNotes.exportToPDF();
+            });
+            // Popup Controls
+            function togglePopup(popupId) {
+                const popup = document.getElementById(popupId);
+                if (popup.classList.contains('active')) {
+                    popup.classList.remove('active');
+                } else {
+                    document.querySelectorAll('.popup-panel').forEach(p => p.classList.remove('active'));
+                    popup.classList.add('active');
+                }
+            }
+            window.closePopup = function (popupId) {
+                document.getElementById(popupId).classList.remove('active');
+            }
+            // FAB Click Handlers
+            document.getElementById('fab-chat').addEventListener('click', () => togglePopup('chat-popup'));
+            document.getElementById('fab-notes').addEventListener('click', () => togglePopup('notes-popup'));
+            document.getElementById('fab-draw')?.addEventListener('click', () => {
+                togglePopup('draw-popup');
+                if (!drawingInitialized) {
+                    initDrawingTool();
+                }
+            });
+            // ==========================================
+            // WORKSPACE STATE MANAGEMENT
+            // ==========================================
+            const WorkspaceState = {
+                projectId: null,
+                currentPage: 'home',
+                unsavedChanges: false,
+                stickyNotes: new Map(), // noteId -> noteData
+                // Initialize from URL
+                init() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    this.projectId = urlParams.get('id') || urlParams.get('project') || urlParams.get('projectId');
+                    // Get view from URL or default to 'home'
+                    const viewParam = urlParams.get('view');
+                    if (viewParam && ['cell', 'body', 'culture', 'ecosystem'].includes(viewParam)) {
+                        this.currentPage = viewParam;
+                    } else {
+                        this.currentPage = 'home';
+                    }
+                    if (!this.projectId) {
+                        console.warn('No projectId in URL - state will not be saved to database');
+                    }
+                    // Update UI to match current page
+                    if (this.currentPage !== 'home') {
+                        // We need to wait for DOM to be ready or handle it after init
+                        setTimeout(() => {
+                            window.switchPage(this.currentPage, false); // false = don't save previous state on init
+                            // Update active pill
+                            document.querySelectorAll('.nav-pill').forEach(el => el.classList.remove('active'));
+                            const activePill = document.getElementById(`pill-${this.currentPage}`);
+                            if (activePill) activePill.classList.add('active');
+                        }, 100);
+                    }
+                    // Load saved state
+                    this.loadState();
+                },
+                // Generate unique ID
+                generateId() {
+                    return 'note_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                },
+                // Capture complete state
+                captureState() {
+                    const notesArray = [];
+                    this.stickyNotes.forEach((note, id) => {
+                        const noteEl = document.getElementById(id);
+                        if (noteEl) {
+                            notesArray.push({
+                                id,
+                                content: note.content,
+                                x: noteEl.offsetLeft,
+                                y: noteEl.offsetTop,
+                                zIndex: noteEl.style.zIndex || 1000
+                            });
+                        }
+                    });
+                    // Get canvas data
+                    let canvasData = null;
+                    if (drawCanvas && drawCanvas.style.display !== 'none') {
+                        try {
+                            canvasData = drawCanvas.toDataURL('image/png');
+                        } catch (e) {
+                            console.error('Failed to capture canvas:', e);
+                        }
+                    }
+                    return {
+                        page: this.currentPage,
+                        notes: notesArray,
+                        canvas: canvasData,
+                        timestamp: new Date().toISOString()
+                    };
+                },
+                // Save to database
+                // Save to database
+                async save(isManual = false) {
+                    if (!this.projectId) {
+                        if (isManual) alert('Cannot save: No project ID');
+                        return;
+                    }
+                    if (!this.unsavedChanges && !isManual) return;
+                    const saveBtn = document.getElementById('project-save-btn');
+                    const saveText = document.getElementById('save-status-text');
+                    saveBtn.classList.add('saving');
+                    saveText.textContent = 'Saving...';
+                    try {
+                        const state = this.captureState();
+                        const token = localStorage.getItem('simvex_token') || sessionStorage.getItem('simvex_token');
+                        const res = await fetch(`/api/projects/${this.projectId}/workspace-state`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                                workspace: `biology-${this.currentPage}`,
+                                state
+                            })
+                        });
+                        if (!res.ok) {
+                            // If 403 (Access Denied) and auto-save, silently fail
+                            if (res.status === 403 && !isManual) {
+                                console.warn('Auto-save skipped: Read-only access');
+                                saveBtn.classList.remove('saving');
+                                saveText.textContent = 'Read-only';
+                                return;
+                            }
+                            const errorText = await res.text();
+                            console.error('Save failed - Status:', res.status, 'Response:', errorText);
+                            throw new Error(`Save failed: ${res.status} - ${errorText}`);
+                        }
+                        this.unsavedChanges = false;
+                        saveBtn.classList.remove('saving', 'unsaved');
+                        const now = new Date();
+                        saveText.textContent = `Saved ${now.toLocaleTimeString()}`;
+                        console.log('✅ Workspace state saved successfully');
+                    } catch (error) {
+                        console.error('Save error:', error);
+                        saveBtn.classList.remove('saving');
+                        saveText.textContent = 'Save failed';
+                        if (isManual) {
+                            alert('Failed to save project state');
+                        }
+                    }
+                },
+                // Load from database
+                async loadState() {
+                    if (!this.projectId) {
+                        // Try localStorage fallback
+                        this.loadFromLocalStorage();
+                        return;
+                    }
+                    try {
+                        const token = localStorage.getItem('simvex_token') || sessionStorage.getItem('simvex_token');
+                        const res = await fetch(
+                            `/api/projects/${this.projectId}/workspace-state?workspace=biology-${this.currentPage}`,
+                            {
+                                headers: {
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                credentials: 'include'
+                            }
+                        );
+                        if (!res.ok) {
+                            if (res.status === 403) {
+                                console.warn('Workspace state load skipped: Access denied (Private project)');
+                                return;
+                            }
+                            throw new Error('Load failed');
+                        }
+                        const { data } = await res.json();
+                        if (data && data.state) {
+                            console.log('📥 Loading workspace state from database');
+                            this.restoreState(data.state);
+                        } else {
+                            console.log('No saved state found, trying localStorage fallback');
+                            this.loadFromLocalStorage();
+                        }
+                    } catch (error) {
+                        console.error('Load error:', error);
+                        this.loadFromLocalStorage();
+                    }
+                },
+                // Restore state
+                restoreState(state) {
+                    // Restore notes
+                    if (state.notes && state.notes.length > 0) {
+                        state.notes.forEach(noteData => {
+                            this.createStickyNote(noteData);
+                        });
+                    }
+                    // Restore canvas
+                    if (state.canvas && drawCanvas) {
+                        this.loadCanvasState(state.canvas);
+                    } else if (state.canvas && !drawCanvas) {
+                        // If canvas not initialized yet, wait for it
+                        // Retry up to 10 times (5 seconds)
+                        let attempts = 0;
+                        const checkCanvas = setInterval(() => {
+                            attempts++;
+                            if (drawCanvas) {
+                                clearInterval(checkCanvas);
+                                this.loadCanvasState(state.canvas);
+                            } else if (attempts > 10) {
+                                clearInterval(checkCanvas);
+                                console.warn('Canvas restore timed out');
+                            }
+                        }, 500);
+                    }
+                },
+                // Load canvas from data URL
+                loadCanvasState(dataURL) {
+                    const img = new Image();
+                    img.onload = () => {
+                        // Clear before drawing new state
+                        drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                        drawCtx.drawImage(img, 0, 0);
+                        console.log('✅ Canvas restored');
+                    };
+                    img.onerror = () => {
+                        console.error('Failed to load canvas image');
+                    };
+                    img.src = dataURL;
+                },
+                // Clear current state (for page switching)
+                clearState() {
+                    console.log('🧹 Clearing workspace state');
+                    // Clear sticky notes
+                    this.stickyNotes.forEach((note, id) => {
+                        const el = document.getElementById(id);
+                        if (el) el.remove();
+                    });
+                    this.stickyNotes.clear();
+                    // Clear canvas
+                    if (drawCtx && drawCanvas) {
+                        drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                    }
+                },
+                // LocalStorage fallback
+                loadFromLocalStorage() {
+                    const savedSticky = localStorage.getItem('biology-sticky-note');
+                    const savedPosition = localStorage.getItem('biology-sticky-position');
+                    if (savedSticky) {
+                        console.log('📦 Loading from localStorage fallback');
+                        const pos = savedPosition ? JSON.parse(savedPosition) : { x: window.innerWidth - 320, y: 100 };
+                        this.createStickyNote({
+                            content: savedSticky,
+                            x: pos.x,
+                            y: pos.y
+                        });
+                    }
+                },
+                // Mark as unsaved
+                markUnsaved() {
+                    if (this.unsavedChanges) return; // Already marked
+                    this.unsavedChanges = true;
+                    const saveBtn = document.getElementById('project-save-btn');
+                    const saveText = document.getElementById('save-status-text');
+                    saveBtn.classList.add('unsaved');
+                    saveText.textContent = 'Unsaved changes';
+                },
+                // Create sticky note
+                createStickyNote(data = {}) {
+                    const noteId = data.id || this.generateId();
+                    const content = data.content || '';
+                    const x = data.x !== undefined ? data.x : window.innerWidth - 320;
+                    const y = data.y !== undefined ? data.y : 100 + (this.stickyNotes.size * 30);
+                    const zIndex = data.zIndex || 1000 + this.stickyNotes.size;
+                    const noteEl = document.createElement('div');
+                    noteEl.id = noteId;
+                    noteEl.className = 'sticky-note-card';
+                    noteEl.style.left = x + 'px';
+                    noteEl.style.top = y + 'px';
+                    noteEl.style.zIndex = zIndex;
+                    noteEl.innerHTML = `
+        <div class="sticky-note-header">
+            <button class="sticky-delete-btn" title="Delete">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <textarea id="${noteId}-textarea" name="sticky-note-content" placeholder="Quick note...">${content}</textarea>
+        `;
+                    document.getElementById('sticky-notes-container').appendChild(noteEl);
+                    // Store note data
+                    this.stickyNotes.set(noteId, { content, x, y, zIndex });
+                    // Broadcast creation if it's a new local note
+                    if (!data.id && window.workspaceCollaboration) {
+                        window.workspaceCollaboration.emitStickyNoteUpdate('create', {
+                            id: noteId, content, x, y, zIndex
+                        });
+                    }
+                    // Setup event listeners
+                    const textarea = noteEl.querySelector('textarea');
+                    const deleteBtn = noteEl.querySelector('.sticky-delete-btn');
+                    // Save content on input
+                    textarea.addEventListener('input', () => {
+                        const note = this.stickyNotes.get(noteId);
+                        note.content = textarea.value;
+                        this.markUnsaved();
+                        // Broadcast update (debounced ideally, but simple here)
+                        if (window.workspaceCollaboration) {
+                            window.workspaceCollaboration.emitStickyNoteUpdate('update', {
+                                id: noteId, content: textarea.value
+                            });
+                        }
+                    });
+                    // Delete note
+                    deleteBtn.addEventListener('click', () => {
+                        noteEl.remove();
+                        this.stickyNotes.delete(noteId);
+                        this.markUnsaved();
+                        // Broadcast deletion
+                        if (window.workspaceCollaboration) {
+                            window.workspaceCollaboration.emitStickyNoteUpdate('delete', { id: noteId });
+                        }
+                    });
+                    // Make draggable
+                    this.makeDraggable(noteEl, noteId, textarea);
+                    return noteId;
+                },
+                // Make note draggable
+                makeDraggable(noteEl, noteId, textarea) {
+                    let isDragging = false;
+                    let initialX, initialY;
+                    noteEl.addEventListener('mousedown', (e) => {
+                        if (e.target === textarea) return; // Don't drag when typing
+                        isDragging = true;
+                        initialX = e.clientX - noteEl.offsetLeft;
+                        initialY = e.clientY - noteEl.offsetTop;
+                        noteEl.style.cursor = 'grabbing';
+                        // Bring to front
+                        const maxZ = Math.max(...Array.from(this.stickyNotes.values()).map(n => parseInt(n.zIndex) || 1000));
+                        noteEl.style.zIndex = maxZ + 1;
+                        const note = this.stickyNotes.get(noteId);
+                        note.zIndex = maxZ + 1;
+                    });
+                    document.addEventListener('mousemove', (e) => {
+                        if (!isDragging) return;
+                        e.preventDefault();
+                        const currentX = e.clientX - initialX;
+                        const currentY = e.clientY - initialY;
+                        noteEl.style.left = currentX + 'px';
+                        noteEl.style.top = currentY + 'px';
+                    });
+                    document.addEventListener('mouseup', () => {
+                        if (!isDragging) return;
+                        isDragging = false;
+                        noteEl.style.cursor = 'grab';
+                        // Save position
+                        const note = this.stickyNotes.get(noteId);
+                        note.x = noteEl.offsetLeft;
+                        note.y = noteEl.offsetTop;
+                        // Broadcast movement
+                        if (window.workspaceCollaboration) {
+                            window.workspaceCollaboration.emitStickyNoteUpdate('move', {
+                                id: noteId,
+                                x: note.x,
+                                y: note.y
+                            });
+                        }
+                        this.markUnsaved();
+                    });
+                }
+            };
+            // Initialize workspace
+            WorkspaceState.init();
+            // Save button click handler
+            document.getElementById('project-save-btn')?.addEventListener('click', () => {
+                WorkspaceState.save(true);
+            });
+            // FAB for creating new sticky note
+            document.getElementById('fab-sticky')?.addEventListener('click', () => {
+                WorkspaceState.createStickyNote();
+            });
+            // Auto-initialize drawing tool to make canvas visible by default
+            setTimeout(() => {
+                if (!drawingInitialized) {
+                    initDrawingTool();
+                }
+            }, 100);
+            // Drawing Tool Functionality
+            let drawingInitialized = false;
+            let drawCanvas, drawCtx;
+            let isDrawing = false;
+            let isCanvasVisible = true; // Start as visible
+            let isDrawingActive = false; // Start as disabled
+            let drawSettings = {
+                tool: 'pen',
+                color: '#FF6B6B',
+                brushSize: 3,
+                opacity: 100
+            };
+            // Real-time collaboration stroke tracking
+            let currentStrokePoints = [];
+            let isRemoteDrawing = false; // Flag to prevent broadcast loops
+            function initDrawingTool() {
+                drawingInitialized = true;
+                drawCanvas = document.getElementById('draw-canvas');
+                drawCtx = drawCanvas.getContext('2d');
+                // Set canvas size
+                drawCanvas.width = window.innerWidth;
+                drawCanvas.height = window.innerHeight;
+                // Make canvas visible by default (but drawing disabled)
+                drawCanvas.style.display = 'block';
+                drawCanvas.style.pointerEvents = 'none'; // Disabled until activated
+                // Custom cursor elements
+                const customCursor = document.getElementById('custom-cursor');
+                const cursorCircle = document.getElementById('cursor-circle');
+                const cursorIcon = document.getElementById('cursor-icon');
+                // Update custom cursor size based on tool and brush size
+                function updateCursorSize() {
+                    if (drawSettings.tool === 'eraser') {
+                        const size = drawSettings.brushSize * 3; // Eraser is 3x brush size
+                        cursorCircle.style.width = size + 'px';
+                        cursorCircle.style.height = size + 'px';
+                        cursorIcon.style.display = 'block';
+                        customCursor.style.display = 'block';
+                    } else {
+                        customCursor.style.display = 'none';
+                    }
+                }
+                // Track mouse movement for custom cursor
+                drawCanvas.addEventListener('mousemove', (e) => {
+                    if (drawSettings.tool === 'eraser' && drawCanvas.style.display === 'block') {
+                        customCursor.style.left = e.clientX + 'px';
+                        customCursor.style.top = e.clientY + 'px';
+                        customCursor.style.display = 'block';
+                    } else {
+                        customCursor.style.display = 'none';
+                    }
+                });
+                // Hide cursor when leaving canvas
+                drawCanvas.addEventListener('mouseleave', () => {
+                    customCursor.style.display = 'none';
+                });
+                // Tool selection
+                document.querySelectorAll('.draw-tool-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.draw-tool-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        drawSettings.tool = btn.dataset.tool;
+                        updateCursorSize(); // Update cursor when tool changes
+                    });
+                });
+                // Color selection
+                document.querySelectorAll('.color-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        drawSettings.color = btn.dataset.color;
+                    });
+                });
+                // Brush size
+                const brushSizeInput = document.getElementById('brush-size');
+                const brushSizeValue = document.getElementById('brush-size-value');
+                brushSizeInput.addEventListener('input', () => {
+                    drawSettings.brushSize = brushSizeInput.value;
+                    brushSizeValue.textContent = brushSizeInput.value;
+                    updateCursorSize(); // Update cursor size when brush size changes
+                });
+                // Opacity
+                const opacityInput = document.getElementById('draw-opacity');
+                const opacityValue = document.getElementById('opacity-value');
+                opacityInput.addEventListener('input', () => {
+                    drawSettings.opacity = opacityInput.value;
+                    opacityValue.textContent = opacityInput.value;
+                });
+                // Clear canvas
+                document.getElementById('btn-clear-canvas')?.addEventListener('click', () => {
+                    showCustomConfirm('Clear all drawings?', () => {
+                        drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                        // Broadcast canvas clear to collaborators
+                        if (window.workspaceCollaboration) {
+                            window.workspaceCollaboration.emitDrawingClear();
+                        }
+                    });
+                });
+                // Toggle canvas visibility
+                const visibilityBtn = document.getElementById('btn-toggle-visibility');
+                const visibilityText = document.getElementById('toggle-visibility-text');
+                const visibilityIcon = visibilityBtn?.querySelector('.material-icons-round');
+                // Initialize button UI to match default visible state
+                if (isCanvasVisible) {
+                    visibilityText.textContent = 'Hide';
+                    visibilityIcon.textContent = 'visibility';
+                    visibilityBtn.style.background = 'rgba(96, 165, 250, 0.2)';
+                    visibilityBtn.style.color = 'var(--accent-light)';
+                }
+                visibilityBtn?.addEventListener('click', () => {
+                    isCanvasVisible = !isCanvasVisible;
+                    console.log('Visibility toggle clicked. isCanvasVisible:', isCanvasVisible);
+                    if (isCanvasVisible) {
+                        drawCanvas.style.display = 'block';
+                        visibilityText.textContent = 'Hide';
+                        visibilityIcon.textContent = 'visibility';
+                        visibilityBtn.style.background = 'rgba(96, 165, 250, 0.2)';
+                        visibilityBtn.style.color = 'var(--accent-light)';
+                        console.log('Canvas visible');
+                    } else {
+                        drawCanvas.style.display = 'none';
+                        drawCanvas.style.pointerEvents = 'none'; // Disable drawing when hiding
+                        isDrawingActive = false; // Reset drawing state
+                        if (toggleBtn) {
+                            toggleText.textContent = 'Enable Drawing';
+                            toggleIcon.textContent = 'edit_off';
+                            toggleBtn.style.background = '';
+                            toggleBtn.style.color = '';
+                        }
+                        visibilityText.textContent = 'Show';
+                        visibilityIcon.textContent = 'visibility_off';
+                        visibilityBtn.style.background = '';
+                        visibilityBtn.style.color = '';
+                        console.log('Canvas hidden');
+                    }
+                });
+                // Toggle drawing mode (only works when canvas is visible)
+                const toggleBtn = document.getElementById('btn-toggle-draw');
+                const toggleText = document.getElementById('toggle-draw-text');
+                const toggleIcon = toggleBtn?.querySelector('.material-icons-round');
+                toggleBtn.onclick = () => {
+                    if (!isCanvasVisible) {
+                        // Auto-show canvas when enabling drawing
+                        isCanvasVisible = true;
+                        drawCanvas.style.display = 'block';
+                        visibilityText.textContent = 'Hide';
+                        visibilityIcon.textContent = 'visibility';
+                        visibilityBtn.style.background = 'rgba(96, 165, 250, 0.2)';
+                        visibilityBtn.style.color = 'var(--accent-light)';
+                    }
+                    isDrawingActive = !isDrawingActive;
+                    console.log('Drawing toggle clicked. isDrawingActive:', isDrawingActive);
+                    if (isDrawingActive) {
+                        drawCanvas.style.pointerEvents = 'auto'; // Enable drawing
+                        drawCanvas.classList.add('drawing-active');
+                        toggleText.textContent = 'Disable Drawing';
+                        toggleIcon.textContent = 'edit';
+                        toggleBtn.style.background = 'var(--accent-primary)';
+                        toggleBtn.style.color = 'black';
+                        // Disable pointer events on iframes to allow drawing over them
+                        document.querySelectorAll('iframe').forEach(iframe => {
+                            iframe.style.pointerEvents = 'none';
+                        });
+                        console.log('Drawing enabled. pointer-events:', drawCanvas.style.pointerEvents);
+                    } else {
+                        drawCanvas.style.pointerEvents = 'none'; // Disable drawing
+                        drawCanvas.classList.remove('drawing-active');
+                        toggleText.textContent = 'Enable Drawing';
+                        toggleIcon.textContent = 'edit_off';
+                        toggleBtn.style.background = '';
+                        toggleBtn.style.color = '';
+                        // Restore pointer events on iframes
+                        document.querySelectorAll('iframe').forEach(iframe => {
+                            iframe.style.pointerEvents = 'auto';
+                        });
+                        console.log('Drawing disabled. pointer-events:', drawCanvas.style.pointerEvents);
+                    }
+                };
+                // Drawing events
+                drawCanvas.addEventListener('mousedown', startDrawing);
+                drawCanvas.addEventListener('mousemove', draw);
+                drawCanvas.addEventListener('mouseup', stopDrawing);
+                drawCanvas.addEventListener('mouseout', stopDrawing);
+                // Touch events
+                drawCanvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const mouseEvent = new MouseEvent('mousedown', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY
+                    });
+                    drawCanvas.dispatchEvent(mouseEvent);
+                });
+                drawCanvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const mouseEvent = new MouseEvent('mousemove', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY
+                    });
+                    drawCanvas.dispatchEvent(mouseEvent);
+                });
+                drawCanvas.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    const mouseEvent = new MouseEvent('mouseup', {});
+                    drawCanvas.dispatchEvent(mouseEvent);
+                });
+                // Setup real-time collaboration for drawing
+                setupDrawingCollaboration();
+            }
+            function startDrawing(e) {
+                isDrawing = true;
+                const rect = drawCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                // Initialize stroke points for real-time collaboration
+                currentStrokePoints = [{ x, y }];
+                drawCtx.beginPath();
+                drawCtx.moveTo(x, y);
+            }
+            function draw(e) {
+                if (!isDrawing) return;
+                const rect = drawCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                // Track stroke points for real-time collaboration
+                currentStrokePoints.push({ x, y });
+                drawCtx.lineCap = 'round';
+                drawCtx.lineJoin = 'round';
+                if (drawSettings.tool === 'eraser') {
+                    drawCtx.globalCompositeOperation = 'destination-out';
+                    drawCtx.lineWidth = drawSettings.brushSize * 3;
+                } else {
+                    drawCtx.globalCompositeOperation = 'source-over';
+                    drawCtx.lineWidth = drawSettings.brushSize;
+                    if (drawSettings.tool === 'highlighter') {
+                        drawCtx.globalAlpha = 0.3;
+                    } else {
+                        drawCtx.globalAlpha = drawSettings.opacity / 100;
+                    }
+                    drawCtx.strokeStyle = drawSettings.color;
+                }
+                drawCtx.lineTo(x, y);
+                drawCtx.stroke();
+            }
+            function stopDrawing() {
+                if (isDrawing) {
+                    WorkspaceState.markUnsaved(); // Mark as unsaved
+                    // Broadcast stroke to collaborators (if not receiving remote stroke)
+                    if (!isRemoteDrawing && currentStrokePoints.length > 1 && window.workspaceCollaboration) {
+                        window.workspaceCollaboration.emitDrawingStroke(
+                            currentStrokePoints,
+                            drawSettings.color,
+                            drawSettings.brushSize,
+                            drawSettings.opacity / 100,
+                            drawSettings.tool
+                        );
+                    }
+                }
+                isDrawing = false;
+                currentStrokePoints = []; // Reset points
+                drawCtx.globalAlpha = 1.0;
+                drawCtx.beginPath();
+            }
+            /**
+             * Render a stroke received from a remote collaborator
+             */
+            function renderRemoteStroke(data) {
+                if (!drawCanvas || !drawCtx) return;
+                if (!data.points || data.points.length < 2) return;
+                isRemoteDrawing = true;
+                // Save current context state
+                const savedAlpha = drawCtx.globalAlpha;
+                const savedComposite = drawCtx.globalCompositeOperation;
+                drawCtx.lineCap = 'round';
+                drawCtx.lineJoin = 'round';
+                if (data.tool === 'eraser') {
+                    drawCtx.globalCompositeOperation = 'destination-out';
+                    drawCtx.lineWidth = data.size * 3;
+                } else {
+                    drawCtx.globalCompositeOperation = 'source-over';
+                    drawCtx.lineWidth = data.size;
+                    if (data.tool === 'highlighter') {
+                        drawCtx.globalAlpha = 0.3;
+                    } else {
+                        drawCtx.globalAlpha = data.opacity || 1;
+                    }
+                    drawCtx.strokeStyle = data.color || '#0088FF';
+                }
+                // Draw the stroke
+                drawCtx.beginPath();
+                drawCtx.moveTo(data.points[0].x, data.points[0].y);
+                for (let i = 1; i < data.points.length; i++) {
+                    drawCtx.lineTo(data.points[i].x, data.points[i].y);
+                }
+                drawCtx.stroke();
+                // Restore context state
+                drawCtx.globalAlpha = savedAlpha;
+                drawCtx.globalCompositeOperation = savedComposite;
+                drawCtx.beginPath();
+                isRemoteDrawing = false;
+            }
+            /**
+             * Setup real-time collaboration listeners for drawing
+             */
+            function setupDrawingCollaboration() {
+                const checkCollab = setInterval(() => {
+                    if (window.workspaceCollaboration) {
+                        clearInterval(checkCollab);
+                        // Listen for drawing strokes from other users
+                        window.workspaceCollaboration.onDrawingStroke((data) => {
+                            renderRemoteStroke(data);
+                            window.workspaceCollaboration.showSyncNotification('drawing', data.userName);
+                        });
+                        // Listen for canvas clear events
+                        window.workspaceCollaboration.onDrawingClear((data) => {
+                            if (drawCanvas && drawCtx) {
+                                drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                                window.workspaceCollaboration.showSyncNotification('drawing', data.userName);
+                            }
+                        });
+                        // Listen for sticky note updates
+                        window.workspaceCollaboration.onStickyNoteUpdate((data) => {
+                            handleRemoteStickyNote(data);
+                        });
+                        console.log('🎨 Drawing real-time collaboration enabled (Biology)');
+                    }
+                }, 500);
+                setTimeout(() => clearInterval(checkCollab), 10000);
+            }
+            /**
+             * Handle sticky note updates from collaborators
+             */
+            function handleRemoteStickyNote(data) {
+                const { action, noteData, userName } = data;
+                switch (action) {
+                    case 'create':
+                        if (!document.getElementById(noteData.id)) {
+                            WorkspaceState.createStickyNote(noteData);
+                            window.workspaceCollaboration?.showSyncNotification('sticky', userName);
+                        }
+                        break;
+                    case 'update':
+                        const textarea = document.querySelector(`#${noteData.id} textarea`);
+                        if (textarea && textarea.value !== noteData.content) {
+                            textarea.value = noteData.content;
+                        }
+                        break;
+                    case 'delete':
+                        const noteEl = document.getElementById(noteData.id);
+                        if (noteEl) {
+                            noteEl.remove();
+                            WorkspaceState.stickyNotes.delete(noteData.id);
+                        }
+                        break;
+                    case 'move':
+                        const moveEl = document.getElementById(noteData.id);
+                        if (moveEl) {
+                            moveEl.style.left = noteData.x + 'px';
+                            moveEl.style.top = noteData.y + 'px';
+                        }
+                        break;
+                }
+            }
+            function showToast(message) {
+                const toast = document.createElement('div');
+                toast.textContent = message;
+                toast.style.cssText = 'position: fixed; bottom: 100px; right: 30px; background: rgba(0, 0, 0, 0.9); color: white; padding: 12px 20px; border-radius: 8px; z-index: 10000; animation: slideIn 0.3s ease;';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+            }
+            // Custom Confirm Dialog
+            function showCustomConfirm(message, onConfirm) {
+                const overlay = document.getElementById('custom-confirm-overlay');
+                const messageEl = document.getElementById('confirm-message');
+                const cancelBtn = document.getElementById('confirm-cancel');
+                const okBtn = document.getElementById('confirm-ok');
+                messageEl.textContent = message;
+                overlay.style.display = 'flex';
+                const handleCancel = () => {
+                    overlay.style.display = 'none';
+                    cancelBtn.removeEventListener('click', handleCancel);
+                    okBtn.removeEventListener('click', handleOk);
+                };
+                const handleOk = () => {
+                    overlay.style.display = 'none';
+                    cancelBtn.removeEventListener('click', handleCancel);
+                    okBtn.removeEventListener('click', handleOk);
+                    onConfirm();
+                };
+                cancelBtn.addEventListener('click', handleCancel);
+                okBtn.addEventListener('click', handleOk);
+            }
+            // Page switching logic
+            // Page switching logic
+            window.switchPage = async function (pageName, savePrevious = true) {
+                console.log(`Swapping page from ${WorkspaceState.currentPage} to ${pageName}`);
+                // 1. Save current state (optional, can be skipped on init)
+                if (savePrevious && WorkspaceState.save) {
+                    await WorkspaceState.save();
+                }
+                // 2. Clear current state (visuals)
+                if (WorkspaceState.clearState) {
+                    WorkspaceState.clearState();
+                }
+                // 3. Update current page
+                WorkspaceState.currentPage = pageName;
+                // 4. Update URL (Deep Linking)
+                if (WorkspaceState.projectId) {
+                    const newUrl = `${window.location.pathname}?id=${WorkspaceState.projectId}&view=${pageName}`;
+                    window.history.pushState({ path: newUrl }, '', newUrl);
+                }
+                // 5. Perform navigation
+                if (pageName === 'home') {
+                    showLobby();
+                } else {
+                    showModule(pageName);
+                }
+                // 6. Load new state
+                if (WorkspaceState.loadState) {
+                    await WorkspaceState.loadState();
+                }
+                // 7. Ensure drawing state is correct (iframe handling)
+                if (typeof isDrawingActive !== 'undefined' && isDrawingActive) {
+                    document.querySelectorAll('iframe').forEach(iframe => {
+                        iframe.style.pointerEvents = 'none';
+                    });
+                } else {
+                    document.querySelectorAll('iframe').forEach(iframe => {
+                        iframe.style.pointerEvents = 'auto';
+                    });
+                }
+            };
+            // Initialize
+            // Wait for everything to load
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    if (WorkspaceState.init) {
+                        WorkspaceState.init();
+                    }
+                    if (document.getElementById('draw-canvas') && typeof initDrawingTool === 'function' && !drawingInitialized) {
+                        initDrawingTool();
+                    }
+                }, 1000);
+            });
+            // Handle window resize for canvas
+            window.addEventListener('resize', () => {
+                if (drawCanvas) {
+                    const imageData = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+                    drawCanvas.width = window.innerWidth;
+                    drawCanvas.height = window.innerHeight;
+                    drawCtx.putImageData(imageData, 0, 0);
+                }
+            });
+        </script>
+    </div>
+    <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
+    <script src="../js/workspace-common/biology-quiz-data.js"></script>
+    <script src="../js/workspace-common/workspace-quiz.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Collaboration
+            const params = new URLSearchParams(window.location.search);
+            const projectId = params.get('id') || 'dev-demo-project';
+            if (typeof WorkspaceCollaboration !== 'undefined') {
+                window.workspaceCollaboration = new WorkspaceCollaboration({
+                    projectId: projectId,
+                    containerId: 'collaboration-users'
+                });
+            }
+            if (typeof WorkspaceQuiz !== 'undefined') {
+                new WorkspaceQuiz({
+                    workspace: 'biology',
+                    containerId: 'navbar-controls'
+                });
+            }
+        });
+    </script>
+    <script src="/js/pwa.js"></script>
+</body>
+
+</html>

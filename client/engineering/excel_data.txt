@@ -1,0 +1,59 @@
+Sheet: Sheet1
+            Engine---   Unnamed: 1   Unnamed: 2   Unnamed: 3  Unnamed: 4  Unnamed: 5  Unnamed: 6  Unnamed: 7 Unnamed: 8 Unnamed: 9 Unnamed: 10
+0             Piston   Solid1003_22   Solid1003_24   Solid1003_15   Solid1003_3         NaN         NaN         NaN        NaN        NaN         NaN
+1           Connecting Rod   Solid1003_23   Solid1003_25   Solid1003_16   Solid1003_4         NaN         NaN         NaN        NaN        NaN         NaN
+2            Crankshaft   Solid1003_19   Solid1003_28   Solid1003_12   Solid1003_7  Solid1003_20  Solid1003_29  Solid1003_13  Solid1003_8        NaN         NaN
+3           Bolt   Solid1003_17   Solid1003_18   Solid1003_27  Solid1003_26  Solid1003_10  Solid1003_11   Solid1003_6  Solid1003_5        NaN         NaN
+4             Body?    Solid1003_1    Solid1003_2          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+5             NaN          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+6          Gripper---          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+7         Gripper Base    Solid1008          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+8           Gripper Finger    Solid1011    Solid1016          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+9          Base Gear    Solid1002          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+10          Gear Link    Solid1010    Solid1009          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+11             Link    Solid1012    Solid1001          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+12              Pin    Solid1015    Solid1023    Solid1021   Solid1022   Solid1020   Solid1019   Solid1017  Solid1018  Solid1014   Solid1013
+13            NaN          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+14         Robot Arm---          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+15            Base     Solid1_2     Solid1_1          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+16            Axis 1     Solid1_3  Solid1_1001          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+17            Axis 2  Solid1_2002  Solid1_3001  Solid1_1002         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+18            NaN          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+19       Leaf Spring---          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+20         Center Clamp  Solid2001_3          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+21         Sub Clamp    Solid1029    Solid1030    Solid1032   Solid1033         NaN         NaN         NaN        NaN        NaN         NaN
+22            Leaf Pack  Solid1031_1          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+23         Support Rubber    Solid1007    Solid1013    Solid1014         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+24            Support       Solid1    Solid1001          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+25      Support Rigid       Solid2    Solid2002          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+26            NaN          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+27        Suspension---          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+28            Base  Solid1020_1          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+29             Rod    Solid1007          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+30            Spring    Solid1008          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+31             Nut    Solid1002          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+32            NaN          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+33            NaN          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+34  List to group (below)          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+35          Engine---          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+36      Solid1003_2    Solid1003_1          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+37            NaN          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+38         Robot Arm---          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+39       Solid1_2     Solid1_1          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+40    Solid1001_1  Solid1001_3  Solid1001_2          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+41    Solid1002_1  Solid1002_2  Solid1002_3          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+42      Solid1003  Solid1003_1          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+43    Solid1004_1    Solid1004          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+44      Solid1005  Solid1005_1          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+45      Solid1006  Solid1006_1  Solid1006_2          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+46      Solid1011    Solid1012          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+47            NaN          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+48        Suspension---          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+49    Solid1020_1    Solid1020          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+50            NaN          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+51        Leaf Spring---          NaN          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+52      Solid1033  Solid1033_1          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+53      Solid1032  Solid1032_1          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+54      Solid1030  Solid1030_1          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+55      Solid1029  Solid1029_1          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN
+56    Solid2001_3  Solid2001_2          NaN          NaN         NaN         NaN         NaN         NaN        NaN        NaN         NaN

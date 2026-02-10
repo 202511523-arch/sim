@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!-- 
+  STANDARDIZED HEADER COMPONENT TEMPLATE
+  
+  Required CSS:
+  <link rel="stylesheet" href="../css/workspace-new.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  
+  Required JS:
+  <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
+  <script src="../js/workspace-common/study-timer.js"></script>
+-->
+
+<header class="simvex-header">
+    <div class="logo-section">
+        <!-- Change icon and text per module -->
+        <span class="logo-icon material-icons-round" style="color: var(--accent-primary);">science</span>
+        <span class="logo-text">SIMVEX Module</span>
+    </div>
+
+    <!-- Collaboration Users Container -->
+    <div id="collaboration-users" style="margin-left: 16px;"></div>
+
+    <!-- Center Navigation -->
+    <nav class="nav-pills header-center">
+        <a href="/dashboard.html" class="nav-pill">Dashboard</a>
+        <a href="#" class="nav-pill active">Current</a>
+        <a href="#" class="nav-pill">Other Page</a>
+    </nav>
+
+    <!-- Right Side Controls -->
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+        <!-- Project Save Button -->
+        <button id="project-save-btn" class="save-button" title="Save project">
+            <span class="material-icons-round" style="font-size: 18px;">save</span>
+            <span id="save-status-text">Saved</span>
+        </button>
+
+        <!-- Timer & Extra Controls Container -->
+        <div id="navbar-controls" style="display: flex; align-items: center;">
+            <!-- Timer or other controls can be added here or via JS -->
+        </div>
+    </div>
+</header>
+
+<script>
+    // Initialization Example
+    document.addEventListener('DOMContentLoaded', () => {
+        // Ensure projectId is available
+        const params = new URLSearchParams(window.location.search);
+        const projectId = params.get('id');
+
+        if (projectId) {
+            // Initialize Header Collaboration UI
+            if (typeof CollaborationUI !== 'undefined') {
+                new CollaborationUI({
+                    projectId: projectId,
+                    containerId: 'collaboration-users'
+                });
+            }
+
+            // Initialize Timer
+            if (typeof StudyTimer !== 'undefined') {
+                new StudyTimer({
+                    projectId: projectId,
+                    containerId: 'navbar-controls'
+                });
+            }
+        }
+    });
+</script>

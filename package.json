@@ -1,0 +1,16 @@
+{
+    "name": "simvex-root",
+    "version": "1.0.0",
+    "description": "Root configuration for SIMVEX",
+    "scripts": {
+        "dev": "npm run dev --prefix server",
+        "start": "npm start --prefix server",
+        "install:server": "npm install --prefix server",
+        "test": "npm test --prefix server"
+    },
+    "dependencies": {
+        "html2canvas": "^1.4.1",
+        "jspdf": "^4.1.0",
+        "marked": "^17.0.1"
+    }
+}

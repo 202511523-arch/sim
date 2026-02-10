@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMVEX - Chemistry Simulation</title>
+    <!-- Fonts & Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="chemistry-theme.css">
+    <link rel="stylesheet" href="../css/workspace-new.css">
+    <link rel="stylesheet" href="../css/popup-panels.css">
+    <style>
+        /* Interactive Elements moved to chemistry-theme.css */
+    </style>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+
+<body class="premium-theme">
+    <div class="app-shell">
+        <!-- Main Header -->
+        <!-- Biology-style Header -->
+        <!-- Unified Header with Simulation Specifics -->
+        <header class="simvex-header simulation-header">
+            <!-- Left: Logo + Title + Mode Selector -->
+            <div class="logo-section">
+                <span class="logo-icon material-icons-round" style="color: var(--accent-primary);">science</span>
+                <span class="logo-text">SIMVEX Chemistry</span>
+            </div>
+            <!-- Integration: Collaboration Users -->
+            <div id="collaboration-users" style="margin-left: 16px;"></div>
+            <!-- Center: Navigation -->
+            <nav class="nav-pills header-center">
+                <a href="/dashboard.html" class="nav-pill">Dashboard</a>
+                <a href="study.html" class="nav-pill">Study</a>
+                <a href="simulation.html" class="nav-pill active">Simulation</a>
+                <a href="lab.html" class="nav-pill">Lab</a>
+            </nav>
+            <!-- Right Section -->
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+                <!-- Project Save Button -->
+                <button id="project-save-btn" class="save-button" title="Save project">
+                    <span class="material-icons-round" style="font-size: 18px;">save</span>
+                    <span id="save-status-text">Save</span>
+                </button>
+                <!-- Header Controls: Badge + Dynamic Buttons (Quiz/Timer) -->
+                <div id="navbar-controls" style="display: flex; align-items: center;">
+                    <!-- Timer/Quiz will be injected here -->
+                </div>
+            </div>
+        </header>
+        <section class="main-layout">
+            <!-- Left Controls: Periodic Table & View Options -->
+            <aside class="sidebar-left">
+                <div class="molecule-badge" style="margin: 0; margin-right: 12px;">
+                    <span id="molecule-name">Water</span>
+                </div>
+                <!-- Custom Mode Selector (Specific to Simulation) -->
+                <div class="custom-dropdown" id="mode-dropdown" style="margin-left: 16px;">
+                    <div class="dropdown-trigger"
+                        style="padding: 3px 3px !important; font-size: 12px !important; min-width: auto; height: 32px;">
+                        <span class="material-icons-round mode-icon" style="font-size: 18px;">extension</span>
+                        <span class="mode-label" id="current-mode-text">Molecule Simul.</span>
+                        <span class="material-icons-round mode-arrow">expand_more</span>
+                    </div>
+                    <ul class="dropdown-options">
+                        <li data-value="molecule" class="active">
+                            <span class="material-icons-round">grain</span> Molecule Simul.
+                        </li>
+                        <li data-value="atom">
+                            <span class="material-icons-round">adjust</span> Atom Simul.
+                        </li>
+                        <li data-value="periodic">
+                            <span class="material-icons-round">grid_view</span> Periodic Table
+                        </li>
+                        <li data-value="gas">
+                            <span class="material-icons-round">air</span> Gas Simul.
+                        </li>
+                        <li data-value="equilibrium">
+                            <span class="material-icons-round">balance</span> Equilibrium
+                        </li>
+                        <li data-value="thermo">
+                            <span class="material-icons-round">local_fire_department</span> Thermochemistry
+                        </li>
+                    </ul>
+                    <input type="hidden" id="sim-mode-value" value="molecule">
+                </div>
+                <!-- Periodic Table Panel -->
+                <div class="side-panel">
+                    <div class="panel-header">
+                        <div class="panel-accent"></div>
+                        <span class="material-icons-round">apps</span>
+                        <h3>Periodic Table</h3>
+                    </div>
+                    <div class="panel-content">
+                        <div id="element-grid" class="element-matrix"></div>
+                    </div>
+                </div>
+                <!-- Quick Presets -->
+                <div class="side-panel">
+                    <div class="panel-header">
+                        <div class="panel-accent"></div>
+                        <span class="material-icons-round">bolt</span>
+                        <h3>Quick Molecules</h3>
+                    </div>
+                    <div class="panel-content">
+                        <div class="molecule-chips">
+                            <button class="chip-btn quick-btn" data-molecule="water">H₂O</button>
+                            <button class="chip-btn quick-btn" data-molecule="methane">CH₄</button>
+                            <button class="chip-btn quick-btn" data-molecule="ethanol">EtOH</button>
+                            <button class="chip-btn quick-btn" data-molecule="benzene">C₆H₆</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Display Modifiers -->
+                <div class="side-panel">
+                    <div class="panel-header">
+                        <div class="panel-accent"></div>
+                        <span class="material-icons-round">visibility</span>
+                        <h3>View Options</h3>
+                    </div>
+                    <div class="panel-content">
+                        <div class="checkbox-group">
+                            <label class="custom-check">
+                                <input type="checkbox" id="show-labels" checked>
+                                <span class="checkmark"></span> Element Symbols
+                            </label>
+                            <label class="custom-check">
+                                <input type="checkbox" id="show-bonds" checked>
+                                <span class="checkmark"></span> Chemical Bonds
+                            </label>
+                            <label class="custom-check">
+                                <input type="checkbox" id="show-electrons" checked>
+                                <span class="checkmark"></span> Electron Shells
+                            </label>
+                            <label class="custom-check">
+                                <input type="checkbox" id="show-lone-pairs">
+                                <span class="checkmark"></span> Lone Pairs
+                            </label>
+                        </div>
+                        <div class="radio-tabs">
+                            <label class="radio-tab">
+                                <input type="radio" name="style" value="ball-stick" checked>
+                                <span>Ball-and-Stick</span>
+                            </label>
+                            <label class="radio-tab">
+                                <input type="radio" name="style" value="spacefill">
+                                <span>Space-fill</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <!-- Animation Modes -->
+                <div class="side-panel">
+                    <div class="panel-header">
+                        <div class="panel-accent"></div>
+                        <span class="material-icons-round">play_circle</span>
+                        <h3>Animation</h3>
+                    </div>
+                    <div class="panel-content">
+                        <div class="button-stack">
+                            <button class="action-btn" id="vibration-mode">Vibration Mode (IR)</button>
+                            <button class="action-btn secondary" id="reaction-pathway">Reaction Pathway</button>
+                            <div class="slider-box" style="margin-top:10px;">
+                                <div class="slider-info"><span>Frequency</span><b id="freq-value">1000 cm⁻¹</b></div>
+                                <input type="range" id="vib-freq" min="0" max="4000" value="1000" class="cyber-slider">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            <!-- Main Interactive Viewport -->
+            <main class="viewport-canvas">
+                <canvas id="viewport"></canvas>
+                <!-- Floating HUD: Analysis Quick Stats -->
+                <div class="hud HUD-top-right">
+                    <div class="hud-item main-info">
+                        <div class="hud-formula" id="hud-formula">H₂O</div>
+                        <div class="hud-charge" id="hud-charge">0</div>
+                    </div>
+                    <div class="hud-stats">
+                        <div class="stat"><span class="label">Mass</span><span class="val" id="hud-weight">18.02
+                                g/mol</span></div>
+                        <div class="stat"><span class="label">Atoms</span><span class="val" id="hud-atoms">0</span>
+                        </div>
+                        <div class="stat"><span class="label">Bonds</span><span class="val" id="hud-bonds">0</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Bottom Control Strip -->
+                <div class="control-strip">
+                    <div class="tool-group">
+                        <button class="strip-btn active" id="select-tool" title="Select"><span
+                                class="material-icons-round">near_me</span></button>
+                        <button class="strip-btn" id="rotate-tool" title="Rotate"><span
+                                class="material-icons-round">3d_rotation</span></button>
+                        <button class="strip-btn" id="build-tool" title="Build"><span
+                                class="material-icons-round">add_circle_outline</span></button>
+                    </div>
+                    <div class="strip-divider"></div>
+                    <div class="tool-group">
+                        <button class="strip-btn" id="toggle-bond" title="Toggle Bond"><span
+                                class="material-icons-round">link</span></button>
+                        <button class="strip-btn" id="delete-atom" title="Delete"><span
+                                class="material-icons-round">delete</span></button>
+                    </div>
+                    <div class="strip-divider"></div>
+                    <div class="tool-group">
+                        <button class="strip-btn" id="measure-angle" title="Angle"><span
+                                class="material-icons-round">square_foot</span></button>
+                        <button class="strip-btn" id="measure-distance" title="Distance"><span
+                                class="material-icons-round">straighten</span></button>
+                    </div>
+                    <div class="strip-divider"></div>
+                    <div class="tool-group">
+                        <button class="strip-btn" id="zoom-in"><span
+                                class="material-icons-round">zoom_in</span></button>
+                        <button class="strip-btn" id="zoom-out"><span
+                                class="material-icons-round">zoom_out</span></button>
+                        <button class="strip-btn danger" id="clear-all"><span
+                                class="material-icons-round">delete_forever</span></button>
+                    </div>
+                    <div class="strip-divider"></div>
+                    <div class="tool-group">
+                        <button class="strip-btn study" id="open-study-tool"><span
+                                class="material-icons-round">auto_stories</span></button>
+                        <button class="strip-btn pfd" id="export-pdf"><span
+                                class="material-icons-round">picture_as_pdf</span></button>
+                    </div>
+                </div>
+            </main>
+            <!-- Right Panel: Deep Analysis -->
+            <aside class="sidebar-right">
+                <!-- Molecule Properties -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <h4>Molecular Properties</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="prop-grid">
+                            <div class="prop-box">
+                                <div class="p-label">Formula</div>
+                                <div class="p-val" id="formula">H₂O</div>
+                            </div>
+                            <div class="prop-box">
+                                <div class="p-label">Molecular Weight</div>
+                                <div class="p-val" id="mol-weight">18.02 g/mol</div>
+                            </div>
+                            <div class="prop-box" id="enthalpy-box">
+                                <div class="p-label">Enthalpy (H)</div>
+                                <div class="p-val" id="enthalpy">-</div>
+                            </div>
+                            <div class="prop-box" id="entropy-box">
+                                <div class="p-label">Entropy (S)</div>
+                                <div class="p-val" id="entropy">-</div>
+                            </div>
+                            <div class="prop-box" id="gibbs-box">
+                                <div class="p-label">Gibbs Energy (G)</div>
+                                <div class="p-val" id="gibbs">-</div>
+                            </div>
+                            <div class="prop-box">
+                                <div class="p-label">Charge</div>
+                                <div class="p-val" id="formal-charge">0</div>
+                            </div>
+                            <div class="prop-box">
+                                <div class="p-label">Dipole Moment</div>
+                                <div class="p-val" id="dipole">0.00 D</div>
+                            </div>
+                            <div class="prop-box" id="polarity-container">
+                                <div class="p-label">Polarity</div>
+                                <div class="p-val" id="polarity">-</div>
+                            </div>
+                            <div class="prop-box">
+                                <div class="p-label">Total Energy</div>
+                                <div class="p-val" id="energy">- Eh</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Stoichiometry Tools -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="accent yellow"></div>
+                        <h4>Stoichiometry Calculator</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="calc-group">
+                            <div class="input-sub">
+                                <span>Mass(g):</span>
+                                <input type="number" id="mass-input" placeholder="0.0">
+                            </div>
+                            <button id="calc-moles" class="action-btn">Calculate Moles</button>
+                            <div id="moles-result" class="res-box">- mol</div>
+                        </div>
+                        <div class="calc-group"
+                            style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.05); padding-top:15px;">
+                            <div class="input-sub">
+                                <span>[H+](M):</span>
+                                <input type="number" id="ph-input" placeholder="1e-7">
+                            </div>
+                            <button id="calc-ph" class="action-btn secondary">Calculate pH</button>
+                            <div id="ph-result" class="res-box">-</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Bond Analysis -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="accent pink"></div>
+                        <h4>Bond Analysis</h4>
+                    </div>
+                    <div class="card-content" id="bond-analysis">
+                        <div class="empty-state">Analyzing...</div>
+                    </div>
+                </div>
+                <!-- VSEPR Analysis -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="accent cyan"></div>
+                        <h4>VSEPR Analysis</h4>
+                    </div>
+                    <div class="card-content" id="vsepr-geometry">
+                        <div class="empty-state">Waiting for analysis...</div>
+                    </div>
+                </div>
+                <!-- Chemical Info -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="accent green"></div>
+                        <h4>Compound Info</h4>
+                    </div>
+                    <div class="card-content" id="chemical-info">
+                        <div class="empty-state">Select a compound.</div>
+                    </div>
+                </div>
+                <!-- Thermodynamics Details -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="accent orange"></div>
+                        <h4>Thermodynamics Details</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="prop-grid" id="thermodynamics-details">
+                            <div class="prop-box">
+                                <div class="p-label">ΔHf (Formation)</div>
+                                <div class="p-val" id="enthalpy-val">-</div>
+                            </div>
+                            <div class="prop-box">
+                                <div class="p-label">ΔSf (Formation)</div>
+                                <div class="p-val" id="entropy-val">-</div>
+                            </div>
+                            <div class="prop-box">
+                                <div class="p-label">ΔGf (Formation)</div>
+                                <div class="p-val" id="gibbs-val">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Spectroscopy Simulation -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="accent indigo"></div>
+                        <h4>Spectroscopy Analysis</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="button-grid">
+                            <button id="show-ir" class="mini-btn">Predict IR</button>
+                            <button id="show-nmr" class="mini-btn">¹H NMR</button>
+                        </div>
+                        <div id="spectrum-canvas" class="spectrum-viewer">
+                            <div class="empty-state">Waiting for analysis</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Simulation Lab -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="accent orange"></div>
+                        <h4>Lab Simulation</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="slider-box">
+                            <div class="slider-info"><span>Temperature</span><b id="temp-value">298 K</b></div>
+                            <input type="range" id="temp-slider" min="0" max="5000" value="298" class="cyber-slider">
+                        </div>
+                        <label class="custom-check">
+                            <input type="checkbox" id="thermal-decomp">
+                            <span class="checkmark"></span> Enable Thermal Decomposition
+                        </label>
+                    </div>
+                </div>
+                <!-- Computational Tools -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="accent purple"></div>
+                        <h4>Quantum Calculations</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="q-grid">
+                            <div class="q-box">
+                                <div class="q-label">HOMO</div>
+                                <div class="q-val" id="homo-energy">- Eh</div>
+                            </div>
+                            <div class="q-box">
+                                <div class="q-label">LUMO</div>
+                                <div class="q-val" id="lumo-energy">- Eh</div>
+                            </div>
+                            <div class="q-box">
+                                <div class="q-label">Gap (eV)</div>
+                                <div class="q-val" id="band-gap">- eV</div>
+                            </div>
+                            <div class="q-box">
+                                <div class="q-label">Total Energy</div>
+                                <div class="q-val" id="total-energy">- Eh</div>
+                            </div>
+                            <div class="q-box">
+                                <div class="q-label">Zero-point Energy</div>
+                                <div class="q-val" id="zpe">- Eh</div>
+                            </div>
+                            <div class="q-box">
+                                <div class="q-label">Rotational Const.</div>
+                                <div class="q-val" id="rotational">- GHz</div>
+                            </div>
+                        </div>
+                        <div class="electronic-tag" id="electronic-state">Singlet</div>
+                        <button id="show-mo-diagram" class="action-btn">Generate MO Diagram</button>
+                    </div>
+                </div>
+                <!-- Atomic Charges -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="accent red"></div>
+                        <h4>Charge Analysis</h4>
+                    </div>
+                    <div class="card-content">
+                        <select id="charge-method" class="cyber-select"
+                            style="width:100%; margin-bottom:12px; background:rgba(0,0,0,0.3); color:white; border:1px solid var(--border-color); border-radius:6px; padding:6px; font-size:11px;">
+                            <option value="npa">NPA Point Charges</option>
+                            <option value="mulliken">Mulliken Population</option>
+                        </select>
+                        <div id="charge-results" class="charge-scroll">
+                            <div class="empty-state">Pre-analysis</div>
+                        </div>
+                        <button id="calc-charges" class="action-btn secondary">Recalculate Charges</button>
+                    </div>
+                </div>
+                <!-- Q-Chem Generator -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="accent yellow"></div>
+                        <h4>Generate Q-Chem Input</h4>
+                    </div>
+                    <div class="card-content">
+                        <div class="qchem-options">
+                            <select id="calc-method" class="cyber-select">
+                                <option value="hf">Hartree-Fock</option>
+                                <option value="dft">DFT (B3LYP)</option>
+                                <option value="mp2">MP2</option>
+                                <option value="ccsd">CCSD(T)</option>
+                            </select>
+                            <select id="basis-set" class="cyber-select">
+                                <option value="sto-3g">STO-3G</option>
+                                <option value="6-31g">6-31G</option>
+                                <option value="6-31g*">6-31G*</option>
+                                <option value="6-311++g**">6-311++G**</option>
+                            </select>
+                        </div>
+                        <button id="generate-qchem" class="action-btn primary" style="margin-top:10px;">Generate
+                            Input</button>
+                        <textarea id="qchem-output" class="cyber-textarea" readonly
+                            placeholder="Q-Chem Input..."></textarea>
+                    </div>
+                </div>
+            </aside>
+        </section>
+        <!-- Action Dock Removed -->
+    </div>
+    <!-- Modals & Overlays -->
+    <!-- Study Modal Removed -->
+    <!-- Floating Action Buttons -->
+    <!-- Floating Action Buttons (Biology Style) -->
+    <div class="floating-actions">
+        <button class="fab" id="fab-notes" title="Notes">
+            <span class="material-icons-round">edit_note</span>
+        </button>
+        <button class="fab" id="fab-chat" title="AI Assistant">
+            <span class="material-icons-round">smart_toy</span>
+        </button>
+        <button class="fab" id="fab-sticky" title="Sticky Note">
+            <span class="material-icons-round">sticky_note_2</span>
+        </button>
+        <button class="fab" id="fab-draw" title="Drawing Tool">
+            <span class="material-icons-round">draw</span>
+        </button>
+    </div>
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+    <!-- Sticky Notes Container -->
+    <div id="sticky-notes-container"></div>
+    <!-- Draw Tool Popup -->
+    <div class="popup-panel" id="draw-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">draw</span>
+                Drawing Tool
+            </div>
+            <button class="popup-close" onclick="closePopup('draw-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" style="padding: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Tool Selection -->
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="draw-tool-btn active" data-tool="pen" title="Pen">
+                            <span class="material-icons-round">edit</span>
+                        </button>
+                        <button class="draw-tool-btn" data-tool="eraser" title="Eraser">
+                            <span class="material-icons-round">ink_eraser</span>
+                        </button>
+                        <button class="draw-tool-btn" data-tool="highlighter" title="Highlighter">
+                            <span class="material-icons-round">format_paint</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Color Selection -->
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="color-btn active" data-color="#8b5cf6" style="background: #8b5cf6;"></button>
+                        <button class="color-btn" data-color="#FF6B6B" style="background: #FF6B6B;"></button>
+                        <button class="color-btn" data-color="#4ECDC4" style="background: #4ECDC4;"></button>
+                        <button class="color-btn" data-color="#45B7D1" style="background: #45B7D1;"></button>
+                        <button class="color-btn" data-color="#FFA07A" style="background: #FFA07A;"></button>
+                        <button class="color-btn" data-color="#F7DC6F" style="background: #F7DC6F;"></button>
+                        <button class="color-btn" data-color="#FFFFFF" style="background: #FFFFFF;"></button>
+                    </div>
+                </div>
+                <!-- Brush Size -->
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">
+                        Brush Size: <span id="brush-size-value">3</span>px
+                    </label>
+                    <input type="range" id="brush-size" min="1" max="20" value="3"
+                        style="width: 100%; accent-color: var(--accent-primary);">
+                </div>
+                <!-- Opacity -->
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">
+                        Opacity: <span id="opacity-value">100</span>%
+                    </label>
+                    <input type="range" id="draw-opacity" min="10" max="100" value="100"
+                        style="width: 100%; accent-color: var(--accent-primary);">
+                </div>
+                <!-- Actions -->
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                    <button class="btn-circle" id="btn-clear-canvas" title="Clear All"
+                        style="width: 100%; border-radius: 8px; background: rgba(220, 38, 38, 0.15); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.3); justify-content: center;">
+                        <span class="material-icons-round">close</span>
+                        <span style="margin-left: 6px;">Clear</span>
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
+                        style="flex: 1; border-radius: 8px; background: rgba(30, 58, 138, 0.4); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; justify-content: center;">
+                        <span class="material-icons-round">visibility</span>
+                        <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
+                    </button>
+                    <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
+                        style="flex: 1; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: var(--text-secondary); justify-content: center;">
+                        <span class="material-icons-round">edit_off</span>
+                        <span style="margin-left: 6px;" id="toggle-draw-text">Enable Drawing</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Chat Popup -->
+    <div class="popup-panel" id="chat-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">smart_toy</span>
+                Chemistry Tutor
+            </div>
+            <button class="popup-close" onclick="closePopup('chat-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="ai-panel">
+            <div id="chat-messages" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+        <div class="popup-footer">
+            <div class="ai-omni-input" style="display: flex; gap: 10px;">
+                <input type="text" id="omni-input" class="input" placeholder="Ask about chemistry concepts..."
+                    style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 20px; padding: 10px 15px; color: white;">
+                <button class="btn-circle" id="omni-send"
+                    style="background: var(--accent-blue); border: none; border-radius: 50%; width: 40px; height: 40px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <span class="material-icons-round">send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Notes Popup -->
+    <div class="popup-panel" id="notes-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">edit_note</span>
+                Notes
+            </div>
+            <button class="popup-close" onclick="closePopup('notes-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="notes-panel">
+            <textarea id="notepad" placeholder="Study notes..."
+                style="width: 100%; height: 100%; background: transparent; border: none; color: white; padding: 15px; resize: none; outline: none;"></textarea>
+        </div>
+        <div
+            style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+            <button class="btn-circle" id="btn-new-note" title="New Note"
+                style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer;"><span
+                    class="material-icons-round">add</span></button>
+            <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot"
+                style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer;"><span
+                    class="material-icons-round">camera_alt</span></button>
+            <button class="btn-circle" id="btn-pdf-export" title="Export PDF"
+                style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer;"><span
+                    class="material-icons-round">download</span></button>
+            <button class="btn-circle" id="btn-save-note" title="Save"
+                style="flex: 1; border-radius: 20px; background: var(--accent-blue); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                <span class="material-icons-round">save</span> Save
+            </button>
+        </div>
+    </div>
+    <!-- Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Socket.io for real-time collaboration -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
+    <script src="../js/workspace-common/workspace-chatbot.js"></script>
+    <script src="../js/workspace-common/workspace-notes.js"></script>
+    <script src="../js/workspace-common/time-tracker.js"></script>
+    <script src="../js/workspace-common/study-timer.js"></script>
+    <script src="../js/workspace-common/chemistry-quiz-data.js"></script>
+    <script src="../js/workspace-common/chemistry-quiz.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Parse URL Params first
+        const urlParams = new URLSearchParams(window.location.search);
+        let projectId = urlParams.get('id') || urlParams.get('project') || urlParams.get('projectId');
+        if (!projectId) {
+            console.warn('No projectId in URL - using dev fallback');
+            projectId = 'dev-demo-project';
+        }
+        // Init Collaboration
+        // Logic moved to DOMContentLoaded below
+        if (typeof StudyTimer !== 'undefined') {
+            new StudyTimer({ projectId: projectId, containerId: 'navbar-controls' });
+        }
+        // Logic moved to study-lab-logic.js
+        // Logic moved to study-lab-logic.js
+    </script>
+    <script src="js/study-lab-logic.js"></script>
+    <script></script>
+    <!-- Drawing Canvas Overlay & Custom Cursor -->
+    <div id="custom-cursor"
+        style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
+        <div id="cursor-circle"
+            style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
+        </div>
+        <span class="material-icons-round" id="cursor-icon"
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
+    </div>
+    <canvas id="draw-canvas"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
+    <script src="../js/workspace-common/chemistry-quiz-data.js"></script>
+    <script src="../js/workspace-common/workspace-quiz.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectId = urlParams.get('projectId') || urlParams.get('id') || urlParams.get('project');
+            if (projectId) {
+                if (typeof WorkspaceCollaboration !== 'undefined') {
+                    window.workspaceCollaboration = new WorkspaceCollaboration({
+                        projectId: projectId,
+                        containerId: 'collaboration-users'
+                    });
+                }
+                if (typeof StudyTimer !== 'undefined') {
+                    new StudyTimer({ projectId: projectId, containerId: 'navbar-controls' });
+                }
+            }
+            // Initialize Quiz with delay to ensure order
+            setTimeout(() => {
+                if (typeof WorkspaceQuiz !== 'undefined') {
+                    new WorkspaceQuiz({
+                        workspace: 'chemistry',
+                        containerId: 'navbar-controls'
+                    });
+                }
+            }, 200);
+        });
+    </script>
+    <script src="/js/pwa.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,513 @@
+/* SIMVEX Global Workspace Design System - Dark Neon Theme */
+:root {
+    /* Colors - Dark Neon Theme */
+    --bg-app: #050505;
+    /* Deep Black Background */
+    --bg-panel: rgba(20, 20, 25, 0.7);
+    /* Glassy Panel Background */
+    --bg-input: rgba(255, 255, 255, 0.1);
+
+    --accent-primary: #00f0ff;
+    /* Neon Cyan */
+    --accent-secondary: #00aaff;
+    /* Blue */
+    --accent-glow: 0 0 15px rgba(0, 240, 255, 0.4);
+
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0b0;
+    --text-muted: #606070;
+
+    --border-color: rgba(255, 255, 255, 0.1);
+    --border-active: rgba(0, 240, 255, 0.5);
+
+    /* Spacing & Sizing */
+    --header-height: 60px;
+    --panel-width: 380px;
+    /* Slightly wider for split view */
+    --bottom-bar-height: 100px;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+
+    /* Effects */
+    --glass-blur: blur(20px);
+    --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    /* Subtle background gradient or mesh if desired */
+    background: radial-gradient(circle at 50% 50%, #111115 0%, #050505 100%);
+}
+
+/* =========================================
+   Layout Grid
+   ========================================= */
+.app-container {
+    display: grid;
+    grid-template-rows: var(--header-height) 1fr;
+    height: 100%;
+}
+
+.workspace-main {
+    display: grid;
+    grid-template-columns: 1fr;
+    /* Full width - no right sidebar */
+    height: 100%;
+    overflow: hidden;
+    padding: 0 20px 20px 20px;
+    /* Padding around the workspace */
+    gap: 20px;
+}
+
+.workspace-main.with-left-panel {
+    grid-template-columns: 280px 1fr;
+    /* Left panel + viewport only */
+}
+
+/* =========================================
+   Header (Top Navigation)
+   ========================================= */
+
+/* Unified Header - High Priority Enforcements */
+.simvex-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 24px !important;
+    height: 64px !important;
+    /* Standardized to 64px */
+    z-index: 1000 !important;
+    position: relative;
+    /* Default, can be overridden to fixed by local layout if needed but styling persists */
+    background: rgba(10, 14, 20, 0.85) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+.logo-section {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    font-weight: 700 !important;
+    font-size: 18px !important;
+    color: var(--text-primary) !important;
+    letter-spacing: -0.5px !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Higher specificity to override local themes */
+html body .simvex-header .logo-section .logo-text,
+.logo-text {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.5px !important;
+    color: #FFFFFF !important;
+    background: transparent !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+    text-shadow: none !important;
+}
+
+.logo-icon.material-icons-round {
+    font-size: 24px !important;
+    /* Color handled by inline style usually, or inherit */
+}
+
+.nav-pills {
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 999px !important;
+    padding: 4px !important;
+    gap: 4px !important;
+    overflow: visible !important;
+}
+
+.nav-pill {
+    padding: 8px 20px !important;
+    border-radius: 999px !important;
+    color: #94a3b8 !important;
+    /* text-secondary */
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 1px solid transparent !important;
+}
+
+.nav-pill:hover:not(.active) {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.nav-pill.active {
+    background: rgba(255, 255, 255, 0.1) !important;
+    /* Subtle generic active state if accent not applied, but usually overwritten */
+    background: var(--accent-primary) !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* =========================================
+   Viewport Area (Center)
+   ========================================= */
+.viewport-area {
+    display: grid;
+    grid-template-rows: 1fr var(--bottom-bar-height);
+    gap: 16px;
+    background: var(--bg-panel);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+    /* Creating the "frame" look from the image */
+}
+
+/* 3D Canvas Container */
+.canvas-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-lg);
+    /* Rounded top corners */
+    overflow: hidden;
+    background: black;
+    /* Canvas fallback */
+}
+
+#viewport {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Bottom Input Area */
+.bottom-input-area {
+    padding: 0 20px 20px 20px;
+    display: flex;
+    align-items: center;
+}
+
+.ai-omni-input {
+    width: 100%;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    border-radius: 30px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: border 0.3s;
+}
+
+.ai-omni-input:focus-within {
+    border-color: var(--accent-primary);
+    box-shadow: var(--accent-glow);
+}
+
+.ai-omni-input input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    outline: none;
+}
+
+.btn-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-circle:hover {
+    background: var(--accent-primary);
+    color: black;
+    border-color: var(--accent-primary);
+}
+
+.web-search-badge {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+/* =========================================
+   Right Panel (Split View)
+   ========================================= */
+.right-sidebar {
+    display: grid;
+    grid-template-rows: 6fr 4fr;
+    /* 60% AI, 40% Notes */
+    gap: 20px;
+}
+
+.panel-card {
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.panel-header {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.panel-title {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent-primary);
+}
+
+.panel-body {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+    position: relative;
+}
+
+/* =========================================
+   Specific Components
+   ========================================= */
+
+/* Chat Messages */
+.chat-message {
+    margin-bottom: 16px;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.chat-message.assistant {
+    color: var(--text-primary);
+}
+
+.chat-message.user {
+    color: var(--accent-secondary);
+    text-align: right;
+}
+
+/* Note Cards */
+.note-list-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--accent-secondary);
+}
+
+/* Floating Tools (Inside Viewport) */
+.floating-toolbar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+}
+
+.tool-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tool-btn:hover,
+.tool-btn.active {
+    background: var(--accent-secondary);
+    color: white;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* =========================================
+   3D Viewport Overlays (Gizmo & Presets)
+   ========================================= */
+
+#viewport-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.gizmo-container {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 100px;
+    height: 100px;
+    pointer-events: auto;
+}
+
+.view-presets {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    pointer-events: auto;
+}
+
+.preset-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-panel);
+    /* Glass from theme */
+    backdrop-filter: var(--glass-blur);
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preset-btn:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: black;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+/* FPS Counter */
+#fps-counter {
+    font-family: 'Inter', monospace;
+    font-weight: 500;
+}
+
+/* =========================================
+   Universal Save Button (Premium Style)
+   ========================================= */
+.save-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 20px;
+    background: rgba(20, 25, 35, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    margin-left: 20px;
+}
+
+.save-button:hover {
+    background: rgba(30, 35, 45, 0.8);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.save-button.unsaved {
+    background: rgba(255, 171, 0, 0.15) !important;
+    border-color: #ffab00 !important;
+    color: #ffab00 !important;
+    box-shadow: 0 0 0 1px rgba(255, 171, 0, 0.2), 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+    animation: pulse-warning 2s infinite !important;
+}
+
+@keyframes pulse-warning {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 171, 0, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 171, 0, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 171, 0, 0);
+    }
+}
+
+.save-button.saving {
+    opacity: 0.7;
+    pointer-events: none;
+}

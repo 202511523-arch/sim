@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMVEX - Chemistry Study</title>
+    <!-- Fonts & Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="chemistry-theme.css">
+    <link rel="stylesheet" href="../css/workspace-new.css">
+    <link rel="stylesheet" href="../css/popup-panels.css">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+
+<body class="premium-theme">
+    <div class="app-shell">
+        <!-- Biology-style Header -->
+        <!-- Unified Header -->
+        <header class="simvex-header">
+            <div class="logo-section">
+                <span class="logo-icon material-icons-round" style="color: var(--accent-primary);">science</span>
+                <span class="logo-text">SIMVEX Chemistry</span>
+            </div>
+            <!-- Collaboration Users -->
+            <div id="collaboration-users" style="margin-left: 16px;"></div>
+            <nav class="nav-pills header-center">
+                <a href="/dashboard.html" class="nav-pill">Dashboard</a>
+                <a href="study.html" class="nav-pill active">Study</a>
+                <a href="simulation.html" class="nav-pill">Simulation</a>
+                <a href="lab.html" class="nav-pill">Lab</a>
+            </nav>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+                <!-- Project Save Button -->
+                <button id="project-save-btn" class="save-button" title="Save project">
+                    <span class="material-icons-round" style="font-size: 18px;">save</span>
+                    <span id="save-status-text">Save</span>
+                </button>
+                <!-- Header Controls (Timer, Quiz) -->
+                <div id="navbar-controls" style="display: flex; align-items: center;">
+                    <!-- Timer will be injected here -->
+                </div>
+            </div>
+        </header>
+        <section class="main-layout" style="grid-template-columns: var(--sidebar-left-width) 1fr;">
+            <aside class="sidebar-left">
+                <div class="side-panel">
+                    <div class="panel-header">
+                        <span class="material-icons-round" style="color: var(--accent-blue);">menu_book</span>
+                        <h3>Chemistry Basics</h3>
+                    </div>
+                    <div class="panel-content" style="padding: 12px;">
+                        <div class="lesson-list">
+                            <!-- Atomic Structure -->
+                            <div class="lesson-card active" onclick="loadLesson('atomic')">
+                                <div class="lesson-icon" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">
+                                    <span class="material-icons-round">hub</span>
+                                </div>
+                                <div class="lesson-info">
+                                    <span class="lesson-title">Atomic Structure</span>
+                                    <span class="lesson-desc">Protons, neutrons & electrons</span>
+                                </div>
+                                <span class="material-icons-round lesson-arrow">chevron_right</span>
+                            </div>
+                            <!-- Chemical Bonding -->
+                            <div class="lesson-card" onclick="loadLesson('bonding')">
+                                <div class="lesson-icon" style="background: linear-gradient(135deg, #06b6d4, #22d3ee);">
+                                    <span class="material-icons-round">link</span>
+                                </div>
+                                <div class="lesson-info">
+                                    <span class="lesson-title">Chemical Bonding</span>
+                                    <span class="lesson-desc">Ionic & covalent bonds</span>
+                                </div>
+                                <span class="material-icons-round lesson-arrow">chevron_right</span>
+                            </div>
+                            <!-- Periodic Table -->
+                            <div class="lesson-card" onclick="loadLesson('periodic')">
+                                <div class="lesson-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+                                    <span class="material-icons-round">grid_view</span>
+                                </div>
+                                <div class="lesson-info">
+                                    <span class="lesson-title">Periodic Table</span>
+                                    <span class="lesson-desc">Elements & trends</span>
+                                </div>
+                                <span class="material-icons-round lesson-arrow">chevron_right</span>
+                            </div>
+                            <!-- Moles -->
+                            <div class="lesson-card" onclick="loadLesson('mole')">
+                                <div class="lesson-icon" style="background: linear-gradient(135deg, #3b82f6, #60a5fa);">
+                                    <span class="material-icons-round">calculate</span>
+                                </div>
+                                <div class="lesson-info">
+                                    <span class="lesson-title">Moles & Stoichiometry</span>
+                                    <span class="lesson-desc">Chemical calculations</span>
+                                </div>
+                                <span class="material-icons-round lesson-arrow">chevron_right</span>
+                            </div>
+                            <!-- Properties of Gases -->
+                            <div class="lesson-card" onclick="loadLesson('gas')">
+                                <div class="lesson-icon" style="background: linear-gradient(135deg, #ec4899, #f472b6);">
+                                    <span class="material-icons-round">air</span>
+                                </div>
+                                <div class="lesson-info">
+                                    <span class="lesson-title">Properties of Gases</span>
+                                    <span class="lesson-desc">Gas laws & behavior</span>
+                                </div>
+                                <span class="material-icons-round lesson-arrow">chevron_right</span>
+                            </div>
+                            <!-- Acids and Bases -->
+                            <div class="lesson-card" onclick="loadLesson('acidbase')">
+                                <div class="lesson-icon" style="background: linear-gradient(135deg, #ef4444, #f87171);">
+                                    <span class="material-icons-round">water_drop</span>
+                                </div>
+                                <div class="lesson-info">
+                                    <span class="lesson-title">Acids and Bases</span>
+                                    <span class="lesson-desc">pH & neutralization</span>
+                                </div>
+                                <span class="material-icons-round lesson-arrow">chevron_right</span>
+                            </div>
+                            <!-- Chemical Equilibrium -->
+                            <div class="lesson-card" onclick="loadLesson('equilibrium')">
+                                <div class="lesson-icon" style="background: linear-gradient(135deg, #6366f1, #818cf8);">
+                                    <span class="material-icons-round">balance</span>
+                                </div>
+                                <div class="lesson-info">
+                                    <span class="lesson-title">Chemical Equilibrium</span>
+                                    <span class="lesson-desc">Dynamic balance</span>
+                                </div>
+                                <span class="material-icons-round lesson-arrow">chevron_right</span>
+                            </div>
+                            <!-- Kinetics -->
+                            <div class="lesson-card" onclick="loadLesson('kinetics')">
+                                <div class="lesson-icon" style="background: linear-gradient(135deg, #14b8a6, #2dd4bf);">
+                                    <span class="material-icons-round">speed</span>
+                                </div>
+                                <div class="lesson-info">
+                                    <span class="lesson-title">Reaction Kinetics</span>
+                                    <span class="lesson-desc">Reaction rates</span>
+                                </div>
+                                <span class="material-icons-round lesson-arrow">chevron_right</span>
+                            </div>
+                            <!-- Thermochemistry -->
+                            <div class="lesson-card" onclick="loadLesson('thermo')">
+                                <div class="lesson-icon" style="background: linear-gradient(135deg, #f97316, #fb923c);">
+                                    <span class="material-icons-round">local_fire_department</span>
+                                </div>
+                                <div class="lesson-info">
+                                    <span class="lesson-title">Thermochemistry</span>
+                                    <span class="lesson-desc">Energy & heat</span>
+                                </div>
+                                <span class="material-icons-round lesson-arrow">chevron_right</span>
+                            </div>
+                            <!-- Redox -->
+                            <div class="lesson-card" onclick="loadLesson('redox')">
+                                <div class="lesson-icon" style="background: linear-gradient(135deg, #10b981, #34d399);">
+                                    <span class="material-icons-round">swap_horiz</span>
+                                </div>
+                                <div class="lesson-info">
+                                    <span class="lesson-title">Redox Reactions</span>
+                                    <span class="lesson-desc">Oxidation & Reduction</span>
+                                </div>
+                                <span class="material-icons-round lesson-arrow">chevron_right</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            <main class="viewport-canvas" id="main-content"
+                style="background: rgba(10, 14, 23, 0.95); padding: 2rem; overflow-y: auto; color: white;">
+                <!-- Content will be injected here via JavaScript -->
+            </main>
+            <!-- Quiz Modal -->
+            <dialog id="quiz-modal" class="premium-modal"
+                style="border: none; border-radius: 20px; padding: 0; background: transparent; color: white; width: 500px; max-width: 90vw;">
+                <div class="modal-inner"
+                    style="background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: var(--shadow-main); overflow: hidden; display: flex; flex-direction: column;">
+                    <div class="modal-header"
+                        style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03);">
+                        <h2 style="font-size: 18px; font-weight: 700;"><span id="quiz-title-text">Quiz</span></h2>
+                        <button id="close-quiz-btn"
+                            style="background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; border-radius: 50%; padding: 5px; transition: background 0.2s;">
+                            <span class="material-icons-round">close</span>
+                        </button>
+                    </div>
+                    <div class="modal-body"
+                        style="padding: 30px; min-height: 300px; display: flex; flex-direction: column; gap: 20px;">
+                        <div id="quiz-content">
+                            <div id="quiz-question-container">
+                                <div id="quiz-progress"
+                                    style="font-size: 12px; color: var(--accent-blue); margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                                    Question 1 / 3</div>
+                                <h3 id="quiz-question-text"
+                                    style="font-size: 18px; line-height: 1.4; margin-bottom: 25px;">...</h3>
+                                <div id="quiz-options" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                            </div>
+                            <div id="quiz-result-container" style="display: none; text-align: center; padding: 20px 0;">
+                                <div id="quiz-score-icon"
+                                    style="font-size: 64px; color: var(--accent-cyan); margin-bottom: 15px;">🏆</div>
+                                <h3 style="font-size: 24px; margin-bottom: 10px;">Excellent!</h3>
+                                <p id="quiz-score-text" style="color: var(--text-secondary); margin-bottom: 25px;">
+                                    Score: 0/0</p>
+                                <button class="action-btn primary" id="quiz-restart-btn"
+                                    style="width: auto; margin: 0 auto; padding: 10px 30px;">Try Again</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </dialog>
+            <!-- Video Modal -->
+            <dialog id="video-modal" class="premium-modal"
+                style="border: none; border-radius: 20px; padding: 0; background: transparent; width: 800px; max-width: 90vw;">
+                <div class="modal-inner"
+                    style="background: #000; border-radius: 20px; overflow: hidden; position: relative;">
+                    <button onclick="document.getElementById('video-modal').close();"
+                        style="position: absolute; top: 15px; right: 15px; z-index: 10; background: rgba(0,0,0,0.5); border: none; color: white; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span
+                            class="material-icons-round">close</span></button>
+                    <div class="card-content"
+                        style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; padding-top: 0;">
+                        <iframe id="video-frame" src="" title="YouTube video player"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </dialog>
+        </section>
+    </div>
+    <!-- Floating Action Buttons -->
+    <div class="floating-actions">
+        <button class="fab" id="fab-notes" title="Notes">
+            <span class="material-icons-round">edit_note</span>
+        </button>
+        <button class="fab" id="fab-chat" title="AI Assistant">
+            <span class="material-icons-round">smart_toy</span>
+        </button>
+        <button class="fab" id="fab-sticky" title="Sticky Note">
+            <span class="material-icons-round">sticky_note_2</span>
+        </button>
+        <button class="fab" id="fab-draw" title="Drawing Tool">
+            <span class="material-icons-round">draw</span>
+        </button>
+    </div>
+    <!-- Chat Popup -->
+    <div class="popup-panel" id="chat-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">smart_toy</span>
+                AI Chemistry Specialist
+            </div>
+            <button class="popup-close" onclick="closePopup('chat-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="ai-panel">
+            <div id="chat-messages" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+        <div class="popup-footer">
+            <div class="ai-omni-input">
+                <input type="text" id="omni-input" placeholder="Ask Chemistry AI...">
+                <button class="btn-circle" id="omni-send">
+                    <span class="material-icons-round">send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Notes Popup -->
+    <div class="popup-panel" id="notes-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">edit_note</span>
+                Study Notes
+            </div>
+            <button class="popup-close" onclick="closePopup('notes-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="notes-panel">
+            <textarea id="notepad" placeholder="Study notes..."></textarea>
+        </div>
+        <div
+            style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+            <button class="btn-circle" id="btn-new-note" title="New Note">
+                <span class="material-icons-round">add</span>
+            </button>
+            <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot">
+                <span class="material-icons-round">camera_alt</span>
+            </button>
+            <button class="btn-circle" id="btn-pdf-export" title="Export PDF">
+                <span class="material-icons-round">download</span>
+            </button>
+            <button class="btn-circle" id="btn-save-note" title="Save"
+                style="flex: 1; width: auto; border-radius: 8px;">
+                <span class="material-icons-round">save</span>
+                <span style="margin-left: 6px;">Save</span>
+            </button>
+        </div>
+    </div>
+    <!-- Sticky Notes Container (for multiple notes) -->
+    <div id="sticky-notes-container"></div>
+    <!-- Drawing Tool Popup -->
+    <div class="popup-panel" id="draw-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">draw</span>
+                Drawing Tool
+            </div>
+            <button class="popup-close" onclick="closePopup('draw-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" style="padding: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Tool Selection -->
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="draw-tool-btn active" data-tool="pen" title="Pen">
+                            <span class="material-icons-round">edit</span>
+                        </button>
+                        <button class="draw-tool-btn" data-tool="eraser" title="Eraser">
+                            <span class="material-icons-round">ink_eraser</span>
+                        </button>
+                        <button class="draw-tool-btn" data-tool="highlighter" title="Highlighter">
+                            <span class="material-icons-round">format_paint</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Color Selection -->
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="color-btn active" data-color="#8b5cf6" style="background: #8b5cf6;"></button>
+                        <button class="color-btn" data-color="#FF6B6B" style="background: #FF6B6B;"></button>
+                        <button class="color-btn" data-color="#4ECDC4" style="background: #4ECDC4;"></button>
+                        <button class="color-btn" data-color="#45B7D1" style="background: #45B7D1;"></button>
+                        <button class="color-btn" data-color="#FFA07A" style="background: #FFA07A;"></button>
+                        <button class="color-btn" data-color="#F7DC6F" style="background: #F7DC6F;"></button>
+                        <button class="color-btn" data-color="#FFFFFF" style="background: #FFFFFF;"></button>
+                    </div>
+                </div>
+                <!-- Brush Size -->
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">
+                        Brush Size: <span id="brush-size-value">3</span>px
+                    </label>
+                    <input type="range" id="brush-size" min="1" max="20" value="3"
+                        style="width: 100%; accent-color: var(--accent-primary);">
+                </div>
+                <!-- Opacity -->
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">
+                        Opacity: <span id="opacity-value">100</span>%
+                    </label>
+                    <input type="range" id="draw-opacity" min="10" max="100" value="100"
+                        style="width: 100%; accent-color: var(--accent-primary);">
+                </div>
+                <!-- Actions -->
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                    <button class="btn-circle" id="btn-clear-canvas" title="Clear All"
+                        style="width: 100%; border-radius: 8px; background: rgba(220, 38, 38, 0.15); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.3); justify-content: center;">
+                        <span class="material-icons-round">close</span>
+                        <span style="margin-left: 6px;">Clear</span>
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
+                        style="flex: 1; border-radius: 8px; background: rgba(30, 58, 138, 0.4); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; justify-content: center;">
+                        <span class="material-icons-round">visibility</span>
+                        <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
+                    </button>
+                    <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
+                        style="flex: 1; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: var(--text-secondary); justify-content: center;">
+                        <span class="material-icons-round">edit_off</span>
+                        <span style="margin-left: 6px;" id="toggle-draw-text">Enable Drawing</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Sticky Notes Container -->
+    <div id="sticky-notes-container"></div>
+    <!-- Custom Confirmation Dialog -->
+    <div id="custom-confirm-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); z-index: 10000; align-items: center; justify-content: center;">
+        <div
+            style="background: rgba(20, 20, 25, 0.98); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; max-width: 400px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);">
+            <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 18px;">Confirm Action</h3>
+            <p id="confirm-message"
+                style="margin: 0 0 20px 0; color: var(--text-secondary); font-size: 14px; line-height: 1.6;"></p>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button id="confirm-cancel"
+                    style="padding: 10px 20px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; font-size: 14px;">
+                    Cancel
+                </button>
+                <button id="confirm-ok"
+                    style="padding: 10px 20px; background: var(--accent-primary); border: none; border-radius: 8px; color: black; cursor: pointer; font-size: 14px; font-weight: 600;">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/workspace-common/workspace-chatbot.js"></script>
+    <script src="../js/workspace-common/workspace-notes.js"></script>
+    <script src="../js/workspace-common/study-timer.js"></script>
+    <script>
+        // --- Lesson Content Data ---
+        const lessonsData = {
+            'atomic': {
+                title: 'Atomic Structure',
+                accentColor: '#8b5cf6',
+                content: `
+                    <div style="padding: 24px; max-width: 1000px; margin: 0 auto; color: white;">
+                        <div style="margin-bottom: 30px;">
+                            <h4 style="color: var(--accent-blue); margin-bottom: 8px;">LESSON 1.1</h4>
+                            <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 16px;">Atomic Structure Introduction</h1>
+                            <p style="color: var(--text-secondary); line-height: 1.6; max-width: 600px;">
+                                Learn about the fundamental building blocks of matter: protons, neutrons, and electrons.
+                            </p>
+                        </div>
+                        <div onclick="playVideo('_lNF3_30lUE')" class="video-container" style="width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px; position: relative; cursor: pointer; border: 1px solid var(--border-color); overflow: hidden; margin-bottom: 40px;">
+                             <img src="https://img.youtube.com/vi/_lNF3_30lUE/maxresdefault.jpg" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6;">
+                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                                <span class="material-icons-round" style="font-size: 32px;">play_arrow</span>
+                            </div>
+                        </div>
+                        <div class="prop-grid" style="margin-bottom: 40px;">
+                            <div class="prop-box"><div class="p-label">Proton</div><div class="p-val">+1 Charge</div></div>
+                            <div class="prop-box"><div class="p-label">Neutron</div><div class="p-val">Neutral</div></div>
+                            <div class="prop-box"><div class="p-label">Electron</div><div class="p-val">-1 Charge</div></div>
+                        </div>
+                        <div style="display: flex; gap: 16px; justify-content: center;">
+                            <button class="action-btn primary" onclick="navigateTo('simulation.html?mode=atom')" style="width: auto; padding: 12px 32px;">Open Sim</button>
+                            <button class="action-btn secondary" onclick="startQuiz('atomic')" style="width: auto; padding: 12px 32px;">Take Quiz</button>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { question: "What is the charge of a proton?", options: ["Positive", "Negative", "Neutral", "Variable"], answer: 0 },
+                    { question: "Where are electrons located in an atom?", options: ["Nucleus", "Electron Cloud/Shells", "Inside Protons", "They don't exist"], answer: 1 },
+                    { question: "Which particle defines the element?", options: ["Electron", "Neutron", "Proton", "Photon"], answer: 2 }
+                ]
+            },
+            'bonding': {
+                title: 'Chemical Bonding',
+                accentColor: '#06b6d4',
+                content: `
+                    <div style="padding: 24px; max-width: 1000px; margin: 0 auto; color: white;">
+                        <div style="margin-bottom: 30px;">
+                            <div class="accent cyan"></div>
+                            <h4 style="color: var(--accent-cyan); margin-bottom: 8px;">LESSON 2.1</h4>
+                            <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 16px;">Chemical Bonding</h1>
+                            <p style="color: var(--text-secondary); line-height: 1.6; max-width: 600px;">
+                                Explore how atoms join together to form molecules through ionic, covalent, and metallic bonds.
+                            </p>
+                        </div>
+                        <div onclick="playVideo('QXT4OVM4vXI')" class="video-container" style="width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px; position: relative; cursor: pointer; border: 1px solid var(--border-color); overflow: hidden; margin-bottom: 40px;">
+                             <img src="https://img.youtube.com/vi/QXT4OVM4vXI/maxresdefault.jpg" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6;">
+                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                                <span class="material-icons-round" style="font-size: 32px;">play_arrow</span>
+                            </div>
+                        </div>
+                        <div class="prop-grid" style="margin-bottom: 40px;">
+                             <div class="prop-box"><div class="p-label">Ionic</div><div class="p-val">Transfer e<sup>-</sup></div></div>
+                             <div class="prop-box"><div class="p-label">Covalent</div><div class="p-val">Share e<sup>-</sup></div></div>
+                        </div>
+                        <div style="display: flex; gap: 16px; justify-content: center;">
+                            <button class="action-btn primary" onclick="navigateTo('simulation.html?mode=molecule')" style="width: auto; padding: 12px 32px;">Open Sim</button>
+                            <button class="action-btn secondary" onclick="startQuiz('bonding')" style="width: auto; padding: 12px 32px;">Take Quiz</button>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { question: "What happens in an ionic bond?", options: ["Electrons are shared", "Electrons are transferred", "Protons are shared", "Neutrons are lost"], answer: 1 },
+                    { question: "Which bond involves sharing electrons?", options: ["Ionic", "Covalent", "Metallic", "Hydrogen"], answer: 1 },
+                    { question: "NaCl is an example of what type of bond?", options: ["Covalent", "Ionic", "Metallic", "Polar"], answer: 1 }
+                ]
+            },
+            'gas': {
+                title: 'Properties of Gases',
+                accentColor: '#ec4899',
+                content: `
+                    <div style="padding: 24px; max-width: 1000px; margin: 0 auto; color: white;">
+                        <div style="margin-bottom: 30px;">
+                            <div class="accent pink"></div>
+                            <h4 style="color: #ec4899; margin-bottom: 8px;">LESSON 7.1</h4>
+                            <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 16px;">Properties of Gases</h1>
+                            <p style="color: var(--text-secondary); line-height: 1.6; max-width: 600px;">
+                                Understand the behavior of gases and the Ideal Gas Law: PV = nRT.
+                            </p>
+                        </div>
+                         <div class="analysis-card" style="margin-bottom: 25px;">
+                            <div class="card-header">
+                                <div class="accent green"></div>
+                                <h4>Ideal Gas Law</h4>
+                            </div>
+                            <div class="card-content">
+                                <h2 style="color: var(--accent-green); margin: 10px 0; font-family: 'Outfit';">PV = nRT</h2>
+                                <p style="font-size: 13px; color: #ccc;">Relationship between Pressure (P), Volume (V), Moles (n), Gas Constant (R), Temp (T).</p>
+                            </div>
+                        </div>
+                        <div class="prop-grid" style="margin-bottom: 40px;">
+                             <div class="prop-box"><div class="p-label">Boyle's Law</div><div class="p-val">P ∝ 1/V</div></div>
+                             <div class="prop-box"><div class="p-label">Charles's Law</div><div class="p-val">V ∝ T</div></div>
+                        </div>
+                        <div style="display: flex; gap: 16px; justify-content: center;">
+                            <button class="action-btn primary" onclick="navigateTo('simulation.html?mode=gas')" style="width: auto; padding: 12px 32px;">Open Sim</button>
+                            <button class="action-btn secondary" onclick="startQuiz('gas')" style="width: auto; padding: 12px 32px;">Take Quiz</button>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { question: "Which law relates Pressure and Volume?", options: ["Charles's Law", "Boyle's Law", "Avogadro's Law", "Ideal Law"], answer: 1 },
+                    { question: "What represents Temperature in PV=nRT?", options: ["P", "V", "n", "T"], answer: 3 },
+                    { question: "If temperature increases at constant pressure, volume...", options: ["Decreases", "Increases", "Stays same", "Fluctuates"], answer: 1 }
+                ]
+            },
+            'periodic': {
+                title: 'Periodic Table',
+                accentColor: '#f59e0b',
+                content: `
+                    <div style="padding: 24px; max-width: 1000px; margin: 0 auto; color: white;">
+                         <div style="margin-bottom: 30px;">
+                            <div class="accent orange"></div>
+                            <h4 style="color: #f59e0b; margin-bottom: 8px;">LESSON 3.1</h4>
+                            <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 16px;">Periodic Table</h1>
+                            <p style="color: var(--text-secondary); line-height: 1.6; max-width: 600px;">
+                                The chemical elements are arranged in order of increasing atomic number.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 16px; justify-content: center; margin-top: 50px;">
+                            <button class="action-btn primary" onclick="navigateTo('simulation.html?mode=periodic')" style="width: auto; padding: 12px 32px;">Open Periodic Table</button>
+                            <button class="action-btn secondary" onclick="startQuiz('periodic')" style="width: auto; padding: 12px 32px;">Take Quiz</button>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { question: "Elements in the same group have similar...", options: ["Atomic Mass", "Valence Electrons", "Number of Protons", "Neutrons"], answer: 1 },
+                    { question: "Which group contains Noble Gases?", options: ["Group 1", "Group 17", "Group 18", "Group 2"], answer: 2 }
+                ]
+            },
+            'mole': { title: 'Moles', accentColor: '#3b82f6', content: '<div style="padding: 50px; text-align: center; color: white;"><h2>Moles & Stoichiometry</h2><p>Content coming soon...</p></div>', quiz: [] },
+            'acidbase': { title: 'Acids & Bases', accentColor: '#ef4444', content: '<div style="padding: 50px; text-align: center; color: white;"><h2>Acids and Bases</h2><p>Content coming soon...</p></div>', quiz: [] },
+            'equilibrium': { title: 'Chemical Equilibrium', accentColor: '#6366f1', content: '<div style="padding: 50px; text-align: center; color: white;"><h2>Chemical Equilibrium</h2><p>Content coming soon...</p></div>', quiz: [] },
+            'kinetics': { title: 'Kinetics', accentColor: '#14b8a6', content: '<div style="padding: 50px; text-align: center; color: white;"><h2>Reaction Kinetics</h2><p>Content coming soon...</p></div>', quiz: [] },
+            'thermo': { title: 'Thermochemistry', accentColor: '#f97316', content: '<div style="padding: 50px; text-align: center; color: white;"><h2>Thermochemistry</h2><p>Content coming soon...</p></div>', quiz: [] },
+            'redox': { title: 'Redox Reactions', accentColor: '#10b981', content: '<div style="padding: 50px; text-align: center; color: white;"><h2>Redox Reactions</h2><p>Content coming soon...</p></div>', quiz: [] }
+        };
+        let currentQuizData = [];
+        let currentQuizIdx = 0;
+        let currentScore = 0;
+        function loadLesson(lessonId) {
+            const lesson = lessonsData[lessonId];
+            if (!lesson) return;
+            // Updated Active State
+            document.querySelectorAll('.lesson-card').forEach(card => card.classList.remove('active'));
+            // Helper to find clicked card
+            const cards = document.querySelectorAll('.lesson-card');
+            for (let card of cards) {
+                if (card.onclick.toString().includes(lessonId)) {
+                    card.classList.add('active');
+                    break;
+                }
+            }
+            document.getElementById('main-content').innerHTML = lesson.content;
+        }
+        function playVideo(videoId) {
+            const modal = document.getElementById('video-modal');
+            const iframe = document.getElementById('video-frame');
+            iframe.src = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
+            modal.showModal();
+        }
+        function stopVideo() {
+            const iframe = document.getElementById('video-frame');
+            iframe.src = "";
+        }
+        // Quiz Logic
+        function startQuiz(lessonId) {
+            const lesson = lessonsData[lessonId];
+            if (!lesson || !lesson.quiz || lesson.quiz.length === 0) {
+                alert("Quiz coming soon!");
+                return;
+            }
+            currentQuizData = lesson.quiz;
+            currentQuizIdx = 0;
+            currentScore = 0;
+            document.getElementById('quiz-title-text').textContent = lesson.title + " Quiz";
+            document.getElementById('quiz-question-container').style.display = 'block';
+            document.getElementById('quiz-result-container').style.display = 'none';
+            renderQuestion();
+            document.getElementById('quiz-modal').showModal();
+        }
+        function renderQuestion() {
+            const q = currentQuizData[currentQuizIdx];
+            document.getElementById('quiz-progress').textContent = `Question ${currentQuizIdx + 1} / ${currentQuizData.length}`;
+            document.getElementById('quiz-question-text').textContent = q.question;
+            const opts = document.getElementById('quiz-options');
+            opts.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'action-btn secondary';
+                btn.style.textAlign = 'left';
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(idx);
+                opts.appendChild(btn);
+            });
+        }
+        function checkAnswer(idx) {
+            if (idx === currentQuizData[currentQuizIdx].answer) currentScore++;
+            if (currentQuizIdx < currentQuizData.length - 1) {
+                currentQuizIdx++;
+                renderQuestion();
+            } else {
+                document.getElementById('quiz-question-container').style.display = 'none';
+                document.getElementById('quiz-result-container').style.display = 'block';
+                document.getElementById('quiz-score-text').textContent = `Score: ${currentScore} / ${currentQuizData.length}`;
+            }
+        }
+        document.getElementById('close-quiz-btn').onclick = () => document.getElementById('quiz-modal').close();
+        document.getElementById('quiz-restart-btn').onclick = () => {
+            currentQuizIdx = 0;
+            currentScore = 0;
+            document.getElementById('quiz-question-container').style.display = 'block';
+            document.getElementById('quiz-result-container').style.display = 'none';
+            renderQuestion();
+        };
+        // Initialize Call
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlLesson = urlParams.get('lesson');
+        if (urlLesson && lessonsData[urlLesson]) {
+            loadLesson(urlLesson);
+        } else {
+            loadLesson('atomic');
+        }
+    </script>
+    <script src="js/study-lab-logic.js"></script>
+    <!-- Custom Cursor -->
+    <div id="custom-cursor"
+        style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
+        <div id="cursor-circle"
+            style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
+        </div>
+        <span class="material-icons-round" id="cursor-icon"
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
+    </div>
+    <canvas id="draw-canvas"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../js/api.js?v=1.0"></script>
+    <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
+    <script src="../js/workspace-common/study-timer.js"></script>
+    <script src="../js/workspace-common/chemistry-quiz-data.js"></script>
+    <script src="../js/workspace-common/workspace-quiz.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Parse URL Params first
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Check for authentication token in URL (Google Auth redirect)
+            const authToken = urlParams.get('token');
+            if (authToken) {
+                console.log('🔑 Token found in URL, saving to storage...');
+                // Ensure API client has the token immediately
+                if (typeof api !== 'undefined') {
+                    api.setToken(authToken);
+                } else {
+                    localStorage.setItem('simvex_token', authToken);
+                }
+
+                // Clean URL
+                const cleanUrl = window.location.pathname + window.location.search.replace(/[?&]token=[^&]+/, '').replace(/^&/, '?');
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+
+            let projectId = urlParams.get('id') || urlParams.get('project') || urlParams.get('projectId');
+            if (!projectId) {
+                console.warn('No projectId in URL - using dev fallback');
+                projectId = 'dev-demo-project';
+            }
+            // Init Collaboration
+            if (typeof WorkspaceCollaboration !== 'undefined') {
+                window.workspaceCollaboration = new WorkspaceCollaboration({
+                    projectId: projectId,
+                    currentUser: null, // Will be fetched by init()
+                    containerId: 'collaboration-users'
+                });
+            }
+            // Init Study Timer
+            if (typeof StudyTimer !== 'undefined') {
+                new StudyTimer({ projectId: projectId, containerId: 'navbar-controls' });
+            }
+            // Initialize Quiz with delay to ensure it comes after Timer
+            setTimeout(() => {
+                if (typeof WorkspaceQuiz !== 'undefined') {
+                    new WorkspaceQuiz({
+                        workspace: 'chemistry',
+                        containerId: 'navbar-controls'
+                    });
+                }
+            }, 200);
+        });
+    </script>
+    <script src="/js/pwa.js"></script>
+</body>
+
+</html>

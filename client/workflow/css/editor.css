@@ -1,0 +1,403 @@
+/* Workflow Editor Styles */
+
+:root {
+    --editor-header-height: 60px;
+    --editor-sidebar-width: 260px;
+    --editor-properties-width: 280px;
+    --grid-size: 20px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    color: #e2e8f0;
+    background-color: #0f172a;
+    overflow: hidden;
+}
+
+.editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Header */
+.editor-header {
+    height: var(--editor-header-height);
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 10;
+}
+
+.header-left,
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: #94a3b8;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: #334155;
+    color: #f8fafc;
+}
+
+.workflow-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.workflow-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: #f8fafc;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-left: -6px;
+}
+
+.workflow-title:hover,
+.workflow-title:focus {
+    background: #0f172a;
+    border-color: #334155;
+    outline: none;
+}
+
+.save-status {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.collaborators-list {
+    display: flex;
+    margin-right: 12px;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #1e293b;
+    margin-left: -8px;
+    background: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.header-right .btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-secondary {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+.btn-secondary:hover {
+    background: #475569;
+}
+
+/* Main Workspace */
+.editor-workspace {
+    flex: 1;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Sidebar (Node Palette) */
+.node-palette {
+    width: var(--editor-sidebar-width);
+    background: #1e293b;
+    border-right: 1px solid #334155;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+    z-index: 5;
+}
+
+.node-palette h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin: 0 0 16px 0;
+    letter-spacing: 0.5px;
+}
+
+.node-category {
+    margin-bottom: 24px;
+}
+
+.node-category h4 {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0 0 12px 0;
+    text-transform: uppercase;
+}
+
+.draggable-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #334155;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    cursor: grab;
+    transition: all 0.2s;
+    font-size: 14px;
+    user-select: none;
+}
+
+.draggable-item:hover {
+    background: #475569;
+    transform: translateX(2px);
+    border-color: #64748b;
+}
+
+.draggable-item .material-icons-round {
+    font-size: 18px;
+    color: #94a3b8;
+}
+
+/* Node Canvas */
+.node-canvas {
+    flex: 1;
+    background-color: #0f172a;
+    background-image:
+        linear-gradient(#1e293b 1px, transparent 1px),
+        linear-gradient(90deg, #1e293b 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+}
+
+.node-canvas:active {
+    cursor: grabbing;
+}
+
+.connections-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: visible;
+}
+
+.nodes-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    /* Nodes inside will have pointer-events: auto */
+}
+
+/* Nodes on Canvas */
+.workflow-node {
+    position: absolute;
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    min-width: 180px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    pointer-events: auto;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.workflow-node.selected {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.node-header {
+    padding: 10px 12px;
+    background: #334155;
+    border-bottom: 1px solid #475569;
+    border-radius: 7px 7px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: move;
+}
+
+.node-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.node-icon {
+    font-size: 16px;
+    color: #94a3b8;
+}
+
+.node-body {
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+/* Ports */
+.node-ports-in,
+.node-ports-out {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    justify-content: center;
+}
+
+.port {
+    width: 12px;
+    height: 12px;
+    background: #64748b;
+    border: 2px solid #1e293b;
+    border-radius: 50%;
+    cursor: crosshair;
+    position: relative;
+    transition: background 0.2s;
+}
+
+.port:hover {
+    background: #3b82f6;
+    transform: scale(1.2);
+}
+
+.node-ports-in .port {
+    margin-left: -19px;
+}
+
+.node-ports-out .port {
+    margin-right: -19px;
+}
+
+/* Connection Lines */
+.connection-path {
+    fill: none;
+    stroke: #64748b;
+    stroke-width: 2px;
+    transition: stroke 0.2s;
+}
+
+.connection-path:hover {
+    stroke: #3b82f6;
+    stroke-width: 3px;
+    cursor: pointer;
+}
+
+/* Properties Panel */
+.properties-panel {
+    width: var(--editor-properties-width);
+    background: #1e293b;
+    border-left: 1px solid #334155;
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+    transition: transform 0.3s ease;
+}
+
+.properties-panel.closed {
+    transform: translateX(100%);
+    width: 0;
+    border: none;
+}
+
+.panel-header {
+    padding: 16px;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.close-panel-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.close-panel-btn:hover {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+.panel-content {
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.placeholder-text {
+    color: #64748b;
+    text-align: center;
+    font-size: 14px;
+    margin-top: 40px;
+}
+
+/* Drag Ghost */
+.drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.8;
+    transform: scale(1.05);
+}

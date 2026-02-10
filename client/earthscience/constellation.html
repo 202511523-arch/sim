@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMVEX - Constellation</title>
+    <script src="constellations-data.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/workspace-new.css">
+    <link rel="stylesheet" href="../css/popup-panels.css">
+    <link rel="stylesheet" href="style.css?v=3.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        /* Base fonts and background settings */
+        @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            color: #cceeff;
+            font-family: 'Exo 2', sans-serif;
+            user-select: none;
+        }
+
+        /* Standard Header fonts - Removed aggressive * override to fix Icons */
+        .simvex-header .logo-text,
+        .nav-pill {
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        /* Common UI Panel */
+        .ui-panel {
+            position: absolute;
+            background: rgba(12, 18, 28, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(60, 80, 100, 0.5);
+            border-radius: 6px;
+            pointer-events: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        /* Controls Bar */
+        #controls-bar {
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
+            display: flex;
+            justify-content: center;
+            padding-bottom: 20px;
+            padding-top: 40px;
+            pointer-events: none;
+        }
+
+        .dock-container {
+            pointer-events: auto;
+            background: rgba(20, 30, 40, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 8px 16px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* Icon Button */
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8899aa;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .icon-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .icon-btn.active {
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.15);
+            border-color: rgba(56, 189, 248, 0.3);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        /* Day Mode Button Style */
+        .icon-btn#btn-daynight.active {
+            color: #fdba74;
+            /* Sun Orange */
+            background: rgba(253, 186, 116, 0.2);
+            border-color: rgba(253, 186, 116, 0.5);
+            box-shadow: 0 0 15px rgba(253, 186, 116, 0.3);
+        }
+
+        /* Status Bar (Position adjusted for Nav Bar) */
+        #status-bar {
+            top: 84px;
+            left: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+        }
+
+        /* AI Chat Panel (Position adjusted for Nav Bar) */
+        #chat-panel {
+            top: 84px;
+            right: 20px;
+            width: 320px;
+            height: calc(100vh - 140px);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(120%);
+            z-index: 50;
+        }
+
+        #chat-panel.active {
+            transform: translateX(0);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 13px;
+            scrollbar-width: thin;
+            scrollbar-color: #445566 transparent;
+        }
+
+        .chat-bubble {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            line-height: 1.5;
+            color: #ddd;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 2px solid #556677;
+        }
+
+        .chat-bubble.ai {
+            border-color: #38bdf8;
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        .chat-bubble.user {
+            border-color: #a855f7;
+            background: rgba(168, 85, 247, 0.05);
+            text-align: right;
+            border-left: none;
+            border-right: 2px solid #a855f7;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            background: #38bdf8;
+            border-radius: 50%;
+            animation: typing 1s infinite;
+            margin: 0 1px;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-4px);
+            }
+        }
+
+        /* Target Info Popup (Position adjusted for Nav Bar) */
+        #target-info {
+            top: 84px;
+            right: 20px;
+            width: 260px;
+            transform: translateX(120%);
+            padding: 15px;
+        }
+
+        #target-info.active {
+            transform: translateX(0);
+        }
+
+        /* Constellation Info Panel */
+        #constellation-info {
+            top: 84px;
+            right: 20px;
+            width: 280px;
+            max-height: 60vh;
+            overflow-y: auto;
+            transform: translateX(120%);
+            padding: 16px;
+            z-index: 49;
+            transition: transform 0.3s ease;
+        }
+
+        #constellation-info.active {
+            transform: translateX(0);
+        }
+
+        #constellation-info h2 {
+            margin: 0 0 8px 0;
+            font-size: 20px;
+            color: #38bdf8;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        #constellation-info .subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        #constellation-info .content {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #cceeff;
+        }
+
+        #constellation-info .info-row {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        #constellation-info .info-label {
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        #constellation-info .info-value {
+            color: #38bdf8;
+        }
+
+        #constellation-info .close-constellation {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 18px;
+            transition: color 0.2s;
+        }
+
+        #constellation-info .close-constellation:hover {
+            color: #fff;
+        }
+
+        /* Label Style (Optimized for readability) */
+        .constellation-label {
+            position: absolute;
+            color: #d1d5db;
+            /* Muted grayish white (Gray-300) */
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            pointer-events: none;
+            /* Removed strong glow, applied soft background shadow only */
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+            opacity: 0;
+            transition: opacity 0.3s;
+            transform: translate(-50%, -50%);
+        }
+
+        .planet-label {
+            position: absolute;
+            color: #ffccaa;
+            font-weight: bold;
+            font-size: 12px;
+            pointer-events: none;
+            transform: translate(-50%, -150%);
+            text-shadow: 0 0 5px #000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* Label Visibility Class */
+        #labels-container.visible .constellation-label,
+        #labels-container.visible .planet-label {
+            opacity: 1;
+        }
+
+        /* --- Header Styling (Integrated from style.css) --- */
+        /* .header-right removed to use workspace-new.css defaults */
+        /* Loading */
+        #loading {
+            position: absolute;
+            inset: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 1s;
+        }
+
+        .loader-ring {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #333;
+            border-top-color: #38bdf8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Save Button - Removed to use style.css */
+        /* Horizontal Floating Actions */
+        .floating-actions {
+            position: fixed;
+            display: flex;
+            flex-direction: row-reverse !important;
+            gap: 16px !important;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%) !important;
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.5);
+        }
+
+        .fab .material-icons-round {
+            font-size: 24px;
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
+</head>
+
+<body>
+    <div id="loading">
+        <div class="loader-ring mb-4"></div>
+        <div class="text-xs tracking-widest text-gray-500">Loading Constellations...</div>
+    </div>
+    <!-- Unified Header -->
+    <header class="simvex-header">
+        <div class="logo-section">
+            <span class="logo-icon material-icons-round" style="color: var(--accent-primary);">public</span>
+            <span class="logo-text">SIMVEX Earth Science</span>
+        </div>
+        <!-- Collaboration Users -->
+        <div id="collaboration-users" style="margin-left: 16px;"></div>
+        <nav class="nav-pills header-center">
+            <a href="/dashboard.html" class="nav-pill">Dashboard</a>
+            <a href="index.html" class="nav-pill">Solar System</a>
+            <a href="constellation.html" class="nav-pill active">Constellations</a>
+            <a href="detailearth.html" class="nav-pill">Atmosphere & Ocean</a>
+            <a href="tectonicplates.html" class="nav-pill">Tectonic Plates</a>
+        </nav>
+        <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+            <!-- Project Save Button -->
+            <button id="project-save-btn" class="save-button" title="Save project">
+                <span class="material-icons-round" style="font-size: 18px;">save</span>
+                <span id="save-status-text">Save</span>
+            </button>
+            <!-- Header Controls (Timer, Quiz) -->
+            <div id="navbar-controls" style="display: flex; align-items: center;"></div>
+        </div>
+    </header>
+    <div id="labels-container" class="visible"></div>
+    <div id="canvas-container"></div>
+    <!-- Status Bar -->
+    <div id="status-bar">
+        <div class="text-xl font-light tracking-wider">SIMVEX <span
+                class="text-xs text-sky-500 font-bold">CELESTIAL</span></div>
+        <div class="text-xs text-gray-400 mt-1" id="clock">--:--:--</div>
+        <div class="text-[10px] text-gray-500 mt-1">Constellations: 88 | Meteors: Active</div>
+    </div>
+    <!-- Constellation Info Panel -->
+    <div id="constellation-info" class="ui-panel">
+        <button class="close-constellation">✕</button>
+        <h2 id="const-name">Constellation</h2>
+        <div class="subtitle" id="const-local-name">Scientific Name</div>
+        <div class="content">
+            <div class="info-row">
+                <span class="info-label">Season:</span>
+                <span class="info-value" id="const-season">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Principal Star:</span>
+                <span class="info-value" id="const-bright">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Area:</span>
+                <span class="info-value" id="const-area">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">RA:</span>
+                <span class="info-value" id="const-ra">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Dec:</span>
+                <span class="info-value" id="const-dec">-</span>
+            </div>
+        </div>
+    </div>
+    <!-- Speed Control Panel -->
+    <div id="speed-panel" class="ui-panel" style="bottom: 20px; right: 20px; width: 250px; left: auto;">
+        <div style="padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+            <div
+                style="font-size: 12px; font-weight: 600; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.1em;">
+                Rotation Speed</div>
+        </div>
+        <div style="padding: 12px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="font-size: 12px; color: #94a3b8;">Speed</span>
+                <span id="speed-value" style="font-size: 14px; font-weight: 700; color: #38bdf8;">1.0x</span>
+            </div>
+            <input type="range" id="speed-slider" min="0.1" max="5" step="0.1" value="1"
+                style="width: 100%; cursor: pointer;">
+        </div>
+        <div style="padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <button id="btn-terrain" class="active"
+                style="width: 100%; padding: 8px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;">
+                🌍 Disable Terrain
+            </button>
+        </div>
+    </div>
+    </div>
+    <!-- Target Info -->
+    <div id="target-info" class="ui-panel">
+        <div class="flex justify-between items-start mb-3 border-b border-gray-700 pb-2">
+            <div>
+                <div id="target-name" class="text-lg font-bold text-white">Object Info</div>
+                <div id="target-type" class="text-xs text-sky-400">Type</div>
+            </div>
+            <button id="close-target" class="text-gray-500 hover:text-white">✕</button>
+        </div>
+        <div class="grid grid-cols-2 gap-y-2 text-xs text-gray-300">
+            <div>RA/Dec:</div>
+            <div id="target-radec" class="text-right font-mono text-yellow-500">-</div>
+            <div>Magnitude:</div>
+            <div id="target-mag" class="text-right font-mono">-</div>
+        </div>
+        <button id="btn-ai-explain"
+            class="mt-4 w-full py-2 bg-sky-900/50 hover:bg-sky-800/50 border border-sky-700/50 rounded text-xs text-sky-200 transition-colors flex items-center justify-center gap-2">
+            <span>✨</span> AI Analysis
+        </button>
+    </div>
+    <!-- Floating Action Buttons -->
+    <div class="floating-actions">
+        <button class="fab" id="fab-notes" title="Notes">
+            <span class="material-icons-round">edit_note</span>
+        </button>
+        <button class="fab" id="fab-chat" title="AI Assistant">
+            <span class="material-icons-round">smart_toy</span>
+        </button>
+        <button class="fab" id="fab-sticky" title="Sticky Note">
+            <span class="material-icons-round">sticky_note_2</span>
+        </button>
+        <button class="fab" id="fab-draw" title="Drawing Tool">
+            <span class="material-icons-round">draw</span>
+        </button>
+    </div>
+    <!-- Chat Popup -->
+    <div class="popup-panel" id="chat-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">smart_toy</span>
+                AI Earth Science Specialist
+            </div>
+            <button class="popup-close" onclick="closePopup('chat-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="ai-panel">
+            <div id="chat-messages" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+        <div class="popup-footer">
+            <div class="ai-omni-input">
+                <input type="text" id="omni-input" placeholder="Ask Earth Science AI...">
+                <button class="btn-circle" id="omni-send">
+                    <span class="material-icons-round">send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Notes Popup -->
+    <div class="popup-panel" id="notes-popup">
+        <div class="popup-header">
+            <div class="popup-title">
+                <span class="material-icons-round">edit_note</span>
+                Study Notes
+            </div>
+            <button class="popup-close" onclick="closePopup('notes-popup')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="popup-body" id="notes-panel">
+            <textarea id="notepad" placeholder="Study notes..."></textarea>
+        </div>
+        <div
+            style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+            <button class="btn-circle" id="btn-new-note" title="New Note">
+                <span class="material-icons-round">add</span>
+            </button>
+            <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot">
+                <span class="material-icons-round">camera_alt</span>
+            </button>
+            <button class="btn-circle" id="btn-pdf-export" title="Export PDF">
+                <span class="material-icons-round">download</span>
+            </button>
+            <button class="btn-circle" id="btn-save-note" title="Save"
+                style="flex: 1; width: auto; border-radius: 8px;">
+                <span class="material-icons-round">save</span>
+                <span style="margin-left: 6px;">Save</span>
+            </button>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../js/api.js?v=1.0"></script>
+    <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
+    <script src="../js/workspace-common/workspace-chatbot.js"></script>
+    <script src="../js/workspace-common/workspace-notes.js"></script>
+    <script src="../js/workspace-common/time-tracker.js"></script>
+    <script src="../js/workspace-common/study-timer.js"></script>
+    <script src="js/study-lab-logic.js"></script>
+    <!-- Sticky Notes Container -->
+    <div id="sticky-notes-container"></div>
+    <!-- Custom Eraser Cursor -->
+    <div id="custom-cursor"
+        style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
+        <div id="cursor-circle"
+            style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
+        </div>
+        <span class="material-icons-round" id="cursor-icon"
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
+    </div>
+    <!-- Drawing Canvas (Global Overlay) -->
+    <canvas id="draw-canvas"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
+    <!-- Draw Tool Popup -->
+    <div class="popup-panel" id="draw-popup">
+        <div class="popup-header">
+            <div class="popup-title"><span class="material-icons-round">draw</span> Drawing Tool</div>
+            <button class="popup-close" onclick="closePopup('draw-popup')"><span
+                    class="material-icons-round">close</span></button>
+        </div>
+        <div class="popup-body" style="padding: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
+                    <div style="display: flex; gap: 8px;"><button class="draw-tool-btn active" data-tool="pen"
+                            title="Pen"><span class="material-icons-round">edit</span></button><button
+                            class="draw-tool-btn" data-tool="eraser" title="Eraser"><span
+                                class="material-icons-round">ink_eraser</span></button><button class="draw-tool-btn"
+                            data-tool="highlighter" title="Highlighter"><span
+                                class="material-icons-round">format_paint</span></button></div>
+                </div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;"><button class="color-btn active"
+                            data-color="#60a5fa" style="background: #60a5fa;"></button><button class="color-btn"
+                            data-color="#34d399" style="background: #34d399;"></button><button class="color-btn"
+                            data-color="#f472b6" style="background: #f472b6;"></button><button class="color-btn"
+                            data-color="#fbbf24" style="background: #fbbf24;"></button><button class="color-btn"
+                            data-color="#FFFFFF" style="background: #FFFFFF;"></button></div>
+                </div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Brush
+                        Size: <span id="brush-size-value">3</span>px</label><input type="range" id="brush-size" min="1"
+                        max="20" value="3" style="width: 100%; accent-color: var(--accent);"></div>
+                <div><label
+                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Opacity:
+                        <span id="opacity-value">100</span>%</label><input type="range" id="draw-opacity" min="10"
+                        max="100" value="100" style="width: 100%; accent-color: var(--accent);"></div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;"><button class="btn-circle" id="btn-clear-canvas"
+                        title="Clear All"
+                        style="flex: 1; width: auto; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #ef4444;"><span
+                            class="material-icons-round">clear</span><span
+                            style="margin-left: 6px;">Clear</span></button></div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
+                        style="flex: 1; width: auto; border-radius: 8px;">
+                        <span class="material-icons-round">visibility</span>
+                        <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
+                    </button>
+                    <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
+                        style="flex: 1; width: auto; border-radius: 8px;"><span
+                            class="material-icons-round">edit_off</span><span style="margin-left: 6px;"
+                            id="toggle-draw-text">Enable Drawing</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bottom Control Dock -->
+    <div id="controls-bar">
+        <div class="dock-container">
+            <!-- Day/Night Toggle -->
+            <button id="btn-daynight" class="icon-btn" title="Toggle Day/Night">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="5" />
+                    <path
+                        d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                </svg>
+            </button>
+            <div class="w-px h-6 bg-gray-600/50 mx-1"></div>
+            <!-- Lines -->
+            <button id="btn-lines" class="icon-btn active" title="Show Constellation Lines">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M4 19l4-4 4 4 4-4 4 4" />
+                    <circle cx="4" cy="19" r="1.5" />
+                    <circle cx="8" cy="15" r="1.5" />
+                    <circle cx="12" cy="19" r="1.5" />
+                    <circle cx="16" cy="15" r="1.5" />
+                    <circle cx="20" cy="19" r="1.5" />
+                </svg>
+            </button>
+            <!-- Labels (Active by default) -->
+            <button id="btn-labels" class="icon-btn active" title="Show Celestial Names">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M4 7V4h16v3M9 20h6M12 4v16" />
+                </svg>
+            </button>
+            <!-- Grid -->
+            <button id="btn-grid" class="icon-btn" title="Equatorial Grid">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 0v20m-9-6h18m-2.5-8.5l-13 13" />
+                </svg>
+            </button>
+            <!-- Ground -->
+            <button id="btn-ground" class="icon-btn active" title="Show Ground">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M3 20h18L17 8l-5 9-3-4z" />
+                </svg>
+            </button>
+            <div class="w-px h-6 bg-gray-600/50 mx-1"></div>
+            <!-- (Standard Chat FAB used instead) -->
+        </div>
+    </div>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        // --- 1. Scene & Atmosphere ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 10000);
+        camera.position.set(0, 0, 0.01);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance', precision: 'highp', preserveDrawingBuffer: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableZoom = true;
+        controls.enablePan = false;
+        controls.rotateSpeed = 0.2;
+        controls.minDistance = 0.01;
+        controls.maxDistance = 10;
+        // Prevent text selection and context menu on canvas
+        renderer.domElement.addEventListener('mousedown', (e) => e.preventDefault());
+        renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+        // --- Atmosphere (Day/Night Shader) ---
+        const vertexShader = `
+            varying vec3 vWorldPosition;
+            void main() {
+                vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                vWorldPosition = normalize(worldPosition.xyz);
+                gl_Position = projectionMatrix * viewMatrix * worldPosition;
+            }
+        `;
+        const fragmentShader = `
+            uniform vec3 topColor;
+            uniform vec3 bottomColor;
+            uniform float offset;
+            uniform float exponent;
+            varying vec3 vWorldPosition;
+            void main() {
+                float h = normalize(vWorldPosition + offset).y;
+                gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+            }
+        `;
+        // Colors
+        const colors = {
+            night: { top: new THREE.Color(0x000510), bottom: new THREE.Color(0x1a283a) },
+            day: { top: new THREE.Color(0x2080dd), bottom: new THREE.Color(0xddeeff) }
+        };
+        const uniforms = {
+            topColor: { value: colors.night.top.clone() },
+            bottomColor: { value: colors.night.bottom.clone() },
+            offset: { value: 0.1 },
+            exponent: { value: 0.6 }
+        };
+        const skyGeo = new THREE.SphereGeometry(4000, 32, 15);
+        const skyMat = new THREE.ShaderMaterial({
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            uniforms: uniforms,
+            side: THREE.BackSide
+        });
+        const sky = new THREE.Mesh(skyGeo, skyMat);
+        scene.add(sky);
+        // Milky Way Background
+        const textureLoader = new THREE.TextureLoader();
+        try {
+            const milkyWayTex = textureLoader.load('./planets/milkyway.jpg');
+            const milkyWayGeo = new THREE.SphereGeometry(3900, 32, 15);
+            const milkyWayMat = new THREE.MeshBasicMaterial({
+                map: milkyWayTex,
+                side: THREE.BackSide,
+                transparent: true,
+                opacity: 0.6
+            });
+            const milkyWay = new THREE.Mesh(milkyWayGeo, milkyWayMat);
+            scene.add(milkyWay);
+        } catch (e) {
+            console.log("Milky Way texture not found, using default sky");
+        }
+        // --- 2. Celestial Group (Rotates Together) ---
+        const celestialGroup = new THREE.Group();
+        scene.add(celestialGroup);
+        // Sun (Procedural Glow)
+        const sunCanvas = document.createElement('canvas');
+        sunCanvas.width = 128; sunCanvas.height = 128;
+        const sCtx = sunCanvas.getContext('2d');
+        const sGrad = sCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+        sGrad.addColorStop(0, 'rgba(255, 200, 100, 1)');
+        sGrad.addColorStop(0.4, 'rgba(255, 150, 50, 0.5)');
+        sGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        sCtx.fillStyle = sGrad; sCtx.fillRect(0, 0, 128, 128);
+        const sunTexture = new THREE.CanvasTexture(sunCanvas);
+        const sunMat = new THREE.SpriteMaterial({
+            map: sunTexture, color: 0xffaa00, transparent: true, blending: THREE.AdditiveBlending
+        });
+        const sunSprite = new THREE.Sprite(sunMat);
+        sunSprite.scale.set(150, 150, 1);
+        sunSprite.position.set(-800, 600, -1500);
+        sunSprite.visible = false; // Initially Night
+        celestialGroup.add(sunSprite);
+        // --- 3. Massive Starfield with Twinkling (35,000 Stars) ---
+        // Helper to generate star texture internally (No external URL)
+        function createStarTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32; canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            grad.addColorStop(0, 'rgba(255,255,255,1)');
+            grad.addColorStop(0.4, 'rgba(255,255,255,0.5)');
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 32, 32);
+            return new THREE.CanvasTexture(canvas);
+        }
+        const starsGeo = new THREE.BufferGeometry();
+        const starsCount = 35000;
+        const posArray = new Float32Array(starsCount * 3);
+        const colorArray = new Float32Array(starsCount * 3);
+        const sizeArray = new Float32Array(starsCount);
+        for (let i = 0; i < starsCount; i++) {
+            const r = 2000;
+            const theta = 2 * Math.PI * Math.random();
+            const phi = Math.acos(2 * Math.random() - 1);
+            posArray[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            posArray[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            posArray[i * 3 + 2] = r * Math.cos(phi);
+            const starType = Math.random();
+            let color = new THREE.Color();
+            if (starType > 0.9) color.setHex(0xffccaa);
+            else if (starType > 0.7) color.setHex(0xffddff);
+            else color.setHex(0xffffff);
+            const brightness = Math.pow(Math.random(), 2.5);
+            // Increase star brightness for better visibility
+            color.multiplyScalar(0.6 + brightness * 0.5);
+            colorArray[i * 3] = color.r; colorArray[i * 3 + 1] = color.g; colorArray[i * 3 + 2] = color.b;
+            // Adjust star size
+            sizeArray[i] = 0.8 + Math.random() * 1.5;
+        }
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        starsGeo.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+        starsGeo.setAttribute('size', new THREE.BufferAttribute(sizeArray, 1));
+        const starMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                pointTexture: { value: createStarTexture() },
+                opacity: { value: 1.0 },
+                time: { value: 0 }
+            },
+            vertexShader: `
+                attribute float size; attribute vec3 color; varying vec3 vColor; varying float vRand;
+                void main() {
+                    vColor = color;
+                    vRand = fract(sin(dot(position.xy ,vec2(12.9898,78.233))) * 43758.5453);
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    // Reduce distance attenuation effect (distant stars visible)
+                    gl_PointSize = size * (2000.0 / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D pointTexture; uniform float opacity; uniform float time;
+                varying vec3 vColor; varying float vRand;
+                void main() {
+                    float twinkle = 0.6 + 0.3 * sin(time * 3.0 + vRand * 100.0);
+                    vec4 texColor = texture2D(pointTexture, gl_PointCoord);
+                    gl_FragColor = vec4(vColor * twinkle, opacity * texColor.a * 0.7);
+                    if (gl_FragColor.a < 0.05) discard;
+                }
+            `,
+            transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+        });
+        const starField = new THREE.Points(starsGeo, starMaterial);
+        celestialGroup.add(starField);
+        // --- 4. Enhanced Meteors (Shooting Stars) ---
+        const meteors = [];
+        const meteorHeadTex = createStarTexture();
+        function createMeteor() {
+            const r = 1800;
+            const theta = 2 * Math.PI * Math.random();
+            const phi = Math.acos(2 * Math.random() - 1);
+            const startPos = new THREE.Vector3(
+                r * Math.sin(phi) * Math.cos(theta),
+                r * Math.sin(phi) * Math.sin(theta),
+                r * Math.cos(phi)
+            );
+            const dir = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+            const length = 200 + Math.random() * 300;
+            const endPos = startPos.clone().add(dir.multiplyScalar(length));
+            const geometry = new THREE.BufferGeometry().setFromPoints([startPos, startPos]);
+            const material = new THREE.LineBasicMaterial({ color: 0xaaddff, transparent: true, opacity: 1 });
+            const line = new THREE.Line(geometry, material);
+            const headMat = new THREE.SpriteMaterial({ map: meteorHeadTex, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending });
+            const head = new THREE.Sprite(headMat);
+            head.scale.set(40, 40, 1);
+            head.position.copy(startPos);
+            celestialGroup.add(line);
+            celestialGroup.add(head);
+            meteors.push({
+                mesh: line,
+                head: head,
+                start: startPos,
+                end: endPos,
+                progress: 0,
+                speed: 0.02 + Math.random() * 0.04,
+            });
+        }
+        function updateMeteors() {
+            if (Math.random() < 0.03) {
+                createMeteor();
+            }
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                const m = meteors[i];
+                m.progress += m.speed;
+                const currentHead = new THREE.Vector3().lerpVectors(m.start, m.end, m.progress);
+                const tailProgress = Math.max(0, m.progress - 0.15);
+                const currentTail = new THREE.Vector3().lerpVectors(m.start, m.end, tailProgress);
+                m.mesh.geometry.setFromPoints([currentTail, currentHead]);
+                m.head.position.copy(currentHead);
+                if (m.progress > 0.7) {
+                    const alpha = (1 - m.progress) * 3.3;
+                    m.mesh.material.opacity = alpha;
+                    m.head.material.opacity = alpha;
+                }
+                if (m.progress >= 1) {
+                    celestialGroup.remove(m.mesh);
+                    celestialGroup.remove(m.head);
+                    m.mesh.geometry.dispose();
+                    m.mesh.material.dispose();
+                    m.head.material.dispose();
+                    meteors.splice(i, 1);
+                }
+            }
+        }
+        // --- 5. Constellations & Planets ---
+        const constellationData = [
+            { name: "Aries", label: "Aries", stars: [{ ra: 30, dec: 20 }, { ra: 40, dec: 25 }, { ra: 45, dec: 22 }], lines: [[0, 1], [1, 2]] },
+            { name: "Taurus", label: "Taurus", stars: [{ ra: 69, dec: 16, mag: 0.8, color: 0xffaa88 }, { ra: 81, dec: 28 }, { ra: 65, dec: 15 }], lines: [[0, 2], [0, 1]] },
+            { name: "Gemini", label: "Gemini", stars: [{ ra: 113, dec: 31, mag: 1.5 }, { ra: 116, dec: 28, mag: 1.1 }, { ra: 99, dec: 16, mag: 1.9 }, { ra: 110, dec: 21 }, { ra: 100, dec: 25 }], lines: [[0, 1], [0, 4], [1, 3], [3, 2]] },
+            { name: "Cancer", label: "Cancer", stars: [{ ra: 125, dec: 20 }, { ra: 130, dec: 18 }, { ra: 135, dec: 25 }], lines: [[0, 1], [1, 2]] },
+            { name: "Leo", label: "Leo", stars: [{ ra: 152, dec: 12, mag: 1.3 }, { ra: 154, dec: 19 }, { ra: 177, dec: 14, mag: 2.1 }, { ra: 168, dec: 20 }, { ra: 154, dec: 23 }], lines: [[0, 1], [1, 4], [1, 3], [3, 2]] },
+            { name: "Virgo", label: "Virgo", stars: [{ ra: 201, dec: -11, mag: 0.9 }, { ra: 190, dec: -1 }], lines: [[0, 1]] },
+            { name: "Libra", label: "Libra", stars: [{ ra: 225, dec: -15 }, { ra: 230, dec: -10 }, { ra: 235, dec: -15 }], lines: [[0, 1], [1, 2], [2, 0]] },
+            { name: "Scorpius", label: "Scorpius", stars: [{ ra: 247.3, dec: -26.4, color: 0xff5544, mag: 1.0 }, { ra: 241.3, dec: -19.8 }, { ra: 240.0, dec: -22.6 }, { ra: 263.4, dec: -37.1 }], lines: [[0, 1], [1, 2], [0, 3]] },
+            { name: "Sagittarius", label: "Sagittarius", stars: [{ ra: 285, dec: -30 }, { ra: 290, dec: -25 }, { ra: 295, dec: -30 }, { ra: 290, dec: -35 }], lines: [[0, 1], [1, 2], [2, 3], [3, 0]] },
+            { name: "Capricornus", label: "Capricornus", stars: [{ ra: 310, dec: -20 }, { ra: 315, dec: -15 }, { ra: 320, dec: -20 }], lines: [[0, 1], [1, 2]] },
+            { name: "Aquarius", label: "Aquarius", stars: [{ ra: 335, dec: -5 }, { ra: 340, dec: 0 }, { ra: 345, dec: -5 }], lines: [[0, 1], [1, 2]] },
+            { name: "Pisces", label: "Pisces", stars: [{ ra: 10, dec: 10 }, { ra: 350, dec: 5 }, { ra: 15, dec: 5 }], lines: [[0, 1], [0, 2]] },
+            { name: "Ursa Major", label: "Ursa Major", stars: [{ ra: 165.9, dec: 61.8 }, { ra: 165.5, dec: 56.4 }, { ra: 178.5, dec: 53.7 }, { ra: 183.9, dec: 57.0 }, { ra: 193.5, dec: 55.9 }, { ra: 200.5, dec: 54.9 }, { ra: 206.9, dec: 49.3 }], lines: [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [4, 5], [5, 6]] },
+            { name: "Ursa Minor", label: "Ursa Minor", stars: [{ ra: 240, dec: 75 }, { ra: 247, dec: 74 }, { ra: 255, dec: 75 }], lines: [[0, 1], [1, 2]] },
+            { name: "Cassiopeia", label: "Cassiopeia", stars: [{ ra: 9, dec: 59, mag: 2.2 }, { ra: 10, dec: 56, mag: 2.2 }, { ra: 14, dec: 60, mag: 2.1 }, { ra: 21, dec: 60, mag: 2.7 }, { ra: 28, dec: 63, mag: 3.3 }], lines: [[0, 1], [1, 2], [2, 3], [3, 4]] },
+            { name: "Eridanus", label: "Eridanus", stars: [{ ra: 60, dec: -5 }, { ra: 50, dec: -15 }, { ra: 40, dec: -30 }, { ra: 25, dec: -57 }], lines: [[0, 1], [1, 2], [2, 3]] },
+            { name: "Cetus", label: "Cetus", stars: [{ ra: 10, dec: -10 }, { ra: 20, dec: -15 }, { ra: 0, dec: -20 }], lines: [[0, 1], [1, 2]] },
+            { name: "Ophiuchus", label: "Ophiuchus", stars: [{ ra: 260, dec: 0 }, { ra: 265, dec: 10 }, { ra: 255, dec: 10 }], lines: [[0, 1], [0, 2]] },
+            { name: "Hydra", label: "Hydra", stars: [{ ra: 140, dec: -10 }, { ra: 130, dec: -5 }, { ra: 150, dec: -15 }], lines: [[0, 1], [0, 2]] },
+            { name: "Centaurus", label: "Centaurus", stars: [{ ra: 210, dec: -40 }, { ra: 215, dec: -50 }, { ra: 205, dec: -45 }], lines: [[0, 1], [0, 2]] },
+            { name: "Crux", label: "Crux", stars: [{ ra: 186, dec: -60 }, { ra: 186, dec: -66 }, { ra: 182, dec: -63 }, { ra: 190, dec: -63 }], lines: [[0, 1], [2, 3]] },
+            { name: "Carina", label: "Carina", stars: [{ ra: 95, dec: -52, mag: -0.72 }, { ra: 100, dec: -60 }], lines: [[0, 1]] },
+            { name: "Vela", label: "Vela", stars: [{ ra: 130, dec: -50 }, { ra: 140, dec: -55 }], lines: [[0, 1]] },
+            { name: "Puppis", label: "Puppis", stars: [{ ra: 120, dec: -40 }, { ra: 115, dec: -35 }], lines: [[0, 1]] },
+            { name: "Columba", label: "Columba", stars: [{ ra: 90, dec: -35 }, { ra: 85, dec: -32 }], lines: [[0, 1]] },
+            { name: "Delphinus", label: "Delphinus", stars: [{ ra: 309, dec: 16 }, { ra: 310, dec: 15 }], lines: [[0, 1]] },
+            { name: "Sagitta", label: "Sagitta", stars: [{ ra: 295, dec: 18 }, { ra: 298, dec: 18 }], lines: [[0, 1]] },
+            { name: "Equuleus", label: "Equuleus", stars: [{ ra: 315, dec: 5 }, { ra: 316, dec: 6 }], lines: [[0, 1]] },
+            { name: "Serpens", label: "Serpens", stars: [{ ra: 235, dec: 5 }, { ra: 240, dec: 10 }], lines: [[0, 1]] },
+            { name: "Scutum", label: "Scutum", stars: [{ ra: 280, dec: -10 }, { ra: 278, dec: -8 }], lines: [[0, 1]] },
+            { name: "Corvus", label: "Corvus", stars: [{ ra: 185, dec: -15 }, { ra: 188, dec: -20 }], lines: [[0, 1]] },
+            { name: "Crater", label: "Crater", stars: [{ ra: 170, dec: -15 }, { ra: 175, dec: -18 }], lines: [[0, 1]] },
+            { name: "Triangulum", label: "Triangulum", stars: [{ ra: 25, dec: 30 }, { ra: 30, dec: 35 }], lines: [[0, 1]] },
+            { name: "Lupus", label: "Lupus", stars: [{ ra: 230, dec: -40 }, { ra: 235, dec: -45 }], lines: [[0, 1]] },
+            { name: "Ara", label: "Ara", stars: [{ ra: 255, dec: -50 }, { ra: 260, dec: -55 }], lines: [[0, 1]] },
+            { name: "Indus", label: "Indus", stars: [{ ra: 310, dec: -55 }, { ra: 320, dec: -60 }], lines: [[0, 1]] },
+            { name: "Grus", label: "Grus", stars: [{ ra: 330, dec: -45 }, { ra: 340, dec: -50 }], lines: [[0, 1]] },
+            { name: "Phoenix", label: "Phoenix", stars: [{ ra: 10, dec: -45 }, { ra: 5, dec: -50 }], lines: [[0, 1]] }
+        ];
+        const planetsData = [
+            { name: "Jupiter", ra: 40, dec: 15, color: 0xffddaa, scale: 20 },
+            { name: "Saturn", ra: 330, dec: -10, color: 0xeeddbb, scale: 18 },
+            { name: "Mars", ra: 60, dec: 22, color: 0xff6655, scale: 15 },
+            { name: "Venus", ra: 180, dec: 2, color: 0xffeecc, scale: 22 }
+        ];
+        function spherePos(ra, dec, dist) {
+            const phi = (90 - dec) * (Math.PI / 180);
+            const theta = ra * (Math.PI / 180);
+            return new THREE.Vector3(
+                dist * Math.sin(phi) * Math.cos(theta),
+                dist * Math.cos(phi),
+                dist * Math.sin(phi) * Math.sin(theta)
+            );
+        }
+        const linesMaterial = new THREE.LineBasicMaterial({ color: 0x38bdf8, opacity: 0.6, transparent: true, linewidth: 2 });
+        const constGroup = new THREE.Group();
+        const hitBoxes = [];
+        const labelsContainer = document.getElementById('labels-container');
+        constellationData.forEach(c => {
+            const cPoints = c.stars.map(s => spherePos(s.ra, s.dec, 1950));
+            const geometry = new THREE.BufferGeometry().setFromPoints(c.lines.flatMap(pair => [cPoints[pair[0]], cPoints[pair[1]]]));
+            const line = new THREE.LineSegments(geometry, linesMaterial);
+            constGroup.add(line);
+            c.stars.forEach((s, i) => {
+                const pos = cPoints[i];
+                const hitMesh = new THREE.Mesh(new THREE.SphereGeometry(20), new THREE.MeshBasicMaterial({ visible: false }));
+                hitMesh.position.copy(pos);
+                hitMesh.userData = {
+                    name: c.stars[i].name || `${c.label} Star`, constellation: c.name, type: "Star",
+                    mag: s.mag || 2.0, ra: s.ra, dec: s.dec
+                };
+                hitBoxes.push(hitMesh);
+                constGroup.add(hitMesh);
+            });
+            const center = new THREE.Vector3();
+            cPoints.forEach(p => center.add(p));
+            center.divideScalar(cPoints.length);
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'constellation-label';
+            labelDiv.textContent = c.label;
+            labelsContainer.appendChild(labelDiv);
+            c.labelObj = { el: labelDiv, pos: center };
+        });
+        planetsData.forEach(p => {
+            const pos = spherePos(p.ra, p.dec, 1900);
+            const canvas = document.createElement('canvas'); canvas.width = 32; canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#' + p.color.toString(16); ctx.beginPath(); ctx.arc(16, 16, 14, 0, Math.PI * 2); ctx.fill();
+            const tex = new THREE.CanvasTexture(canvas);
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: p.color }));
+            sprite.scale.set(p.scale, p.scale, 1); sprite.position.copy(pos);
+            constGroup.add(sprite);
+            const pLabel = document.createElement('div'); pLabel.className = 'planet-label'; pLabel.textContent = p.name;
+            labelsContainer.appendChild(pLabel); p.labelEl = pLabel; p.pos = pos;
+            const hitMesh = new THREE.Mesh(new THREE.SphereGeometry(30), new THREE.MeshBasicMaterial({ visible: false }));
+            hitMesh.position.copy(pos); hitMesh.userData = { name: p.name, type: "Planet", mag: -1.5, ra: p.ra, dec: p.dec };
+            hitBoxes.push(hitMesh); constGroup.add(hitMesh);
+        });
+        celestialGroup.add(constGroup);
+        // --- 5. Grid ---
+        const gridHelper = new THREE.Group();
+        const decMat = new THREE.LineBasicMaterial({ color: 0x334455, opacity: 0.3, transparent: true });
+        for (let i = -80; i <= 80; i += 20) {
+            if (i === 0) continue;
+            const circle = new THREE.BufferGeometry(); const points = [];
+            const r = 1900 * Math.cos(i * Math.PI / 180); const y = 1900 * Math.sin(i * Math.PI / 180);
+            for (let j = 0; j <= 360; j += 5) {
+                const rad = j * Math.PI / 180; points.push(new THREE.Vector3(r * Math.cos(rad), y, r * Math.sin(rad)));
+            }
+            circle.setFromPoints(points); gridHelper.add(new THREE.Line(circle, decMat));
+        }
+        const equatorMat = new THREE.LineBasicMaterial({ color: 0x556677, opacity: 0.5, transparent: true });
+        const eqPoints = [];
+        for (let j = 0; j <= 360; j += 5) {
+            const rad = j * Math.PI / 180; eqPoints.push(new THREE.Vector3(1900 * Math.cos(rad), 0, 1900 * Math.sin(rad)));
+        }
+        gridHelper.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(eqPoints), equatorMat));
+        for (let i = 0; i < 360; i += 30) {
+            const raPoints = []; const rad = i * Math.PI / 180;
+            for (let j = -90; j <= 90; j += 5) {
+                const phi = j * Math.PI / 180; const r = 1900 * Math.cos(phi); const y = 1900 * Math.sin(phi);
+                raPoints.push(new THREE.Vector3(r * Math.cos(rad), y, r * Math.sin(rad)));
+            }
+            gridHelper.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(raPoints), decMat));
+        }
+        gridHelper.rotation.z = 23.5 * Math.PI / 180;
+        gridHelper.visible = false;
+        celestialGroup.add(gridHelper);
+        // --- 6. Landscape ---
+        function createLandscapeTexture() {
+            const canvas = document.createElement('canvas'); canvas.width = 2048; canvas.height = 256;
+            const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, 2048, 256); ctx.fillStyle = '#050810';
+            ctx.beginPath(); ctx.moveTo(0, 256);
+            let h = 150;
+            for (let x = 0; x <= 2048; x += 4) {
+                h += (Math.random() - 0.5) * 15; if (h > 230) h = 230; if (h < 100) h = 100;
+                ctx.lineTo(x, h);
+            }
+            ctx.lineTo(2048, 256); ctx.fill();
+            const tex = new THREE.CanvasTexture(canvas); tex.wrapS = THREE.RepeatWrapping; tex.repeat.set(1, 1);
+            return tex;
+        }
+        const landscape = new THREE.Mesh(
+            new THREE.CylinderGeometry(1500, 1500, 400, 64, 1, true).scale(-1, 1, 1),
+            new THREE.MeshBasicMaterial({ map: createLandscapeTexture(), transparent: true, side: THREE.BackSide, depthWrite: false })
+        );
+        landscape.position.y = -200;
+        landscape.material.opacity = 0.7;
+        scene.add(landscape);
+        const groundDisc = new THREE.Mesh(new THREE.CircleGeometry(1500, 64), new THREE.MeshBasicMaterial({ color: 0x020305, transparent: true, opacity: 0.7 }));
+        groundDisc.rotation.x = -Math.PI / 2; groundDisc.position.y = -200; scene.add(groundDisc);
+        // Track landscape visibility state
+        window.landscapeEnabled = true;
+        const cardinalLabels = [
+            { text: 'N', rot: Math.PI }, { text: 'E', rot: Math.PI / 2 }, { text: 'S', rot: 0 }, { text: 'W', rot: -Math.PI / 2 }
+        ];
+        cardinalLabels.forEach(dir => {
+            const div = document.createElement('div'); div.textContent = dir.text; div.style.position = 'absolute'; div.style.color = '#ff5555'; div.style.fontWeight = 'bold';
+            document.getElementById('labels-container').appendChild(div);
+            const dummy = new THREE.Object3D(); dummy.position.set(0, -50, -1000);
+            const pivot = new THREE.Object3D(); pivot.add(dummy); pivot.rotation.y = dir.rot; scene.add(pivot);
+            dir.obj = dummy; dir.el = div;
+        });
+        // --- 7. Logic & API ---
+        const apiKey = "";
+        let currentTargetData = null;
+        const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
+        const selectRing = new THREE.Mesh(new THREE.RingGeometry(15, 18, 32), new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }));
+        selectRing.visible = false; celestialGroup.add(selectRing);
+        // Add constellation center points as hitboxes
+        const constellationHitBoxes = [];
+        constellationData.forEach((c) => {
+            const center = new THREE.Vector3();
+            c.stars.forEach(s => {
+                const pos = spherePos(s.ra, s.dec, 1950);
+                center.add(pos);
+            });
+            center.divideScalar(c.stars.length);
+            const constHitMesh = new THREE.Mesh(new THREE.SphereGeometry(50), new THREE.MeshBasicMaterial({ visible: false }));
+            constHitMesh.position.copy(center);
+            constHitMesh.userData = {
+                name: c.name,
+                localName: c.label,
+                type: "Constellation",
+                pos: center.clone(),
+                starsData: c.stars
+            };
+            constellationHitBoxes.push(constHitMesh);
+            constGroup.add(constHitMesh);
+        });
+        // Enhanced click event - Prioritize constellation selection
+        let selectedConstellation = null;
+        let cameraAnimationActive = false;
+        window.addEventListener('pointerdown', e => {
+            if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.ui-panel')) return;
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1; mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            // Check constellations first
+            const constIntersects = raycaster.intersectObjects(constellationHitBoxes);
+            if (constIntersects.length > 0) {
+                const constData = constIntersects[0].object.userData;
+                selectedConstellation = constData;
+                currentTargetData = constData;
+                // Show constellation info panel (zoom disabled, text only)
+                document.getElementById('constellation-info').classList.add('active');
+                document.getElementById('const-name').innerText = constData.name;
+                document.getElementById('const-local-name').innerText = constData.localName;
+                const constInfo = getConstellationByEnglish(constData.name);
+                if (constInfo) {
+                    document.getElementById('const-season').innerText = constInfo.season;
+                    document.getElementById('const-bright').innerText = constInfo.bright;
+                    document.getElementById('const-area').innerText = constInfo.area.toFixed(1) + "°²";
+                    document.getElementById('const-ra').innerText = constInfo.ra.toFixed(2) + "h";
+                    document.getElementById('const-dec').innerText = constInfo.dec.toFixed(1) + "°";
+                }
+                // Center selection only
+                return;
+            }
+            // Click on stars/objects
+            const intersects = raycaster.intersectObjects(hitBoxes);
+            // Ignore terrain clicks if terrain is active
+            if (window.landscapeEnabled && intersects.some(i => i.object === landscape || i.object === groundDisc)) {
+                selectRing.visible = false;
+                currentTargetData = null;
+                document.getElementById('target-info').classList.remove('active');
+                return;
+            }
+            if (intersects.length > 0) {
+                const d = intersects[0].object.userData; currentTargetData = d;
+                selectRing.visible = true; selectRing.position.copy(intersects[0].object.position); selectRing.lookAt(0, 0, 0);
+                document.getElementById('target-info').classList.add('active');
+                document.getElementById('constellation-info').classList.remove('active');
+                document.getElementById('target-name').innerText = d.name; document.getElementById('target-type').innerText = d.type;
+                document.getElementById('target-radec').innerText = `${d.ra.toFixed(1)}° / ${d.dec.toFixed(1)}°`;
+                document.getElementById('target-mag').innerText = d.mag || '?';
+            } else {
+                selectRing.visible = false; currentTargetData = null;
+                document.getElementById('target-info').classList.remove('active');
+                document.getElementById('constellation-info').classList.remove('active');
+                window.enableCameraTracking = false;
+            }
+        });
+        document.getElementById('close-target').onclick = () => {
+            document.getElementById('target-info').classList.remove('active');
+            // Zoom out animation
+            const targetFOV = 60;
+            const startFOV = camera.fov;
+            const animationDuration = 400;
+            const startTime = Date.now();
+            const zoomOut = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / animationDuration, 1);
+                camera.fov = THREE.MathUtils.lerp(startFOV, targetFOV, progress);
+                camera.updateProjectionMatrix();
+                if (progress < 1) requestAnimationFrame(zoomOut);
+            };
+            zoomOut();
+        };
+        // Terrain toggle buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'btn-terrain') {
+                window.landscapeEnabled = !window.landscapeEnabled;
+                landscape.visible = window.landscapeEnabled;
+                groundDisc.visible = window.landscapeEnabled;
+                e.target.classList.toggle('active', window.landscapeEnabled);
+                e.target.textContent = window.landscapeEnabled ? '🌍 Disable Terrain' : '🌍 Enable Terrain';
+                e.target.style.background = window.landscapeEnabled ? 'rgba(56, 189, 248, 0.15)' : 'rgba(34, 197, 94, 0.15)';
+                e.target.style.borderColor = window.landscapeEnabled ? 'rgba(56, 189, 248, 0.3)' : 'rgba(34, 197, 94, 0.3)';
+            }
+        });
+        // Adjust rotation speed
+        document.getElementById('speed-slider').addEventListener('input', (e) => {
+            const speedMultiplier = parseFloat(e.target.value);
+            window.rotationSpeed = 0.00002857 * speedMultiplier; // Default speed: 7x slower than normal
+            document.getElementById('speed-value').innerText = speedMultiplier.toFixed(1) + 'x';
+        });
+        // Redundant legacy chat functions removed
+        // UI States
+        let isNight = true; let showLabels = true; // Default to true
+        function toggleState(btnId, cb) {
+            const btn = document.getElementById(btnId); btn.onclick = () => cb(btn.classList.toggle('active'));
+        }
+        toggleState('btn-lines', v => constGroup.children.forEach(c => { if (c.isLineSegments) c.visible = v; }));
+        // Label toggle Logic
+        toggleState('btn-labels', v => {
+            showLabels = v;
+            const container = document.getElementById('labels-container');
+            if (v) container.classList.add('visible');
+            else container.classList.remove('visible');
+        });
+        toggleState('btn-grid', v => gridHelper.visible = v);
+        toggleState('btn-ground', v => { landscape.visible = v; groundDisc.visible = v; });
+        // Drawing Visibility Toggle
+        const visibilityBtn = document.getElementById('btn-toggle-visibility');
+        if (visibilityBtn) {
+            let isCanvasVisible = true;
+            visibilityBtn.addEventListener('click', () => {
+                isCanvasVisible = !isCanvasVisible;
+                const canvas = document.getElementById('draw-canvas');
+                if (canvas) canvas.style.display = isCanvasVisible ? 'block' : 'none';
+                const text = document.getElementById('toggle-visibility-text');
+                const icon = visibilityBtn.querySelector('.material-icons-round');
+                if (isCanvasVisible) {
+                    if (text) text.textContent = 'Hide';
+                    if (icon) icon.textContent = 'visibility';
+                    visibilityBtn.style.background = 'rgba(96, 165, 250, 0.2)';
+                    visibilityBtn.style.color = '#60a5fa';
+                } else {
+                    if (text) text.textContent = 'Show';
+                    if (icon) icon.textContent = 'visibility_off';
+                    visibilityBtn.style.background = '';
+                    visibilityBtn.style.color = '';
+                }
+            });
+            // Initialize state
+            visibilityBtn.style.background = 'rgba(96, 165, 250, 0.2)';
+            visibilityBtn.style.color = '#60a5fa';
+        }
+        // Day/Night Toggle
+        document.getElementById('btn-daynight').onclick = () => {
+            isNight = !isNight;
+            document.getElementById('btn-daynight').classList.toggle('active', !isNight);
+            // Sun visible in day, hidden in night
+            sunSprite.visible = !isNight;
+            // Note: Stars remain visible even in day mode as requested
+        };
+        // Close constellation info panel handler
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#constellation-info .close-constellation')) {
+                const panel = document.getElementById('constellation-info');
+                panel.classList.remove('active');
+                window.enableCameraTracking = false;
+                window.targetCameraPos = null;
+                window.cameraTrackingTarget = null;
+            }
+            // Display description only when constellation name is clicked (Zoom disabled)
+            if (e.target.id === 'const-name' && document.getElementById('constellation-info').classList.contains('active')) {
+                // Zoom disabled - description already visible
+            }
+        });
+        // Adjust FOV with mouse wheel
+        window.addEventListener('wheel', (e) => {
+            if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.ui-panel')) return;
+            e.preventDefault();
+            // Standard FOV adjustment
+            const scrollDelta = e.deltaY > 0 ? 2 : -2;
+            const minFOV = 10;
+            const maxFOV = 120;
+            camera.fov = THREE.MathUtils.clamp(camera.fov + scrollDelta, minFOV, maxFOV);
+            camera.updateProjectionMatrix();
+        }, { passive: false });
+        setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleTimeString(), 1000);
+        setTimeout(() => document.getElementById('loading').style.display = 'none', 1500);
+        function animate() {
+            requestAnimationFrame(animate);
+            // Camera tracking logic (smooth animation)
+            if (window.enableCameraTracking && window.targetCameraPos && window.cameraTrackingTarget) {
+                camera.position.lerp(window.targetCameraPos, 0.05);
+                window.cameraTrackingTarget.getWorldPosition ?
+                    controls.target.lerp(window.cameraTrackingTarget.getWorldPosition(new THREE.Vector3()), 0.05) :
+                    controls.target.lerp(window.cameraTrackingTarget, 0.05);
+            }
+            controls.update();
+            // Rotate Sky (7x slower)
+            const rotSpeed = window.rotationSpeed !== undefined ? window.rotationSpeed : 0.00002857;
+            starField.rotation.y += rotSpeed; celestialGroup.rotation.y += rotSpeed;
+            // Update Shader Time for Twinkling
+            if (starMaterial.uniforms) starMaterial.uniforms.time.value += 0.05;
+            // Update Meteors
+            updateMeteors();
+            // Sky Color Lerp
+            const targetTop = isNight ? colors.night.top : colors.day.top;
+            const targetBot = isNight ? colors.night.bottom : colors.day.bottom;
+            uniforms.topColor.value.lerp(targetTop, 0.05);
+            uniforms.bottomColor.value.lerp(targetBot, 0.05);
+            // Labels
+            if (showLabels) {
+                constellationData.forEach(c => {
+                    const worldPos = c.labelObj.pos.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), celestialGroup.rotation.y);
+                    updateLabel(c.labelObj.el, worldPos);
+                });
+                planetsData.forEach(p => {
+                    const worldPos = p.pos.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), celestialGroup.rotation.y);
+                    updateLabel(p.labelEl, worldPos);
+                });
+            }
+            cardinalLabels.forEach(d => updateLabel(d.el, d.obj.getWorldPosition(new THREE.Vector3())));
+            renderer.render(scene, camera);
+        }
+        function updateLabel(el, pos) {
+            pos.project(camera);
+            if (pos.z > 1) el.style.display = 'none';
+            else {
+                el.style.display = 'block';
+                el.style.transform = `translate(-50%, -50%) translate(${(pos.x * 0.5 + 0.5) * window.innerWidth}px, ${(-pos.y * 0.5 + 0.5) * window.innerHeight}px)`;
+            }
+        }
+        window.onresize = () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); };
+        animate();
+        // Replace old AI explain button handler
+        document.getElementById('btn-ai-explain').onclick = () => {
+            if (currentTargetData) {
+                togglePopup('chat-popup');
+                const p = `Tell me about ${currentTargetData.name}.`;
+                // We need to send this to the new chatbot
+                const input = document.getElementById('omni-input');
+                if (input) {
+                    input.value = p;
+                    document.getElementById('omni-send')?.click();
+                }
+            }
+        };
+        // Initialize Collaboration UI & Timer
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const projectId = params.get('projectId') || params.get('id') || params.get('project');
+            if (projectId) {
+                if (typeof CollaborationUI !== 'undefined') {
+                    new CollaborationUI({
+                        projectId: projectId,
+                        containerId: 'collaboration-users'
+                    });
+                }
+                if (typeof StudyTimer !== 'undefined') {
+                    new StudyTimer({
+                        projectId: projectId,
+                        containerId: 'navbar-controls'
+                    });
+                }
+            }
+        });
+    </script>
+    <script src="../js/workspace-common/earthscience-quiz-data.js"></script>
+    <script src="../js/workspace-common/workspace-quiz.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            let projectId = params.get('projectId') || params.get('id') || params.get('project');
+            if (!projectId) {
+                console.warn('No projectId in URL - using dev fallback');
+                projectId = 'dev-demo-project';
+            }
+            if (projectId) {
+                if (typeof WorkspaceCollaboration !== 'undefined') {
+                    window.workspaceCollaboration = new WorkspaceCollaboration({
+                        projectId: projectId,
+                        containerId: 'collaboration-users'
+                    });
+                }
+                if (typeof StudyTimer !== 'undefined') {
+                    new StudyTimer({
+                        projectId: projectId,
+                        containerId: 'navbar-controls'
+                    });
+                }
+            }
+            // Initialize Quiz
+            if (typeof WorkspaceQuiz !== 'undefined') {
+                new WorkspaceQuiz({
+                    workspace: 'earthscience',
+                    containerId: 'navbar-controls'
+                });
+            }
+        });
+    </script>
+    <script src="/js/pwa.js"></script>
+</body>
+
+</html>
