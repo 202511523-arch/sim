@@ -906,9 +906,13 @@ class WorkspaceCollaboration {
 
                 // If the user moved to a different page, immediately hide their cursor
                 if (data.path) {
-                    const remoteFile = data.path.split('?')[0].split('/').pop();
-                    const localFile = window.location.pathname.split('?')[0].split('/').pop();
-                    if (remoteFile !== localFile) {
+                    const remoteClean = data.path.split('?')[0].split('#')[0];
+                    const localClean = window.location.pathname.split('?')[0].split('#')[0];
+                    const remoteSegments = remoteClean.replace(/^\/+/, '').split('/');
+                    const localSegments = localClean.replace(/^\/+/, '').split('/');
+                    const remoteKey = remoteSegments.slice(-2).join('/');
+                    const localKey = localSegments.slice(-2).join('/');
+                    if (remoteKey !== localKey) {
                         this.removeCursor(uid);
                     }
                 }
@@ -1037,14 +1041,29 @@ class WorkspaceCollaboration {
             const cursorKey = (data.userId || data.socketId || '').toString();
 
             // Only show cursor if remote user is on the SAME page
-            if (data.currentPath) {
-                const remoteFile = data.currentPath.split('?')[0].split('/').pop();
-                const localFile = window.location.pathname.split('?')[0].split('/').pop();
-                if (remoteFile !== localFile) {
+            // Use data.currentPath first, fallback to stored collaborator path
+            const remotePath = data.currentPath || (this.collaborators.get(cursorKey)?.currentPath);
+
+            if (remotePath) {
+                const remoteClean = remotePath.split('?')[0].split('#')[0];
+                const localClean = window.location.pathname.split('?')[0].split('#')[0];
+
+                // Compare the last two path segments (module + filename) for accuracy
+                // e.g. "/chemistry/simulation.html" vs "/engineering/simulation.html"
+                const remoteSegments = remoteClean.replace(/^\/+/, '').split('/');
+                const localSegments = localClean.replace(/^\/+/, '').split('/');
+
+                const remoteKey = remoteSegments.slice(-2).join('/');
+                const localKey = localSegments.slice(-2).join('/');
+
+                if (remoteKey !== localKey) {
                     // Different page - hide cursor if it exists
                     this.removeCursor(cursorKey);
                     return;
                 }
+            } else {
+                // No path info at all - don't show cursor (safe default)
+                return;
             }
 
             this.updateCursor(cursorKey, data.position?.x || data.x, data.position?.y || data.y, data.name, data.avatar);
@@ -1544,6 +1563,8 @@ class WorkspaceCollaboration {
         if (!this.socket) return;
 
         this.socket.on('drawing-stroke', (data) => {
+            // Only apply drawing from users on the same page
+            if (!this.isSamePage(data.currentPath)) return;
             console.log('🎨 Drawing stroke from:', data.userName);
             callback(data);
         });
@@ -1557,6 +1578,8 @@ class WorkspaceCollaboration {
         if (!this.socket) return;
 
         this.socket.on('drawing-clear', (data) => {
+            // Only apply clear from users on the same page
+            if (!this.isSamePage(data.currentPath)) return;
             console.log('🧹 Canvas cleared by:', data.userName);
             callback(data);
         });
@@ -1588,6 +1611,8 @@ class WorkspaceCollaboration {
         if (!this.socket) return;
 
         this.socket.on('sticky-note-update', (data) => {
+            // Only apply sticky note from users on the same page
+            if (!this.isSamePage(data.currentPath)) return;
             console.log('📌 Sticky note', data.action, 'by:', data.userName);
             callback(data);
         });
@@ -1653,6 +1678,28 @@ class WorkspaceCollaboration {
         }
 
         return false;
+    }
+
+    /**
+     * Check if a remote path matches the current page (module + filename).
+     * Used to filter out events from different workspaces within the same project.
+     * @param {string} remotePath - The remote user's currentPath
+     * @returns {boolean} - True if on the same page
+     */
+    isSamePage(remotePath) {
+        if (!remotePath) return false;
+
+        const remoteClean = remotePath.split('?')[0].split('#')[0];
+        const localClean = window.location.pathname.split('?')[0].split('#')[0];
+
+        const remoteSegments = remoteClean.replace(/^\/+/, '').split('/');
+        const localSegments = localClean.replace(/^\/+/, '').split('/');
+
+        // Compare module folder + filename (last 2 segments)
+        const remoteKey = remoteSegments.slice(-2).join('/');
+        const localKey = localSegments.slice(-2).join('/');
+
+        return remoteKey === localKey;
     }
 }
 

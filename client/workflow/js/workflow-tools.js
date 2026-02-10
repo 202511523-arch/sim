@@ -26,11 +26,6 @@ class WorkflowTools {
         // Setup Popup Toggles
         this.bindPopupToggle('fab-chat', 'chat-popup');
         this.bindPopupToggle('fab-notes', 'notes-popup');
-        this.bindPopupToggle('fab-sticky', null, () => this.createStickyNote());
-        document.getElementById('fab-draw')?.addEventListener('click', () => {
-            this.togglePopup('draw-popup');
-            if (!this.drawingInitialized) this.initDrawingTool();
-        });
 
         // Initialize external common modules if they exist
         this.initCommonModules();

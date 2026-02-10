@@ -448,6 +448,7 @@ const configureSocket = (io) => {
             socket.to(`project:${socket.currentProject}`).emit('drawing-stroke', {
                 userId: socket.user._id,
                 userName: socket.user.name,
+                currentPath: socket.currentPath || null,
                 points: data.points,
                 color: data.color,
                 size: data.size,
@@ -465,6 +466,7 @@ const configureSocket = (io) => {
             socket.to(`project:${socket.currentProject}`).emit('drawing-clear', {
                 userId: socket.user._id,
                 userName: socket.user.name,
+                currentPath: socket.currentPath || null,
                 timestamp: new Date()
             });
         });
@@ -477,6 +479,7 @@ const configureSocket = (io) => {
             socket.to(`project:${socket.currentProject}`).emit('sticky-note-update', {
                 userId: socket.user._id,
                 userName: socket.user.name,
+                currentPath: socket.currentPath || null,
                 action: data.action, // 'create', 'update', 'delete', 'move'
                 noteData: data.noteData,
                 timestamp: new Date()

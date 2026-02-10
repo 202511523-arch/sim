@@ -545,12 +545,6 @@
         <button class="fab" id="fab-chat" title="AI Assistant">
             <span class="material-icons-round">smart_toy</span>
         </button>
-        <button class="fab" id="fab-sticky" title="Sticky Note">
-            <span class="material-icons-round">sticky_note_2</span>
-        </button>
-        <button class="fab" id="fab-draw" title="Drawing Tool">
-            <span class="material-icons-round">draw</span>
-        </button>
     </div>
 
     <!-- Chat Popup -->
@@ -610,78 +604,7 @@
         </div>
     </div>
 
-    <!-- Draw Tool Popup -->
-    <div class="popup-panel" id="draw-popup">
-        <div class="popup-header">
-            <div class="popup-title"><span class="material-icons-round">draw</span> Drawing Tool</div>
-            <button class="popup-close" onclick="closePopup('draw-popup')"><span
-                    class="material-icons-round">close</span></button>
-        </div>
-        <div class="popup-body" style="padding: 16px;">
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                <div><label
-                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
-                    <div style="display: flex; gap: 8px;"><button class="draw-tool-btn active" data-tool="pen"
-                            title="Pen"><span class="material-icons-round">edit</span></button><button
-                            class="draw-tool-btn" data-tool="eraser" title="Eraser"><span
-                                class="material-icons-round">ink_eraser</span></button><button class="draw-tool-btn"
-                            data-tool="highlighter" title="Highlighter"><span
-                                class="material-icons-round">format_paint</span></button></div>
-                </div>
-                <div><label
-                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;"><button class="color-btn active"
-                            data-color="#60a5fa" style="background: #60a5fa;"></button><button class="color-btn"
-                            data-color="#34d399" style="background: #34d399;"></button><button class="color-btn"
-                            data-color="#f472b6" style="background: #f472b6;"></button><button class="color-btn"
-                            data-color="#fbbf24" style="background: #fbbf24;"></button><button class="color-btn"
-                            data-color="#FFFFFF" style="background: #FFFFFF;"></button></div>
-                </div>
-                <div><label
-                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Brush
-                        Size: <span id="brush-size-value">3</span>px</label><input type="range" id="brush-size" min="1"
-                        max="20" value="3" style="width: 100%; accent-color: var(--accent-primary);"></div>
-                <div><label
-                        style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Opacity:
-                        <span id="opacity-value">100</span>%</label><input type="range" id="draw-opacity" min="10"
-                        max="100" value="100" style="width: 100%; accent-color: var(--accent-primary);"></div>
-                <div style="display: flex; gap: 8px; margin-top: 8px;"><button class="btn-circle" id="btn-clear-canvas"
-                        title="Clear All"
-                        style="flex: 1; width: auto; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #ef4444;"><span
-                            class="material-icons-round">clear</span><span
-                            style="margin-left: 6px;">Clear</span></button></div>
-                <div style="display: flex; gap: 8px; margin-top: 8px;">
-                    <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
-                        style="flex: 1; width: auto; border-radius: 8px;">
-                        <span class="material-icons-round">visibility</span>
-                        <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
-                    </button>
-                    <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
-                        style="flex: 1; width: auto; border-radius: 8px;">
-                        <span class="material-icons-round">edit_off</span>
-                        <span style="margin-left: 6px;" id="toggle-draw-text">Enable Drawing</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Sticky Notes Container -->
-    <div id="sticky-notes-container" style="z-index: 10001;"></div>
-
-    <!-- Custom Eraser Cursor -->
-    <div id="custom-cursor"
-        style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
-        <div id="cursor-circle"
-            style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
-        </div>
-        <span class="material-icons-round" id="cursor-icon"
-            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
-    </div>
-
-    <!-- Drawing Canvas (Global Overlay) -->
-    <canvas id="draw-canvas"
-        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
 
     <!-- Scripts -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
