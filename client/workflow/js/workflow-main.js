@@ -1,4 +1,5 @@
 import WorkflowNodeTypes from './workflow-nodes.js';
+import { executeNodeLogic, renderChart, DataFrame } from './workflow-engine.js';
 
 class WorkflowApp {
     constructor() {
@@ -659,63 +660,186 @@ class WorkflowApp {
                 console.log('Execution Results:', results);
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                this.showModal('Execution Complete', `Workflow executed!\n\nProcessed ${results.steps} steps.\nCheck console for details.`);
+                this.showExecutionResults(results);
+            }).catch(err => {
+                console.error('Execution Error:', err);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                this.showModal('Execution Error', `Failed: ${err.message}`);
             });
         } else {
             this.executeGraph().then(results => {
                 console.log('Execution Results:', results);
-                this.showModal('Execution Complete', `Workflow executed!\n\nProcessed ${results.steps} steps.\nCheck console for details.`);
+                this.showExecutionResults(results);
             });
         }
     }
 
     async executeGraph() {
         const results = {};
-        const queue = this.nodes.filter(n => n.type.startsWith('input-'));
+        const executed = new Set();
+
+        // Build dependency graph
+        const inDegree = {};
+        this.nodes.forEach(n => inDegree[n.id] = 0);
+        this.connections.forEach(c => {
+            if (inDegree[c.target] !== undefined) inDegree[c.target]++;
+        });
+
+        // Start with nodes that have no incoming connections (sources)
+        const queue = this.nodes.filter(n => inDegree[n.id] === 0);
         let steps = 0;
 
         if (queue.length === 0 && this.nodes.length > 0) {
-            const targets = new Set(this.connections.map(c => c.target));
-            this.nodes.forEach(n => {
-                if (!targets.has(n.id)) queue.push(n);
-            });
+            // Fallback: start with input nodes
+            queue.push(...this.nodes.filter(n => n.type.startsWith('input-')));
         }
 
         while (queue.length > 0) {
             const node = queue.shift();
-            if (results[node.id]) continue;
+            if (executed.has(node.id)) continue;
 
             steps++;
-            const output = await this.executeNode(node, results);
-            results[node.id] = output;
 
+            // Visual feedback: highlight executing node
+            const statusEl = document.getElementById(node.id);
+            if (statusEl) {
+                statusEl.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.5)';
+                statusEl.classList.add('executing');
+            }
+
+            try {
+                const output = await executeNodeLogic(node, results, this.connections);
+                results[node.id] = output;
+                executed.add(node.id);
+
+                // Update node visual with result info
+                if (statusEl) {
+                    statusEl.style.boxShadow = '0 0 0 3px rgba(34, 197, 94, 0.5)';
+                    statusEl.classList.remove('executing');
+                    statusEl.classList.add('executed');
+                    // Add small info badge
+                    let badge = statusEl.querySelector('.node-result-badge');
+                    if (!badge) {
+                        badge = document.createElement('div');
+                        badge.className = 'node-result-badge';
+                        badge.style.cssText = 'position:absolute; bottom:-8px; right:-8px; background:#22c55e; color:#0f172a; font-size:9px; padding:2px 6px; border-radius:10px; font-weight:bold; white-space:nowrap;';
+                        statusEl.appendChild(badge);
+                    }
+                    badge.textContent = output?.info || '✓';
+                    setTimeout(() => {
+                        statusEl.style.boxShadow = '';
+                        statusEl.classList.remove('executed');
+                    }, 3000);
+                }
+            } catch (err) {
+                console.error(`Error executing node ${node.id}:`, err);
+                results[node.id] = { error: err.message, info: `Error: ${err.message}` };
+                if (statusEl) {
+                    statusEl.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.5)';
+                    statusEl.classList.remove('executing');
+                }
+            }
+
+            // Enqueue downstream nodes
             const outgoing = this.connections.filter(c => c.source === node.id);
             outgoing.forEach(conn => {
                 const target = this.nodes.find(n => n.id === conn.target);
-                if (target) queue.push(target);
+                if (target && !executed.has(target.id)) {
+                    // Check if all inputs are ready
+                    const targetInputs = this.connections.filter(c => c.target === target.id);
+                    const allReady = targetInputs.every(c => executed.has(c.source));
+                    if (allReady) queue.push(target);
+                }
             });
+
+            // Small delay for visual feedback
+            await new Promise(r => setTimeout(r, 200));
         }
 
         this.saveWorkflow();
         return { steps, results };
     }
 
-    async executeNode(node, context) {
-        console.log(`Executing ${node.type} (${node.id})...`);
-        const statusEl = document.getElementById(node.id);
-        if (statusEl) {
-            statusEl.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.5)';
-            setTimeout(() => statusEl.style.boxShadow = '', 1000);
+    showExecutionResults(executionData) {
+        const { steps, results } = executionData;
+
+        // Build results HTML
+        let html = `
+            <div style="max-height: 70vh; overflow-y: auto; padding: 0 4px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; padding:10px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px;">
+                    <span class="material-icons-round" style="color:#22c55e;">check_circle</span>
+                    <div>
+                        <div style="font-weight:600; color:#22c55e;">Workflow Complete</div>
+                        <div style="font-size:12px; color:#94a3b8;">${steps} nodes executed successfully</div>
+                    </div>
+                </div>
+        `;
+
+        // Process each node result
+        for (const node of this.nodes) {
+            const result = results[node.id];
+            if (!result) continue;
+
+            const config = WorkflowNodeTypes[node.type];
+            const label = config?.label || node.type;
+            const category = config?.category || 'unknown';
+
+            const categoryColors = {
+                input: '#3b82f6',
+                process: '#f59e0b',
+                analysis: '#8b5cf6',
+                output: '#22c55e'
+            };
+            const color = categoryColors[category] || '#64748b';
+
+            html += `
+                <div style="margin-bottom:12px; border:1px solid #334155; border-radius:8px; overflow:hidden;">
+                    <div style="padding:8px 12px; background:${color}22; border-bottom:1px solid #334155; display:flex; align-items:center; gap:8px;">
+                        <span class="material-icons-round" style="font-size:16px; color:${color};">${config?.icon || 'settings'}</span>
+                        <span style="font-weight:600; color:#e2e8f0; font-size:13px;">${label}</span>
+                        <span style="font-size:11px; color:#94a3b8; margin-left:auto;">${result.info || ''}</span>
+                    </div>
+                    <div style="padding:10px 12px; font-size:12px;">
+            `;
+
+            // Show data preview
+            if (result.data instanceof DataFrame && result.data.length > 0) {
+                html += result.data.toHTML(10, '');
+            }
+
+            // Show results HTML (statistics, charts, etc.)
+            if (result.results && typeof result.results === 'string') {
+                html += result.results;
+            }
+
+            // Show chart config info
+            if (result.chartConfig) {
+                html += `<div id="chart-render-${node.id}" style="margin-top:8px;"></div>`;
+            }
+
+            // Show error
+            if (result.error) {
+                html += `<div style="color:#ef4444; padding:8px; background:rgba(239,68,68,0.1); border-radius:4px;">Error: ${result.error}</div>`;
+            }
+
+            html += `</div></div>`;
         }
 
-        await new Promise(r => setTimeout(r, 500));
+        html += `</div>`;
 
-        if (node.type === 'input-data') return { data: [1, 2, 3, 4, 5], source: 'csv' };
-        if (node.type === 'process-filter') return { filtered: [3, 4, 5] };
-        if (node.type === 'process-script') return { result: 'Script Executed' };
-        if (node.type === 'output-chart') return { chart: 'Rendered' };
+        // Show in modal
+        this.showModal('Execution Results', html).then(() => { });
 
-        return { status: 'done' };
+        // Render charts after modal is visible
+        setTimeout(() => {
+            for (const node of this.nodes) {
+                const result = results[node.id];
+                if (result?.chartConfig?.inputData) {
+                    renderChart(result.chartConfig, result.chartConfig.inputData, `chart-render-${node.id}`);
+                }
+            }
+        }, 100);
     }
 
     shareWorkflow() {

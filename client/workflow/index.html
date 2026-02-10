@@ -419,10 +419,18 @@
             <aside class="node-palette">
                 <h3>Nodes</h3>
                 <div class="node-category">
-                    <h4>Input</h4>
+                    <h4>📥 Input</h4>
                     <div class="draggable-item" draggable="true" data-type="input-data">
-                        <span class="material-icons-round">input</span>
-                        Data Source
+                        <span class="material-icons-round">upload_file</span>
+                        CSV File
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="input-datatable">
+                        <span class="material-icons-round">table_chart</span>
+                        Data Table
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="input-random">
+                        <span class="material-icons-round">casino</span>
+                        Random Data
                     </div>
                     <div class="draggable-item" draggable="true" data-type="input-params">
                         <span class="material-icons-round">tune</span>
@@ -430,14 +438,30 @@
                     </div>
                 </div>
                 <div class="node-category">
-                    <h4>Processing</h4>
+                    <h4>⚙️ Processing</h4>
                     <div class="draggable-item" draggable="true" data-type="process-filter">
                         <span class="material-icons-round">filter_alt</span>
-                        Filter
+                        Filter Rows
                     </div>
-                    <div class="draggable-item" draggable="true" data-type="process-analyze">
-                        <span class="material-icons-round">analytics</span>
-                        Analyze
+                    <div class="draggable-item" draggable="true" data-type="process-select-columns">
+                        <span class="material-icons-round">view_column</span>
+                        Select Columns
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="process-sort">
+                        <span class="material-icons-round">sort</span>
+                        Sort Data
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="process-formula">
+                        <span class="material-icons-round">functions</span>
+                        Formula
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="process-group">
+                        <span class="material-icons-round">workspaces</span>
+                        Group By
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="process-merge">
+                        <span class="material-icons-round">merge</span>
+                        Merge Data
                     </div>
                     <div class="draggable-item" draggable="true" data-type="process-simulate">
                         <span class="material-icons-round">science</span>
@@ -449,10 +473,33 @@
                     </div>
                 </div>
                 <div class="node-category">
-                    <h4>Output</h4>
+                    <h4>📊 Analysis</h4>
+                    <div class="draggable-item" draggable="true" data-type="process-statistics">
+                        <span class="material-icons-round">analytics</span>
+                        Statistics
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="process-analyze">
+                        <span class="material-icons-round">insights</span>
+                        Analyze (ML)
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="process-distributions">
+                        <span class="material-icons-round">ssid_chart</span>
+                        Distributions
+                    </div>
+                </div>
+                <div class="node-category">
+                    <h4>📈 Output</h4>
                     <div class="draggable-item" draggable="true" data-type="output-chart">
                         <span class="material-icons-round">bar_chart</span>
                         Chart
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="output-boxplot">
+                        <span class="material-icons-round">candlestick_chart</span>
+                        Box Plot
+                    </div>
+                    <div class="draggable-item" draggable="true" data-type="output-table">
+                        <span class="material-icons-round">table_view</span>
+                        Data Table View
                     </div>
                     <div class="draggable-item" draggable="true" data-type="output-report">
                         <span class="material-icons-round">description</span>
@@ -631,15 +678,7 @@
                 });
             }
 
-            // Init Chatbot
-            if (typeof WorkspaceChatbot !== 'undefined') {
-                window.workspaceChatbot = new WorkspaceChatbot({
-                    workspace: 'workflow',
-                    projectId: projectId,
-                    containerId: 'ai-panel',
-                    inputId: 'omni-input'
-                });
-            }
+            // Chatbot is initialized by workflow-tools.js initCommonModules() to avoid duplication
 
             // Init Notes
             if (typeof WorkspaceNotes !== 'undefined') {

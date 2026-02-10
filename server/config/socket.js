@@ -486,6 +486,86 @@ const configureSocket = (io) => {
             });
         });
 
+        // ===============================
+        // Real-time CAD Collaboration
+        // ===============================
+
+        // CAD: Add primitive object
+        socket.on('cad:add-primitive', (data) => {
+            if (!socket.currentProject) return;
+            if (socket.currentRole === 'viewer') return;
+
+            socket.to(`project:${socket.currentProject}`).emit('cad:add-primitive', {
+                userId: socket.user._id,
+                userName: socket.user.name,
+                type: data.type,
+                uuid: data.uuid,
+                position: data.position,
+                rotation: data.rotation,
+                scale: data.scale,
+                color: data.color,
+                name: data.name,
+                timestamp: new Date()
+            });
+        });
+
+        // CAD: Object transform update (position/rotation/scale)
+        socket.on('cad:transform-update', (data) => {
+            if (!socket.currentProject) return;
+            if (socket.currentRole === 'viewer') return;
+
+            socket.to(`project:${socket.currentProject}`).emit('cad:transform-update', {
+                userId: socket.user._id,
+                userName: socket.user.name,
+                uuid: data.uuid,
+                position: data.position,
+                rotation: data.rotation,
+                scale: data.scale,
+                timestamp: new Date()
+            });
+        });
+
+        // CAD: Delete object
+        socket.on('cad:delete-object', (data) => {
+            if (!socket.currentProject) return;
+            if (socket.currentRole === 'viewer') return;
+
+            socket.to(`project:${socket.currentProject}`).emit('cad:delete-object', {
+                userId: socket.user._id,
+                userName: socket.user.name,
+                uuid: data.uuid,
+                timestamp: new Date()
+            });
+        });
+
+        // CAD: Material change
+        socket.on('cad:material-update', (data) => {
+            if (!socket.currentProject) return;
+            if (socket.currentRole === 'viewer') return;
+
+            socket.to(`project:${socket.currentProject}`).emit('cad:material-update', {
+                userId: socket.user._id,
+                userName: socket.user.name,
+                uuid: data.uuid,
+                color: data.color,
+                metalness: data.metalness,
+                roughness: data.roughness,
+                timestamp: new Date()
+            });
+        });
+
+        // CAD: Select object (show remote selection)
+        socket.on('cad:select-object', (data) => {
+            if (!socket.currentProject) return;
+
+            socket.to(`project:${socket.currentProject}`).emit('cad:select-object', {
+                userId: socket.user._id,
+                userName: socket.user.name,
+                uuid: data.uuid, // null means deselect
+                timestamp: new Date()
+            });
+        });
+
         // Disconnect handler
         socket.on('disconnect', () => {
             console.log(`User disconnected: ${socket.user.name} (socket: ${socket.id})`);

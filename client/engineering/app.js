@@ -38,6 +38,10 @@ const state = {
   appMode: 'study' // 'study' or 'cad'
 };
 
+// CAD Collaboration socket reference
+let cadSocket = null;
+let cadCollabReady = false;
+
 // ============================================
 // CAD State Persistence
 // ============================================
@@ -352,10 +356,11 @@ function updateStats() {
 // ============================================
 // Object Management
 // ============================================
-function addPrimitive(type) {
+function addPrimitive(type, remote = false, remoteData = {}) {
   let geometry, mesh;
+  const colorHex = remoteData.color || 0x6366f1;
   const material = new THREE.MeshStandardMaterial({
-    color: 0x6366f1,
+    color: colorHex,
     metalness: 0,
     roughness: 0.5
   });
@@ -387,23 +392,55 @@ function addPrimitive(type) {
   mesh = new THREE.Mesh(geometry, material);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
-  mesh.name = `${type.charAt(0).toUpperCase() + type.slice(1)}_${state.objects.length + 1}`;
+  mesh.name = remoteData.name || `${type.charAt(0).toUpperCase() + type.slice(1)}_${state.objects.length + 1}`;
   mesh.position.y = type === 'plane' ? 0.01 : 0.5;
 
   if (type === 'plane') {
     mesh.rotation.x = -Math.PI / 2;
   }
 
+  // Apply remote position/rotation/scale if provided
+  if (remoteData.position) {
+    mesh.position.set(remoteData.position.x, remoteData.position.y, remoteData.position.z);
+  }
+  if (remoteData.rotation) {
+    mesh.rotation.set(remoteData.rotation.x, remoteData.rotation.y, remoteData.rotation.z);
+  }
+  if (remoteData.scale) {
+    mesh.scale.set(remoteData.scale.x, remoteData.scale.y, remoteData.scale.z);
+  }
+
+  // Use remote uuid if provided (for syncing)
+  if (remoteData.uuid) {
+    mesh.uuid = remoteData.uuid;
+  }
+
   scene.add(mesh);
   state.objects.push(mesh);
 
   updateHierarchy();
-  selectObject(mesh);
+
+  if (!remote) {
+    selectObject(mesh);
+    // Broadcast to collaborators
+    if (cadSocket && cadCollabReady) {
+      cadSocket.emit('cad:add-primitive', {
+        type: type,
+        uuid: mesh.uuid,
+        name: mesh.name,
+        position: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
+        rotation: { x: mesh.rotation.x, y: mesh.rotation.y, z: mesh.rotation.z },
+        scale: { x: mesh.scale.x, y: mesh.scale.y, z: mesh.scale.z },
+        color: colorHex
+      });
+    }
+  }
 
   setStatus(`${mesh.name} Added`);
+  return mesh;
 }
 
-function selectObject(obj) {
+function selectObject(obj, remote = false) {
   // Deselect previous
   if (state.selectedObject) {
     const prevItem = document.querySelector(`.hierarchy-item[data-uuid="${state.selectedObject.uuid}"]`);
@@ -434,12 +471,22 @@ function selectObject(obj) {
 
     updatePropertiesPanel();
     showAnnotation(obj);
+
+    // Broadcast selection to collaborators
+    if (!remote && cadSocket && cadCollabReady) {
+      cadSocket.emit('cad:select-object', { uuid: obj.uuid });
+    }
   } else {
     // DESELECT
     if (outlinePass) outlinePass.selectedObjects = [];
     if (transformControls) transformControls.detach(); // Hide G/R/S gizmo
     updatePropertiesPanel(); // Reset panel
     hideAnnotation();
+
+    // Broadcast deselection
+    if (!remote && cadSocket && cadCollabReady) {
+      cadSocket.emit('cad:select-object', { uuid: null });
+    }
   }
 }
 
@@ -510,10 +557,16 @@ function updateAnnotationUI() {
   }
 }
 
-function deleteSelectedObject() {
-  if (!state.selectedObject) return;
+function deleteSelectedObject(remote = false, remoteUuid = null) {
+  const obj = remoteUuid
+    ? state.objects.find(o => o.uuid === remoteUuid)
+    : state.selectedObject;
 
-  const obj = state.selectedObject;
+  if (!obj) return;
+
+  const uuid = obj.uuid;
+  const name = obj.name;
+
   transformControls.detach();
   scene.remove(obj);
 
@@ -522,10 +575,18 @@ function deleteSelectedObject() {
     state.objects.splice(index, 1);
   }
 
-  state.selectedObject = null;
+  if (state.selectedObject === obj) {
+    state.selectedObject = null;
+  }
+
   updateHierarchy();
   resetPropertiesPanel();
-  setStatus(`${obj.name} Deleted`);
+  setStatus(`${name} Deleted`);
+
+  // Broadcast deletion to collaborators
+  if (!remote && cadSocket && cadCollabReady) {
+    cadSocket.emit('cad:delete-object', { uuid: uuid });
+  }
 }
 
 // ============================================
@@ -1474,6 +1535,9 @@ function setupPropertyInputs() {
   document.getElementById('mat-color').addEventListener('input', (e) => {
     if (state.selectedObject && state.selectedObject.material) {
       state.selectedObject.material.color.set(e.target.value);
+      if (cadSocket && cadCollabReady) {
+        cadSocket.emit('cad:material-update', { uuid: state.selectedObject.uuid, color: e.target.value });
+      }
     }
   });
 
@@ -1482,6 +1546,9 @@ function setupPropertyInputs() {
     if (state.selectedObject && state.selectedObject.material) {
       state.selectedObject.material.metalness = parseFloat(e.target.value);
       e.target.nextElementSibling.textContent = parseFloat(e.target.value).toFixed(2);
+      if (cadSocket && cadCollabReady) {
+        cadSocket.emit('cad:material-update', { uuid: state.selectedObject.uuid, metalness: parseFloat(e.target.value) });
+      }
     }
   });
 
@@ -1490,6 +1557,9 @@ function setupPropertyInputs() {
     if (state.selectedObject && state.selectedObject.material) {
       state.selectedObject.material.roughness = parseFloat(e.target.value);
       e.target.nextElementSibling.textContent = parseFloat(e.target.value).toFixed(2);
+      if (cadSocket && cadCollabReady) {
+        cadSocket.emit('cad:material-update', { uuid: state.selectedObject.uuid, roughness: parseFloat(e.target.value) });
+      }
     }
   });
 
@@ -2047,22 +2117,151 @@ function switchWorkspaceMode(mode) {
 window.switchWorkspaceMode = switchWorkspaceMode;
 
 // ============================================
+// CAD Real-time Collaboration
+// ============================================
+function setupCADCollaboration() {
+  // Get socket from WorkspaceCollaboration or create new one
+  if (window.workspaceCollaboration && window.workspaceCollaboration.socket) {
+    cadSocket = window.workspaceCollaboration.socket;
+    cadCollabReady = true;
+    console.log('🔧 CAD Collab: Using existing workspace socket');
+  } else if (typeof io !== 'undefined') {
+    const token = localStorage.getItem('simvex_token') || sessionStorage.getItem('simvex_token');
+    if (token) {
+      cadSocket = io({ auth: { token }, transports: ['websocket', 'polling'] });
+      cadCollabReady = true;
+      console.log('🔧 CAD Collab: Created new socket');
+    }
+  }
+
+  if (!cadSocket) {
+    console.warn('🔧 CAD Collab: No socket available');
+    return;
+  }
+
+  // Remote collaborator selection indicators
+  const remoteSelections = new Map(); // userId -> { uuid, indicator }
+
+  // --- Listen for remote CAD events ---
+
+  // Remote add primitive
+  cadSocket.on('cad:add-primitive', (data) => {
+    console.log('🔧 CAD Remote: Add primitive', data.type, 'from', data.userName);
+    if (state.appMode !== 'cad') return; // Only apply in CAD mode
+    addPrimitive(data.type, true, {
+      uuid: data.uuid,
+      name: data.name,
+      position: data.position,
+      rotation: data.rotation,
+      scale: data.scale,
+      color: data.color
+    });
+  });
+
+  // Remote transform update
+  cadSocket.on('cad:transform-update', (data) => {
+    const obj = state.objects.find(o => o.uuid === data.uuid);
+    if (!obj) return;
+    if (data.position) obj.position.set(data.position.x, data.position.y, data.position.z);
+    if (data.rotation) obj.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z);
+    if (data.scale) obj.scale.set(data.scale.x, data.scale.y, data.scale.z);
+    // Update UI if this object is selected
+    if (state.selectedObject === obj) {
+      updatePropertiesPanel();
+    }
+  });
+
+  // Remote delete object
+  cadSocket.on('cad:delete-object', (data) => {
+    console.log('🔧 CAD Remote: Delete object', data.uuid, 'from', data.userName);
+    deleteSelectedObject(true, data.uuid);
+  });
+
+  // Remote material update
+  cadSocket.on('cad:material-update', (data) => {
+    const obj = state.objects.find(o => o.uuid === data.uuid);
+    if (!obj || !obj.material) return;
+    if (data.color !== undefined) obj.material.color.set(data.color);
+    if (data.metalness !== undefined) obj.material.metalness = data.metalness;
+    if (data.roughness !== undefined) obj.material.roughness = data.roughness;
+    if (state.selectedObject === obj) updatePropertiesPanel();
+  });
+
+  // Remote select object (show indicator)
+  cadSocket.on('cad:select-object', (data) => {
+    // Clean up previous indicator for this user
+    const prev = remoteSelections.get(data.userId);
+    if (prev && prev.indicator) {
+      prev.indicator.parent?.remove(prev.indicator);
+    }
+
+    if (!data.uuid) {
+      remoteSelections.delete(data.userId);
+      return;
+    }
+
+    const obj = state.objects.find(o => o.uuid === data.uuid);
+    if (!obj) return;
+
+    // Create selection indicator ring for remote user
+    const userColors = ['#667eea', '#f093fb', '#43e97b', '#f5576c', '#fa709a', '#4facfe'];
+    let hash = 0;
+    const uid = String(data.userId);
+    for (let i = 0; i < uid.length; i++) hash = uid.charCodeAt(i) + ((hash << 5) - hash);
+    const color = userColors[Math.abs(hash) % userColors.length];
+
+    const ringGeo = new THREE.TorusGeometry(0.8, 0.03, 8, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.7 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2;
+    ring.userData.isHelper = true;
+    obj.add(ring);
+
+    remoteSelections.set(data.userId, { uuid: data.uuid, indicator: ring, userName: data.userName });
+  });
+
+  // --- Broadcast transform changes ---
+  // Hook into TransformControls change event
+  if (transformControls) {
+    let transformThrottle = 0;
+    transformControls.addEventListener('objectChange', () => {
+      const obj = transformControls.object;
+      if (!obj || !cadCollabReady) return;
+
+      const now = Date.now();
+      if (now - transformThrottle < 50) return; // 20fps throttle
+      transformThrottle = now;
+
+      cadSocket.emit('cad:transform-update', {
+        uuid: obj.uuid,
+        position: { x: obj.position.x, y: obj.position.y, z: obj.position.z },
+        rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z },
+        scale: { x: obj.scale.x, y: obj.scale.y, z: obj.scale.z }
+      });
+    });
+  }
+
+  console.log('🔧 CAD Collaboration initialized');
+}
+
+// ============================================
 // Initialize Application
-// ============================================
-// ============================================
-// Initialization
 // ============================================
 function init() {
   try {
     initScene();
     setupEventListeners();
     setupLearningPlatform();
-    // setupDragDrop is already called inside setupEventListeners now
     animate();
 
     // Initial render
     renderLessons('engineering');
     updateHierarchy();
+
+    // Setup CAD collaboration (delayed to ensure socket is ready)
+    setTimeout(() => {
+      setupCADCollaboration();
+    }, 2000);
 
     console.log('🔬 3D Engineering Lab initialized');
     const statusEl = document.getElementById('status-message');

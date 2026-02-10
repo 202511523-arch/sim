@@ -442,57 +442,28 @@
     </div>
     <div class="popup-panel" id="notes-popup">
       <div class="popup-header">
-        <div class="popup-title"><span class="material-icons-round">edit_note</span> Notes</div>
+        <div class="popup-title"><span class="material-icons-round">edit_note</span> Study Notes</div>
         <button class="popup-close" onclick="closePopup('notes-popup')"><span
             class="material-icons-round">close</span></button>
       </div>
-      <div class="popup-body" style="padding: 0; display: flex; flex-direction: column; overflow: hidden;">
-        <!-- Note List View -->
-        <div id="note-list-view" style="display: flex; flex-direction: column; height: 100%;">
-          <div style="padding: 12px; border-bottom: 1px solid var(--border-color);">
-            <input type="text" id="note-search" placeholder="Search notes..."
-              style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; color: white;">
-          </div>
-          <div id="popup-notes-list" style="flex: 1; overflow-y: auto; padding: 12px;">
-            <!-- Notes injected here -->
-            <div class="empty-state" style="text-align: center; color: var(--text-secondary); padding: 20px;">
-              No notes yet. Create one!
-            </div>
-          </div>
-          <div style="padding: 12px; border-top: 1px solid var(--border-color);">
-            <button id="popup-add-note" class="action-btn" style="text-align: center; justify-content: center;">
-              <span class="material-icons-round">add</span> Create New Note
-            </button>
-          </div>
-        </div>
-
-        <!-- Note Editor View (Hidden by default) -->
-        <div id="popup-note-editor" style="display: none; flex-direction: column; height: 100%;">
-          <div style="padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; gap: 8px;">
-            <button id="popup-back-list" class="btn-circle"
-              style="background: transparent; border: none; color: var(--text-secondary);">
-              <span class="material-icons-round">arrow_back</span>
-            </button>
-            <input type="text" id="popup-note-title" placeholder="Note Title"
-              style="flex: 1; background: transparent; border: none; font-weight: 600; font-size: 16px; color: white;">
-          </div>
-          <textarea id="popup-note-content" placeholder="Type your note here..."
-            style="flex: 1; background: transparent; border: none; padding: 16px; resize: none; color: var(--text-primary); font-family: 'Inter', sans-serif; line-height: 1.5;"></textarea>
-
-          <div
-            style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
-            <button class="btn-circle" id="btn-screenshot-note" title="Attach Screenshot">
-              <span class="material-icons-round">camera_alt</span>
-            </button>
-            <button class="btn-circle" id="btn-pdf-note" title="Export PDF">
-              <span class="material-icons-round">picture_as_pdf</span>
-            </button>
-            <div style="flex: 1;"></div>
-            <button id="popup-save-note" class="action-btn primary" style="width: auto; padding: 8px 20px;">
-              Save Note
-            </button>
-          </div>
-        </div>
+      <div class="popup-body" id="notes-panel">
+        <textarea id="notepad" placeholder="Study notes..."></textarea>
+      </div>
+      <div
+        style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+        <button class="btn-circle" id="btn-new-note" title="New Note">
+          <span class="material-icons-round">add</span>
+        </button>
+        <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot">
+          <span class="material-icons-round">camera_alt</span>
+        </button>
+        <button class="btn-circle" id="btn-pdf-export" title="Export PDF">
+          <span class="material-icons-round">download</span>
+        </button>
+        <button class="btn-circle" id="btn-save-note" title="Save" style="flex: 1; width: auto; border-radius: 8px;">
+          <span class="material-icons-round">save</span>
+          <span style="margin-left: 6px;">Save</span>
+        </button>
       </div>
     </div>
   </div>

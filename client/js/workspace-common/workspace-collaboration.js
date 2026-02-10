@@ -1716,6 +1716,121 @@ class WorkspaceCollaboration {
         }, 2500);
     }
 
+    // ===============================
+    // Real-time CAD Collaboration
+    // ===============================
+
+    /**
+     * Emit a primitive add event for CAD mode
+     * @param {Object} objectData - {type, uuid, position, rotation, scale, color, name}
+     */
+    emitCadAddPrimitive(objectData) {
+        if (!this.socket?.connected) return;
+        this.socket.emit('cad:add-primitive', objectData);
+    }
+
+    /**
+     * Emit a transform update for a CAD object
+     * @param {string} uuid - Object UUID
+     * @param {Object} position - {x, y, z}
+     * @param {Object} rotation - {x, y, z}
+     * @param {Object} scale - {x, y, z}
+     */
+    emitCadTransformUpdate(uuid, position, rotation, scale) {
+        if (!this.socket?.connected) return;
+        this.socket.emit('cad:transform-update', { uuid, position, rotation, scale });
+    }
+
+    /**
+     * Emit a delete event for a CAD object
+     * @param {string} uuid - Object UUID
+     */
+    emitCadDeleteObject(uuid) {
+        if (!this.socket?.connected) return;
+        this.socket.emit('cad:delete-object', { uuid });
+    }
+
+    /**
+     * Emit a material change for a CAD object
+     * @param {string} uuid - Object UUID
+     * @param {Object} materialData - {color, metalness, roughness}
+     */
+    emitCadMaterialUpdate(uuid, materialData) {
+        if (!this.socket?.connected) return;
+        this.socket.emit('cad:material-update', { uuid, ...materialData });
+    }
+
+    /**
+     * Emit selection event for a CAD object (for remote highlight)
+     * @param {string|null} uuid - Object UUID, or null for deselect
+     */
+    emitCadSelectObject(uuid) {
+        if (!this.socket?.connected) return;
+        this.socket.emit('cad:select-object', { uuid });
+    }
+
+    /**
+     * Listen for remote CAD primitive additions
+     * @param {Function} callback - Function(data) where data = {userId, userName, type, uuid, position, rotation, scale, color, name}
+     */
+    onCadAddPrimitive(callback) {
+        if (!this.socket) return;
+        this.socket.on('cad:add-primitive', (data) => {
+            if (this.isSelf(data)) return;
+            console.log('🔧 CAD: Remote primitive added by:', data.userName);
+            callback(data);
+        });
+    }
+
+    /**
+     * Listen for remote CAD transform updates
+     * @param {Function} callback - Function(data) where data = {userId, userName, uuid, position, rotation, scale}
+     */
+    onCadTransformUpdate(callback) {
+        if (!this.socket) return;
+        this.socket.on('cad:transform-update', (data) => {
+            if (this.isSelf(data)) return;
+            callback(data);
+        });
+    }
+
+    /**
+     * Listen for remote CAD object deletions
+     * @param {Function} callback - Function(data) where data = {userId, userName, uuid}
+     */
+    onCadDeleteObject(callback) {
+        if (!this.socket) return;
+        this.socket.on('cad:delete-object', (data) => {
+            if (this.isSelf(data)) return;
+            console.log('🗑️ CAD: Object deleted by:', data.userName);
+            callback(data);
+        });
+    }
+
+    /**
+     * Listen for remote CAD material updates
+     * @param {Function} callback - Function(data) where data = {userId, userName, uuid, color, metalness, roughness}
+     */
+    onCadMaterialUpdate(callback) {
+        if (!this.socket) return;
+        this.socket.on('cad:material-update', (data) => {
+            if (this.isSelf(data)) return;
+            callback(data);
+        });
+    }
+
+    /**
+     * Listen for remote CAD selection events
+     * @param {Function} callback - Function(data) where data = {userId, userName, uuid}
+     */
+    onCadSelectObject(callback) {
+        if (!this.socket) return;
+        this.socket.on('cad:select-object', (data) => {
+            if (this.isSelf(data)) return;
+            callback(data);
+        });
+    }
+
     /**
      * Check if a user object represents the current user
      * @param {Object} user - User object from socket
