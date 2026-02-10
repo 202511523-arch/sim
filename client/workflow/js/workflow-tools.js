@@ -24,7 +24,7 @@ class WorkflowTools {
 
     init() {
         // Setup Popup Toggles
-        this.bindPopupToggle('fab-chat', 'ai-panel'); // Reusing ID from chatbot
+        this.bindPopupToggle('fab-chat', 'chat-popup');
         this.bindPopupToggle('fab-notes', 'notes-popup');
         this.bindPopupToggle('fab-sticky', null, () => this.createStickyNote());
         document.getElementById('fab-draw')?.addEventListener('click', () => {
