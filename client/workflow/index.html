@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,9 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <!-- Reusing existing main styles -->
-    <!-- Reusing existing main styles -->
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/workspace.css">
+    <link rel="stylesheet" href="../css/workspace-new.css">
     <link rel="stylesheet" href="css/editor.css">
 
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png">
@@ -17,6 +18,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
     <link rel="manifest" href="/assets/favicon_io/site.webmanifest">
 </head>
+
 <body>
     <div class="editor-container">
         <!-- Header -->
@@ -30,6 +32,12 @@
                     <span class="save-status">All changes saved</span>
                 </div>
             </div>
+            <!-- Collaboration Users -->
+            <div id="collaboration-users" style="margin-left: 16px;"></div>
+            <nav class="nav-pills header-center">
+                <a href="/dashboard.html" class="nav-pill">Dashboard</a>
+                <a href="/workflow/index.html" class="nav-pill active">Workflow</a>
+            </nav>
             <div class="header-right">
                 <div class="collaborators-list" id="collaborators-list">
                     <!-- Avatars will be injected here -->
@@ -144,8 +152,28 @@
         </main>
     </div>
     <!-- Scripts -->
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../js/api.js?v=1.0"></script>
+    <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
     <script type="module" src="js/workflow-main.js"></script>
-<script src="/js/pwa.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            let projectId = params.get('id') || params.get('project') || params.get('projectId');
+            if (!projectId) {
+                console.warn('No projectId in URL - using dev fallback');
+                projectId = 'dev-demo-project';
+            }
+            // Init Collaboration
+            if (typeof WorkspaceCollaboration !== 'undefined') {
+                window.workspaceCollaboration = new WorkspaceCollaboration({
+                    projectId: projectId,
+                    containerId: 'collaboration-users'
+                });
+            }
+        });
+    </script>
+    <script src="/js/pwa.js"></script>
 </body>
+
 </html>
