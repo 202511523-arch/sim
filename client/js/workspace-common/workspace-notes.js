@@ -414,10 +414,23 @@ class WorkspaceNotes {
         this.showSaveIndicator('Capturing full screen...', '#4facfe');
 
         try {
+            // Force a render frame for WebGL canvases before capturing
+            document.querySelectorAll('canvas').forEach(c => {
+                try {
+                    const gl = c.getContext('webgl2') || c.getContext('webgl');
+                    if (gl) {
+                        const pixel = new Uint8Array(4);
+                        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+                    }
+                } catch (e) { /* not a WebGL canvas */ }
+            });
+
             // Take screenshot of the whole body
             const canvas = await html2canvas(document.body, {
                 useCORS: true,
+                allowTaint: true,
                 logging: false,
+                backgroundColor: '#050505',
                 ignoreElements: (el) => {
                     // Ignore popups and toast and cropper
                     return el.classList.contains('popup-panel') || el.id === 'save-indicator' || el.id === 'cropper-overlay';
@@ -533,7 +546,7 @@ class WorkspaceNotes {
 
     async generateAISummary(content) {
         try {
-            const response = await fetch('/api/chat', {
+            const response = await fetch('/api/chatbot', {
                 method: 'POST',
                 headers: this.getAuthHeaders(),
                 body: JSON.stringify({

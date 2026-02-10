@@ -24,6 +24,16 @@
       grid-template-columns: 280px 1fr !important;
     }
 
+    .left-sidebar {
+      overflow-y: auto !important;
+      max-height: calc(100vh - 64px) !important;
+    }
+
+    .left-sidebar .panel-content {
+      overflow-y: auto !important;
+      flex: 1;
+    }
+
     .viewport-area {
       grid-template-rows: 1fr !important;
       background: #000 !important;
@@ -407,7 +417,7 @@
         </div>
       </div>
       <!-- Right Panel: Info & AI (Hidden for full viewport) -->
-      <div class="panel-content" style="display: none;">
+      <div class="panel-content" style="display: none;"></div>
     </main>
     <!-- Overlays -->
     <div id="drop-zone" class="modal hidden">
@@ -446,16 +456,19 @@
         <button class="popup-close" onclick="closePopup('notes-popup')"><span
             class="material-icons-round">close</span></button>
       </div>
-      <div class="popup-body" id="notes-panel">
+      <div class="popup-body" id="notes-panel" style="overflow-y: auto;">
         <textarea id="notepad" placeholder="Study notes..."></textarea>
       </div>
       <div
-        style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
+        style="display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); background: rgba(255,255,255,0.02); flex-wrap: wrap;">
         <button class="btn-circle" id="btn-new-note" title="New Note">
           <span class="material-icons-round">add</span>
         </button>
         <button class="btn-circle" id="btn-screenshot" title="Attach Screenshot">
           <span class="material-icons-round">camera_alt</span>
+        </button>
+        <button class="btn-circle" id="btn-ai-summary" title="AI Summary">
+          <span class="material-icons-round">auto_awesome</span>
         </button>
         <button class="btn-circle" id="btn-pdf-export" title="Export PDF">
           <span class="material-icons-round">download</span>
@@ -466,86 +479,82 @@
         </button>
       </div>
     </div>
+    <!-- Draw Tool Popup -->
+    <div class="popup-panel" id="draw-popup">
+      <div class="popup-header">
+        <div class="popup-title"><span class="material-icons-round">draw</span> Drawing Tool</div>
+        <button class="popup-close" onclick="closePopup('draw-popup')"><span
+            class="material-icons-round">close</span></button>
+      </div>
+      <div class="popup-body" style="padding: 16px;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div><label
+              style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
+            <div style="display: flex; gap: 8px;"><button class="draw-tool-btn active" data-tool="pen" title="Pen"><span
+                  class="material-icons-round">edit</span></button><button class="draw-tool-btn" data-tool="eraser"
+                title="Eraser"><span class="material-icons-round">ink_eraser</span></button><button
+                class="draw-tool-btn" data-tool="highlighter" title="Highlighter"><span
+                  class="material-icons-round">format_paint</span></button></div>
+          </div>
+          <div><label
+              style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;"><button class="color-btn active" data-color="#fbbf24"
+                style="background: #fbbf24;"></button><button class="color-btn" data-color="#f472b6"
+                style="background: #f472b6;"></button><button class="color-btn" data-color="#22d3ee"
+                style="background: #22d3ee;"></button><button class="color-btn" data-color="#4ade80"
+                style="background: #4ade80;"></button><button class="color-btn" data-color="#FFFFFF"
+                style="background: #FFFFFF;"></button></div>
+          </div>
+          <div><label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Brush
+              Size: <span id="brush-size-value">3</span>px</label><input type="range" id="brush-size" min="1" max="20"
+              value="3" style="width: 100%; accent-color: var(--accent-primary);"></div>
+          <div><label
+              style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Opacity:
+              <span id="opacity-value">100</span>%</label><input type="range" id="draw-opacity" min="10" max="100"
+              value="100" style="width: 100%; accent-color: var(--accent-primary);"></div>
+          <div style="display: flex; gap: 8px; margin-top: 8px;"><button class="btn-circle" id="btn-clear-canvas"
+              title="Clear All"
+              style="flex: 1; width: auto; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #ef4444;"><span
+                class="material-icons-round">clear</span><span style="margin-left: 6px;">Clear</span></button></div>
+          <div style="display: flex; gap: 8px; margin-top: 8px;">
+            <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
+              style="flex: 1; width: auto; border-radius: 8px;">
+              <span class="material-icons-round">visibility</span>
+              <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
+            </button>
+            <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
+              style="flex: 1; width: auto; border-radius: 8px;">
+              <span class="material-icons-round">edit_off</span>
+              <span style="margin-left: 6px;" id="toggle-draw-text">Enable Drawing</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Sticky Notes Container -->
+    <div id="sticky-notes-container"></div>
+    <!-- Custom Eraser Cursor -->
+    <div id="custom-cursor"
+      style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
+      <div id="cursor-circle"
+        style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
+      </div>
+      <span class="material-icons-round" id="cursor-icon"
+        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
+    </div>
+    <!-- Drawing Canvas (Global Overlay) -->
+    <canvas id="draw-canvas"
+      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
   </div>
+  <!-- Scripts (loaded once) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="../js/api.js?v=1.0"></script>
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   <script src="../js/workspace-common/workspace-collaboration.js?v=20260210"></script>
   <script src="../js/workspace-common/workspace-chatbot.js"></script>
   <script src="../js/workspace-common/workspace-notes.js"></script>
-  <script type="module" src="app.js"></script>
-  <!-- Draw Tool Popup -->
-  <div class="popup-panel" id="draw-popup">
-    <div class="popup-header">
-      <div class="popup-title"><span class="material-icons-round">draw</span> Drawing Tool</div>
-      <button class="popup-close" onclick="closePopup('draw-popup')"><span
-          class="material-icons-round">close</span></button>
-    </div>
-    <div class="popup-body" style="padding: 16px;">
-      <div style="display: flex; flex-direction: column; gap: 16px;">
-        <div><label
-            style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Tool</label>
-          <div style="display: flex; gap: 8px;"><button class="draw-tool-btn active" data-tool="pen" title="Pen"><span
-                class="material-icons-round">edit</span></button><button class="draw-tool-btn" data-tool="eraser"
-              title="Eraser"><span class="material-icons-round">ink_eraser</span></button><button class="draw-tool-btn"
-              data-tool="highlighter" title="Highlighter"><span
-                class="material-icons-round">format_paint</span></button></div>
-        </div>
-        <div><label
-            style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Color</label>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;"><button class="color-btn active" data-color="#fbbf24"
-              style="background: #fbbf24;"></button><button class="color-btn" data-color="#f472b6"
-              style="background: #f472b6;"></button><button class="color-btn" data-color="#22d3ee"
-              style="background: #22d3ee;"></button><button class="color-btn" data-color="#4ade80"
-              style="background: #4ade80;"></button><button class="color-btn" data-color="#FFFFFF"
-              style="background: #FFFFFF;"></button></div>
-        </div>
-        <div><label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Brush
-            Size: <span id="brush-size-value">3</span>px</label><input type="range" id="brush-size" min="1" max="20"
-            value="3" style="width: 100%; accent-color: var(--accent-primary);"></div>
-        <div><label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px;">Opacity:
-            <span id="opacity-value">100</span>%</label><input type="range" id="draw-opacity" min="10" max="100"
-            value="100" style="width: 100%; accent-color: var(--accent-primary);"></div>
-        <div style="display: flex; gap: 8px; margin-top: 8px;"><button class="btn-circle" id="btn-clear-canvas"
-            title="Clear All"
-            style="flex: 1; width: auto; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #ef4444;"><span
-              class="material-icons-round">clear</span><span style="margin-left: 6px;">Clear</span></button></div>
-        <div style="display: flex; gap: 8px; margin-top: 8px;">
-          <button class="btn-circle" id="btn-toggle-visibility" title="Show/Hide Drawings"
-            style="flex: 1; width: auto; border-radius: 8px;">
-            <span class="material-icons-round">visibility</span>
-            <span style="margin-left: 6px;" id="toggle-visibility-text">Hide</span>
-          </button>
-          <button class="btn-circle" id="btn-toggle-draw" title="Enable/Disable Drawing"
-            style="flex: 1; width: auto; border-radius: 8px;">
-            <span class="material-icons-round">edit_off</span>
-            <span style="margin-left: 6px;" id="toggle-draw-text">Enable Drawing</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Sticky Notes Container -->
-  <div id="sticky-notes-container"></div>
-  <!-- Custom Eraser Cursor -->
-  <div id="custom-cursor"
-    style="position: fixed; pointer-events: none; z-index: 999; display: none; transform: translate(-50%, -50%);">
-    <div id="cursor-circle"
-      style="border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);">
-    </div>
-    <span class="material-icons-round" id="cursor-icon"
-      style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; color: rgba(255, 255, 255, 0.9); text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); display: none;">delete</span>
-  </div>
-  <!-- Drawing Canvas (Global Overlay) -->
-  <canvas id="draw-canvas"
-    style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 998; display: none;"></canvas>
-  <!-- Required Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="../js/api.js?v=1.0"></script>
-  <!-- workspace-collaboration.js already loaded above -->
-  <script src="../js/workspace-common/workspace-chatbot.js"></script>
-  <script src="../js/workspace-common/workspace-notes.js"></script>
   <script src="../js/workspace-common/study-timer.js"></script>
+  <script type="module" src="app.js"></script>
   <script src="js/study-lab-logic.js"></script>
   <script>
     // Initialize Collaboration UI
@@ -563,31 +572,50 @@
           containerId: 'collaboration-users'
         });
       }
-      // Initialize Chatbot
-      if (typeof WorkspaceChatbot !== 'undefined') {
-        const chatbot = new WorkspaceChatbot({
+      // Initialize Chatbot (only if not already initialized by study-lab-logic.js)
+      if (typeof WorkspaceChatbot !== 'undefined' && !window.chatbot) {
+        window.chatbot = new WorkspaceChatbot({
           workspace: 'engineering',
           projectId: projectId,
           containerId: 'ai-panel',
           inputId: 'omni-input'
         });
       }
-      // Initialize Workspace Notes
-      if (typeof WorkspaceNotes !== 'undefined') {
-        window.workspaceNotes = new WorkspaceNotes({
-          workspace: 'engineering',
-          projectId: projectId,
-          notepadId: 'notepad'
-        });
-        // Wire up notes button handlers
-        document.getElementById('btn-save-note')?.addEventListener('click', async () => await workspaceNotes.manualSave());
-        document.getElementById('btn-screenshot')?.addEventListener('click', async () => await workspaceNotes.attachScreenshot());
-        document.getElementById('btn-new-note')?.addEventListener('click', async () => await workspaceNotes.createNewNote());
-        document.getElementById('btn-pdf-export')?.addEventListener('click', async () => await workspaceNotes.exportToPDF());
-        // Wire up popup note editor handlers
-        document.getElementById('btn-screenshot-note')?.addEventListener('click', async () => await workspaceNotes.attachScreenshot());
-        document.getElementById('btn-pdf-note')?.addEventListener('click', async () => await workspaceNotes.exportToPDF());
-      }
+
+      // Wire up notes button handlers (WorkspaceNotes is initialized by study-lab-logic.js)
+      // Use a delayed check to ensure workspaceNotes is ready
+      setTimeout(() => {
+        if (window.workspaceNotes) {
+          document.getElementById('btn-save-note')?.addEventListener('click', async () => await workspaceNotes.manualSave());
+          document.getElementById('btn-screenshot')?.addEventListener('click', async () => await workspaceNotes.attachScreenshot());
+          document.getElementById('btn-new-note')?.addEventListener('click', async () => await workspaceNotes.createNewNote());
+          document.getElementById('btn-pdf-export')?.addEventListener('click', async () => await workspaceNotes.exportToPDF());
+          // AI Summary button
+          document.getElementById('btn-ai-summary')?.addEventListener('click', async () => {
+            if (!workspaceNotes.quill) return;
+            const content = workspaceNotes.quill.getText().trim();
+            if (!content || content.length < 10) {
+              alert('노트에 충분한 내용을 입력해주세요 (10자 이상).');
+              return;
+            }
+            workspaceNotes.showSaveIndicator('AI 요약 생성 중...', '#a855f7');
+            const summary = await workspaceNotes.generateAISummary(content);
+            if (summary) {
+              const range = workspaceNotes.quill.getLength();
+              workspaceNotes.quill.insertText(range, '\n\n--- AI Summary ---\n', { bold: true, color: '#a855f7' });
+              workspaceNotes.quill.insertText(workspaceNotes.quill.getLength(), summary + '\n');
+              await workspaceNotes.saveCurrentNote();
+              workspaceNotes.showSaveIndicator('AI 요약 완료! ✨');
+            } else {
+              workspaceNotes.showErrorIndicator('AI 요약 실패 - 서버를 확인해주세요');
+            }
+          });
+          // Wire up popup note editor handlers
+          document.getElementById('btn-screenshot-note')?.addEventListener('click', async () => await workspaceNotes.attachScreenshot());
+          document.getElementById('btn-pdf-note')?.addEventListener('click', async () => await workspaceNotes.exportToPDF());
+        }
+      }, 500);
+
       // Check if we should start in viewer mode (url param)
       const startLesson = params.get('lesson');
       if (startLesson) {

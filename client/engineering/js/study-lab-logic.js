@@ -73,6 +73,7 @@ function togglePopup(popupId) {
         popup.classList.add('active');
     }
 }
+window.togglePopup = togglePopup;
 
 window.closePopup = function (popupId) {
     const el = document.getElementById(popupId);
@@ -988,6 +989,131 @@ window.addEventListener('resize', () => {
         drawCtx.putImageData(imageData, 0, 0);
     }
 });
+
+// ==========================================
+// REAL-TIME COLLABORATION FOR DRAWING
+// ==========================================
+
+/**
+ * Render a stroke received from a remote collaborator
+ * @param {Object} data - Stroke data from collaborator
+ */
+function renderRemoteStroke(data) {
+    if (!drawCanvas || !drawCtx) return;
+    if (!data.points || data.points.length < 2) return;
+
+    isRemoteDrawing = true;
+
+    // Save current context state
+    const savedAlpha = drawCtx.globalAlpha;
+    const savedComposite = drawCtx.globalCompositeOperation;
+
+    drawCtx.lineCap = 'round';
+    drawCtx.lineJoin = 'round';
+
+    if (data.tool === 'eraser') {
+        drawCtx.globalCompositeOperation = 'destination-out';
+        drawCtx.lineWidth = data.size * 3;
+    } else {
+        drawCtx.globalCompositeOperation = 'source-over';
+        drawCtx.lineWidth = data.size;
+
+        if (data.tool === 'highlighter') {
+            drawCtx.globalAlpha = 0.3;
+        } else {
+            drawCtx.globalAlpha = data.opacity || 1;
+        }
+
+        drawCtx.strokeStyle = data.color || '#0088FF';
+    }
+
+    // Draw the stroke
+    drawCtx.beginPath();
+    drawCtx.moveTo(data.points[0].x, data.points[0].y);
+
+    for (let i = 1; i < data.points.length; i++) {
+        drawCtx.lineTo(data.points[i].x, data.points[i].y);
+    }
+
+    drawCtx.stroke();
+
+    // Restore context state
+    drawCtx.globalAlpha = savedAlpha;
+    drawCtx.globalCompositeOperation = savedComposite;
+    drawCtx.beginPath();
+
+    isRemoteDrawing = false;
+}
+
+/**
+ * Setup real-time collaboration listeners for drawing
+ */
+function setupDrawingCollaboration() {
+    const checkCollab = setInterval(() => {
+        if (window.workspaceCollaboration) {
+            clearInterval(checkCollab);
+
+            // Listen for drawing strokes from other users
+            window.workspaceCollaboration.onDrawingStroke((data) => {
+                renderRemoteStroke(data);
+                window.workspaceCollaboration.showSyncNotification('drawing', data.userName);
+            });
+
+            // Listen for canvas clear events
+            window.workspaceCollaboration.onDrawingClear((data) => {
+                if (drawCanvas && drawCtx) {
+                    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                    window.workspaceCollaboration.showSyncNotification('drawing', data.userName);
+                }
+            });
+
+            // Listen for sticky note updates
+            window.workspaceCollaboration.onStickyNoteUpdate((data) => {
+                handleRemoteStickyNote(data);
+            });
+
+            console.log('🎨 Drawing real-time collaboration enabled');
+        }
+    }, 500);
+
+    setTimeout(() => clearInterval(checkCollab), 10000);
+}
+
+/**
+ * Handle sticky note updates from collaborators
+ */
+function handleRemoteStickyNote(data) {
+    const { action, noteData, userName } = data;
+
+    switch (action) {
+        case 'create':
+            if (!document.getElementById(noteData.id)) {
+                WorkspaceState.createStickyNote(noteData);
+                window.workspaceCollaboration?.showSyncNotification('sticky', userName);
+            }
+            break;
+        case 'update':
+            const textarea = document.querySelector(`#${noteData.id} textarea`);
+            if (textarea && textarea.value !== noteData.content) {
+                textarea.value = noteData.content;
+            }
+            break;
+        case 'delete':
+            const noteEl = document.getElementById(noteData.id);
+            if (noteEl) {
+                noteEl.remove();
+                WorkspaceState.stickyNotes.delete(noteData.id);
+            }
+            break;
+        case 'move':
+            const moveEl = document.getElementById(noteData.id);
+            if (moveEl) {
+                moveEl.style.left = noteData.x + 'px';
+                moveEl.style.top = noteData.y + 'px';
+            }
+            break;
+    }
+}
 
 // ==========================================
 // INITIALIZATION

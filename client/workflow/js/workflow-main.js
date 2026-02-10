@@ -53,6 +53,11 @@ class WorkflowApp {
     async init() {
         console.log('Initializing Workflow App...');
 
+        // Output Viewer state
+        this.outputViewerTabs = [];
+        this.activeOutputTab = null;
+        this.lastExecutionResults = null;
+
         // Button Listeners
         this.bindButton('new-project-btn', () => this.createNewProject());
         this.bindButton('new-workflow-btn', () => this.createNewWorkflow());
@@ -98,6 +103,10 @@ class WorkflowApp {
                 e.preventDefault();
                 this.saveWorkflow(true);
             }
+            // Escape to close output viewer
+            if (e.key === 'Escape') {
+                this.closeOutputViewer();
+            }
         });
 
         // Drag and Drop from Palette
@@ -105,6 +114,9 @@ class WorkflowApp {
 
         // Canvas Interactions
         this.setupCanvas();
+
+        // Initialize Output Viewer
+        this.initOutputViewer();
 
         // Global Events
         window.addEventListener('resize', () => this.handleResize());
@@ -764,82 +776,45 @@ class WorkflowApp {
     showExecutionResults(executionData) {
         const { steps, results } = executionData;
 
-        // Build results HTML
-        let html = `
-            <div style="max-height: 70vh; overflow-y: auto; padding: 0 4px;">
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; padding:10px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px;">
-                    <span class="material-icons-round" style="color:#22c55e;">check_circle</span>
-                    <div>
-                        <div style="font-weight:600; color:#22c55e;">Workflow Complete</div>
-                        <div style="font-size:12px; color:#94a3b8;">${steps} nodes executed successfully</div>
-                    </div>
-                </div>
-        `;
+        // Store results for later use
+        this.lastExecutionResults = results;
 
-        // Process each node result
+        // === Populate Output Viewer Panel ===
+        this.outputViewerTabs = [];
+        const tabsContainer = document.getElementById('output-viewer-tabs');
+        if (tabsContainer) tabsContainer.innerHTML = '';
+
+        // Add tabs for output and analysis nodes
+        let hasOutputs = false;
         for (const node of this.nodes) {
             const result = results[node.id];
             if (!result) continue;
 
             const config = WorkflowNodeTypes[node.type];
-            const label = config?.label || node.type;
-            const category = config?.category || 'unknown';
-
-            const categoryColors = {
-                input: '#3b82f6',
-                process: '#f59e0b',
-                analysis: '#8b5cf6',
-                output: '#22c55e'
-            };
-            const color = categoryColors[category] || '#64748b';
-
-            html += `
-                <div style="margin-bottom:12px; border:1px solid #334155; border-radius:8px; overflow:hidden;">
-                    <div style="padding:8px 12px; background:${color}22; border-bottom:1px solid #334155; display:flex; align-items:center; gap:8px;">
-                        <span class="material-icons-round" style="font-size:16px; color:${color};">${config?.icon || 'settings'}</span>
-                        <span style="font-weight:600; color:#e2e8f0; font-size:13px;">${label}</span>
-                        <span style="font-size:11px; color:#94a3b8; margin-left:auto;">${result.info || ''}</span>
-                    </div>
-                    <div style="padding:10px 12px; font-size:12px;">
-            `;
-
-            // Show data preview
-            if (result.data instanceof DataFrame && result.data.length > 0) {
-                html += result.data.toHTML(10, '');
+            const category = config?.category;
+            // Show output nodes and analysis nodes in the viewer
+            if (category === 'output' || category === 'analysis' || result.chartConfig || result.results) {
+                hasOutputs = true;
+                this.addOutputTab(node, result);
             }
-
-            // Show results HTML (statistics, charts, etc.)
-            if (result.results && typeof result.results === 'string') {
-                html += result.results;
-            }
-
-            // Show chart config info
-            if (result.chartConfig) {
-                html += `<div id="chart-render-${node.id}" style="margin-top:8px;"></div>`;
-            }
-
-            // Show error
-            if (result.error) {
-                html += `<div style="color:#ef4444; padding:8px; background:rgba(239,68,68,0.1); border-radius:4px;">Error: ${result.error}</div>`;
-            }
-
-            html += `</div></div>`;
         }
 
-        html += `</div>`;
-
-        // Show in modal
-        this.showModal('Execution Results', html).then(() => { });
-
-        // Render charts after modal is visible
-        setTimeout(() => {
-            for (const node of this.nodes) {
-                const result = results[node.id];
-                if (result?.chartConfig?.inputData) {
-                    renderChart(result.chartConfig, result.chartConfig.inputData, `chart-render-${node.id}`);
-                }
+        // Open viewer if we have output tabs
+        if (hasOutputs) {
+            this.openOutputViewer();
+            // Show the first tab
+            if (this.outputViewerTabs.length > 0) {
+                this.showOutputTab(this.outputViewerTabs[0].id);
             }
-        }, 100);
+        }
+
+        // === Also show summary in a brief toast notification ===
+        const toast = document.createElement('div');
+        toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:linear-gradient(135deg, #059669, #10b981); color:white; padding:12px 20px; border-radius:12px; font-size:13px; font-weight:600; z-index:10000; box-shadow:0 8px 32px rgba(16,185,129,0.3); display:flex; align-items:center; gap:8px; animation: fadeSlideUp 0.3s ease-out;';
+        toast.innerHTML = `<span class="material-icons-round" style="font-size:18px;">check_circle</span> Workflow complete — ${steps} nodes executed`;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 2500);
+        setTimeout(() => toast.remove(), 3000);
     }
 
     shareWorkflow() {
@@ -919,6 +894,13 @@ class WorkflowApp {
             outputs = `<div class="node-ports-out">${node.outputs.map(p => `<div class="port output-port" data-port="${p}" title="${p}"></div>`).join('')}</div>`;
         }
 
+        // Add quick view button for output/analysis nodes
+        const isViewable = config.category === 'output' || config.category === 'analysis';
+        const quickViewBtn = isViewable ? `
+            <button class="node-quick-view-btn" title="Quick View Result">
+                <span class="material-icons-round" style="font-size:16px;">visibility</span>
+            </button>` : '';
+
         el.innerHTML = `
             <div class="node-header" data-category="${config.category}">
                 <span class="workflow-node-title">${config.label}</span>
@@ -929,6 +911,7 @@ class WorkflowApp {
                 <div style="flex:1"></div>
                 ${outputs}
             </div>
+            ${quickViewBtn}
         `;
 
         const header = el.querySelector('.node-header');
@@ -952,10 +935,27 @@ class WorkflowApp {
             });
         });
 
+        // Click to select
         el.addEventListener('mousedown', (e) => {
             e.stopPropagation();
             this.selectNode(node);
         });
+
+        // Double-click to execute and preview
+        el.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            this.executeAndPreviewNode(node);
+        });
+
+        // Quick View button click
+        const quickViewBtnEl = el.querySelector('.node-quick-view-btn');
+        if (quickViewBtnEl) {
+            quickViewBtnEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.executeAndPreviewNode(node);
+            });
+        }
 
         this.nodesLayer.appendChild(el);
     }
@@ -1309,6 +1309,334 @@ class WorkflowApp {
     }
 
     handleResize() { }
+
+    // ===========================
+    // Output Viewer Panel
+    // ===========================
+
+    initOutputViewer() {
+        const panel = document.getElementById('output-viewer-panel');
+        if (!panel) return;
+
+        // Close button
+        document.getElementById('output-viewer-close')?.addEventListener('click', () => this.closeOutputViewer());
+
+        // Minimize button
+        document.getElementById('output-viewer-minimize')?.addEventListener('click', () => this.closeOutputViewer());
+
+        // Maximize button
+        document.getElementById('output-viewer-maximize')?.addEventListener('click', () => {
+            if (panel.style.height === '70vh') {
+                panel.style.height = '';
+            } else {
+                panel.style.height = '70vh';
+            }
+        });
+
+        // Setup resize handle
+        this.setupOutputViewerResize();
+    }
+
+    openOutputViewer() {
+        const panel = document.getElementById('output-viewer-panel');
+        if (panel) {
+            panel.classList.add('open');
+            panel.style.height = ''; // Reset to CSS default
+        }
+    }
+
+    closeOutputViewer() {
+        const panel = document.getElementById('output-viewer-panel');
+        if (panel) {
+            panel.classList.remove('open');
+            panel.style.height = '';
+        }
+    }
+
+    toggleOutputViewer() {
+        const panel = document.getElementById('output-viewer-panel');
+        if (panel?.classList.contains('open')) {
+            this.closeOutputViewer();
+        } else {
+            this.openOutputViewer();
+        }
+    }
+
+    addOutputTab(node, result) {
+        const config = WorkflowNodeTypes[node.type];
+        const tabId = `output-tab-${node.id}`;
+
+        // Check if tab already exists, update it
+        const existingIdx = this.outputViewerTabs.findIndex(t => t.nodeId === node.id);
+        if (existingIdx > -1) {
+            this.outputViewerTabs[existingIdx].result = result;
+            // Refresh content if this tab is active
+            if (this.activeOutputTab === tabId) {
+                this.renderOutputContent(node, result);
+            }
+            return;
+        }
+
+        const tabData = {
+            id: tabId,
+            nodeId: node.id,
+            label: config?.label || node.type,
+            icon: config?.icon || 'settings',
+            result: result,
+            node: node
+        };
+
+        this.outputViewerTabs.push(tabData);
+
+        // Render tab button
+        const tabsContainer = document.getElementById('output-viewer-tabs');
+        if (!tabsContainer) return;
+
+        const tabEl = document.createElement('button');
+        tabEl.className = 'output-tab';
+        tabEl.id = tabId;
+        tabEl.innerHTML = `
+            <span class="material-icons-round">${tabData.icon}</span>
+            <span>${tabData.label}</span>
+            <span class="material-icons-round tab-close" title="Close tab">close</span>
+        `;
+
+        // Tab click
+        tabEl.addEventListener('click', (e) => {
+            if (e.target.closest('.tab-close')) return;
+            this.showOutputTab(tabId);
+        });
+
+        // Tab close
+        tabEl.querySelector('.tab-close').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.removeOutputTab(tabId);
+        });
+
+        tabsContainer.appendChild(tabEl);
+    }
+
+    removeOutputTab(tabId) {
+        const idx = this.outputViewerTabs.findIndex(t => t.id === tabId);
+        if (idx === -1) return;
+
+        this.outputViewerTabs.splice(idx, 1);
+        document.getElementById(tabId)?.remove();
+
+        if (this.activeOutputTab === tabId) {
+            if (this.outputViewerTabs.length > 0) {
+                this.showOutputTab(this.outputViewerTabs[0].id);
+            } else {
+                this.activeOutputTab = null;
+                const body = document.getElementById('output-viewer-body');
+                if (body) {
+                    body.innerHTML = `
+                        <div class="output-viewer-empty">
+                            <span class="material-icons-round">assessment</span>
+                            <h4>No Output Yet</h4>
+                            <p>Run the workflow or double-click an output node to see results</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+    }
+
+    showOutputTab(tabId) {
+        this.activeOutputTab = tabId;
+
+        // Update tab active states
+        document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId)?.classList.add('active');
+
+        // Find the tab data
+        const tab = this.outputViewerTabs.find(t => t.id === tabId);
+        if (tab) {
+            this.renderOutputContent(tab.node, tab.result);
+        }
+    }
+
+    renderOutputContent(node, result) {
+        const body = document.getElementById('output-viewer-body');
+        if (!body) return;
+
+        const config = WorkflowNodeTypes[node.type];
+        const label = config?.label || node.type;
+        let html = '<div class="output-content-section">';
+
+        // Info bar
+        html += `
+            <div class="output-info-bar">
+                <span class="material-icons-round">info</span>
+                <span>${label} — ${result.info || 'Executed'}</span>
+            </div>
+        `;
+
+        // === Render based on node type ===
+
+        // Chart output
+        if (result.chartConfig) {
+            html += `<div class="output-chart-container" id="output-viewer-chart-${node.id}"></div>`;
+        }
+
+        // Data table
+        if (result.data instanceof DataFrame && result.data.length > 0) {
+            const maxRows = node.data?.max_rows ? parseInt(node.data.max_rows) : 50;
+            html += `<div class="output-table-container">${result.data.toHTML(maxRows, node.data?.title || '')}</div>`;
+        }
+
+        // Statistics / Analysis results
+        if (result.results && typeof result.results === 'string') {
+            html += `<div class="output-stats-container">${result.results}</div>`;
+        }
+
+        // Error
+        if (result.error) {
+            html += `<div style="color:#ef4444; padding:12px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:10px; font-size:13px;"><span class="material-icons-round" style="font-size:16px; vertical-align:middle; margin-right:6px;">error</span>Error: ${result.error}</div>`;
+        }
+
+        // Model info
+        if (result.model) {
+            html += `<div class="output-stats-container" style="margin-top:12px;">`;
+            html += `<h4 style="color:#a78bfa; margin:0 0 8px; font-size:13px;">Model Output</h4>`;
+            html += `<pre style="margin:0; font-family:monospace; font-size:12px; color:#e2e8f0; white-space:pre-wrap;">${JSON.stringify(result.model, null, 2)}</pre>`;
+            html += `</div>`;
+        }
+
+        html += '</div>';
+        body.innerHTML = html;
+
+        // Render charts after DOM is ready
+        if (result.chartConfig?.inputData) {
+            setTimeout(() => {
+                renderChart(result.chartConfig, result.chartConfig.inputData, `output-viewer-chart-${node.id}`);
+            }, 50);
+        }
+    }
+
+    async executeAndPreviewNode(node) {
+        const config = WorkflowNodeTypes[node.type];
+
+        // Visual feedback on the node
+        const statusEl = document.getElementById(node.id);
+        if (statusEl) {
+            statusEl.style.boxShadow = '0 0 0 4px rgba(99, 102, 241, 0.5)';
+            statusEl.classList.add('executing');
+        }
+
+        try {
+            // Execute the whole graph to get context
+            const results = {};
+            const executed = new Set();
+
+            // Build dependency graph
+            const inDegree = {};
+            this.nodes.forEach(n => inDegree[n.id] = 0);
+            this.connections.forEach(c => {
+                if (inDegree[c.target] !== undefined) inDegree[c.target]++;
+            });
+
+            const queue = this.nodes.filter(n => inDegree[n.id] === 0);
+
+            if (queue.length === 0 && this.nodes.length > 0) {
+                queue.push(...this.nodes.filter(n => n.type.startsWith('input-')));
+            }
+
+            while (queue.length > 0) {
+                const currentNode = queue.shift();
+                if (executed.has(currentNode.id)) continue;
+
+                try {
+                    const output = await executeNodeLogic(currentNode, results, this.connections);
+                    results[currentNode.id] = output;
+                    executed.add(currentNode.id);
+                } catch (err) {
+                    results[currentNode.id] = { error: err.message, info: `Error: ${err.message}` };
+                    executed.add(currentNode.id);
+                }
+
+                // Enqueue downstream nodes
+                const outgoing = this.connections.filter(c => c.source === currentNode.id);
+                outgoing.forEach(conn => {
+                    const target = this.nodes.find(n => n.id === conn.target);
+                    if (target && !executed.has(target.id)) {
+                        const targetInputs = this.connections.filter(c => c.target === target.id);
+                        const allReady = targetInputs.every(c => executed.has(c.source));
+                        if (allReady) queue.push(target);
+                    }
+                });
+            }
+
+            this.lastExecutionResults = results;
+
+            const result = results[node.id];
+            if (result) {
+                // Add tab and show
+                this.addOutputTab(node, result);
+                this.showOutputTab(`output-tab-${node.id}`);
+                this.openOutputViewer();
+            } else {
+                // Node might not be reachable
+                this.showModal('No Result', `Node "${config?.label || node.type}" did not produce any output. Make sure it is connected to data sources.`);
+            }
+
+            // Reset node visual
+            if (statusEl) {
+                statusEl.style.boxShadow = '0 0 0 3px rgba(34, 197, 94, 0.5)';
+                statusEl.classList.remove('executing');
+                let badge = statusEl.querySelector('.node-result-badge');
+                if (!badge) {
+                    badge = document.createElement('div');
+                    badge.className = 'node-result-badge';
+                    badge.style.cssText = 'position:absolute; bottom:-8px; right:-8px; background:#22c55e; color:#0f172a; font-size:9px; padding:2px 6px; border-radius:10px; font-weight:bold; white-space:nowrap;';
+                    statusEl.appendChild(badge);
+                }
+                badge.textContent = result?.info || '✓';
+                setTimeout(() => {
+                    statusEl.style.boxShadow = '';
+                }, 3000);
+            }
+
+        } catch (err) {
+            console.error('Execute and preview failed:', err);
+            if (statusEl) {
+                statusEl.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.5)';
+                statusEl.classList.remove('executing');
+            }
+        }
+    }
+
+    setupOutputViewerResize() {
+        const resizeHandle = document.getElementById('output-viewer-resize');
+        const panel = document.getElementById('output-viewer-panel');
+        if (!resizeHandle || !panel) return;
+
+        let startY = 0;
+        let startHeight = 0;
+
+        const onMouseMove = (e) => {
+            const deltaY = startY - e.clientY;
+            const newHeight = Math.max(150, Math.min(startHeight + deltaY, window.innerHeight * 0.7));
+            panel.style.height = `${newHeight}px`;
+        };
+
+        const onMouseUp = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+
+        resizeHandle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            startY = e.clientY;
+            startHeight = panel.offsetHeight;
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            document.body.style.cursor = 'ns-resize';
+            document.body.style.userSelect = 'none';
+        });
+    }
 }
 
 // Initialize App

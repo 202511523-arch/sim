@@ -84,7 +84,8 @@ function initScene() {
   renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
-    alpha: false
+    alpha: false,
+    preserveDrawingBuffer: true  // Required for html2canvas screenshot capture
   });
   renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));

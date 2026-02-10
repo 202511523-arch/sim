@@ -419,7 +419,7 @@
             <aside class="node-palette">
                 <h3>Nodes</h3>
                 <div class="node-category">
-                    <h4>📥 Input</h4>
+                    <h4>Input</h4>
                     <div class="draggable-item" draggable="true" data-type="input-data">
                         <span class="material-icons-round">upload_file</span>
                         CSV File
@@ -438,7 +438,7 @@
                     </div>
                 </div>
                 <div class="node-category">
-                    <h4>⚙️ Processing</h4>
+                    <h4>Processing</h4>
                     <div class="draggable-item" draggable="true" data-type="process-filter">
                         <span class="material-icons-round">filter_alt</span>
                         Filter Rows
@@ -473,7 +473,7 @@
                     </div>
                 </div>
                 <div class="node-category">
-                    <h4>📊 Analysis</h4>
+                    <h4>Analysis</h4>
                     <div class="draggable-item" draggable="true" data-type="process-statistics">
                         <span class="material-icons-round">analytics</span>
                         Statistics
@@ -488,7 +488,7 @@
                     </div>
                 </div>
                 <div class="node-category">
-                    <h4>📈 Output</h4>
+                    <h4>Output</h4>
                     <div class="draggable-item" draggable="true" data-type="output-chart">
                         <span class="material-icons-round">bar_chart</span>
                         Chart
@@ -562,6 +562,38 @@
                     <p class="placeholder-text">Select a node to view properties</p>
                 </div>
             </aside>
+
+            <!-- Output Viewer Panel (inline result viewer) -->
+            <div class="output-viewer-panel" id="output-viewer-panel">
+                <div class="output-viewer-resize" id="output-viewer-resize"></div>
+                <div class="output-viewer-header">
+                    <div class="output-viewer-header-left">
+                        <span class="material-icons-round">visibility</span>
+                        <span>Output Viewer</span>
+                    </div>
+                    <div class="output-viewer-header-right">
+                        <button id="output-viewer-maximize" title="Maximize">
+                            <span class="material-icons-round">open_in_full</span>
+                        </button>
+                        <button id="output-viewer-minimize" title="Minimize">
+                            <span class="material-icons-round">minimize</span>
+                        </button>
+                        <button id="output-viewer-close" title="Close">
+                            <span class="material-icons-round">close</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="output-viewer-tabs" id="output-viewer-tabs">
+                    <!-- Tabs will be rendered dynamically -->
+                </div>
+                <div class="output-viewer-body" id="output-viewer-body">
+                    <div class="output-viewer-empty">
+                        <span class="material-icons-round">assessment</span>
+                        <h4>No Output Yet</h4>
+                        <p>Run the workflow or double-click an output node to see results</p>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
