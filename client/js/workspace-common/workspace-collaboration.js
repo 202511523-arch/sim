@@ -759,57 +759,43 @@ class WorkspaceCollaboration {
         if (!body) return;
 
         const users = Array.from(this.collaborators.values());
+
+        // Split users into co-working (same page) and online elsewhere
+        const coworking = [];
+        const elsewhere = [];
+        users.forEach(user => {
+            if (user.currentPath && this.isSamePage(user.currentPath)) {
+                coworking.push(user);
+            } else {
+                elsewhere.push(user);
+            }
+        });
+
         const totalCount = users.length + 1; // Include self
 
         if (countEl) {
             countEl.textContent = `${totalCount} online`;
         }
 
-        // Determine self avatar - prefer Google profile photo
-        const selfAvatar = this.currentUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${this.currentUser?.name || 'me'}`;
-        const selfName = this.currentUser?.name || 'You';
-        const selfRole = this.currentUserRole || 'editor';
-        const selfRoleLabel = selfRole === 'owner' ? 'Owner 👑' : selfRole.charAt(0).toUpperCase() + selfRole.slice(1);
+        // --- Helper for rendering a user item ---
+        const renderUserItem = (user, isSelf = false) => {
+            const userId = isSelf ? (user?._id || 'me') : (user.userId || user.socketId || user.id);
+            const name = user?.name || 'Anonymous';
+            const avatar = user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
 
-        // Determine self page name
-        const selfPageFile = window.location.pathname.split('/').pop() || 'dashboard';
-        const selfPageName = selfPageFile.replace('.html', '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
-        // Always show current user first (self)
-        let html = `
-            <div class="collab-user-item" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2);">
-                <div class="avatar">
-                    <img src="${selfAvatar}" referrerpolicy="no-referrer">
-                    <div class="status-dot"></div>
-                </div>
-                <div class="user-info">
-                    <p class="user-name">${selfName} <span style="color: #6366f1; font-size: 11px;">(you)</span></p>
-                    <p class="user-role">${selfRoleLabel}</p>
-                    <p style="margin: 2px 0 0; font-size: 10px; color: #6366f1; display: flex; align-items: center; gap: 3px;">📍 ${selfPageName}</p>
-                </div>
-            </div>
-        `;
-
-        if (users.length === 0) {
-            html += `
-                <div class="collab-empty-state">
-                    <p style="font-size: 12px; opacity: 0.7; margin-top: 8px;">No other collaborators online</p>
-                    <p style="font-size: 11px; margin-top: 4px; opacity: 0.5;">Share this project to collaborate in real-time</p>
-                </div>
-            `;
-        }
-
-        // Add other collaborators
-        html += users.map(user => {
-            const color = this.getUserColor(user.socketId || user.id);
-            const avatar = user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || user.id}`;
-            const role = user.role || 'Collaborator';
+            // For self, use roles/names from this class property if available to be safe
+            const role = isSelf ? (this.currentUserRole || 'editor') : (user.role || 'Collaborator');
             const roleLabel = role === 'owner' ? 'Owner 👑' : role.charAt(0).toUpperCase() + role.slice(1);
 
-            // Determine current tab location display
+            // Color
+            const color = isSelf ? '#6366f1' : this.getUserColor(userId);
+
+            // Location Label
             let locationLabel = '';
-            if (user.currentPath) {
-                const pathClean = user.currentPath.split('?')[0].split('#');
+            const path = isSelf ? window.location.pathname : user.currentPath;
+
+            if (path) {
+                const pathClean = path.split('?')[0].split('#');
                 const fileName = pathClean[0].split('/').pop() || '';
                 const hashPart = pathClean[1] || '';
                 const pageName = fileName.replace('.html', '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -818,21 +804,52 @@ class WorkspaceCollaboration {
                     : pageName || 'Dashboard';
             }
 
+            const selfBadge = isSelf ? `<span style="color: #6366f1; font-size: 11px;">(you)</span>` : '';
+            const itemStyle = isSelf
+                ? 'background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2);'
+                : (this.isSamePage(path) ? 'background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.1);' : '');
+
             return `
-                <div class="collab-user-item">
+                <div class="collab-user-item" style="${itemStyle}">
                     <div class="avatar" style="border: 2px solid ${color};">
                         <img src="${avatar}" referrerpolicy="no-referrer">
                         <div class="status-dot"></div>
                     </div>
                     <div class="user-info">
-                        <p class="user-name">${user.name || 'Anonymous'}</p>
+                        <p class="user-name">${name} ${selfBadge}</p>
                         <p class="user-role">${roleLabel}</p>
                         ${locationLabel ? `<p style="margin: 2px 0 0; font-size: 10px; color: ${color}; display: flex; align-items: center; gap: 3px;">📍 ${locationLabel}</p>` : ''}
                     </div>
-                    <div class="user-cursor-color" style="background: ${color};" title="Cursor color"></div>
                 </div>
             `;
-        }).join('');
+        };
+
+        let html = '';
+
+        // 1. Self (Always at top)
+        html += renderUserItem(this.currentUser, true);
+
+        // 2. Co-working Section
+        if (coworking.length > 0) {
+            html += `<div style="font-size: 11px; font-weight: 700; color: #94a3b8; margin: 12px 0 6px 4px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;"><span style="width: 6px; height: 6px; background: #22c55e; border-radius: 50%;"></span> Co-working</div>`;
+            html += coworking.map(u => renderUserItem(u)).join('');
+        }
+
+        // 3. Elsewhere Section
+        if (elsewhere.length > 0) {
+            html += `<div style="font-size: 11px; font-weight: 700; color: #94a3b8; margin: 12px 0 6px 4px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;"><span style="width: 6px; height: 6px; background: #f59e0b; border-radius: 50%;"></span> Online Elsewhere</div>`;
+            html += elsewhere.map(u => renderUserItem(u)).join('');
+        }
+
+        // 4. Empty State (if no one else online)
+        if (users.length === 0) {
+            html += `
+                <div class="collab-empty-state">
+                    <p style="font-size: 12px; opacity: 0.7; margin-top: 8px;">No other collaborators online</p>
+                    <p style="font-size: 11px; margin-top: 4px; opacity: 0.5;">Share this project to collaborate in real-time</p>
+                </div>
+            `;
+        }
 
         body.innerHTML = html;
     }
@@ -1250,11 +1267,33 @@ class WorkspaceCollaboration {
         const users = Array.from(this.collaborators.values());
         const isConnected = this.socket && this.socket.connected;
 
+        // Split users into co-working (same page) and online elsewhere
+        const coworking = [];
+        const elsewhere = [];
+        users.forEach(user => {
+            if (user.currentPath && this.isSamePage(user.currentPath)) {
+                coworking.push(user);
+            } else {
+                elsewhere.push(user);
+            }
+        });
+
         container.className = 'collab-avatars-container';
         container.onclick = () => this.openPopup();
         container.style.display = 'flex';
 
-        // Always show connection status indicator
+        // Build status label
+        let statusLabel = 'Connected';
+        if (!isConnected) {
+            statusLabel = 'Connecting...';
+        } else if (coworking.length > 0 && elsewhere.length > 0) {
+            statusLabel = `${coworking.length + 1} co-working · ${elsewhere.length} elsewhere`;
+        } else if (coworking.length > 0) {
+            statusLabel = `${coworking.length + 1} co-working`;
+        } else if (elsewhere.length > 0) {
+            statusLabel = `${elsewhere.length} online`;
+        }
+
         let html = `
             <div class="connection-status" style="
                 display: flex;
@@ -1275,7 +1314,7 @@ class WorkspaceCollaboration {
                     ${isConnected ? 'animation: pulse 2s infinite;' : ''}
                 "></div>
                 <span style="font-size: 12px; font-weight: 500; color: ${isConnected ? '#22c55e' : '#ef4444'};">
-                    ${isConnected ? (users.length > 0 ? `${users.length + 1} online` : 'Connected') : 'Connecting...'}
+                    ${statusLabel}
                 </span>
             </div>
         `;
@@ -1292,27 +1331,46 @@ class WorkspaceCollaboration {
             `;
         }
 
-        // Show other collaborators' avatars with location badges
-        if (users.length > 0) {
-            html += users.slice(0, 4).map((user, index) => {
+        // Show CO-WORKING users first (same page, full opacity, green indicator)
+        if (coworking.length > 0) {
+            html += coworking.slice(0, 3).map((user, index) => {
                 const color = this.getUserColor(user.userId || user.socketId || user.id);
                 const avatar = user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || user.id}`;
-                const locationLabel = user.currentPath ? this.getPageNameFromPath(user.currentPath) : '';
                 return `
                     <div class="collab-avatar-wrapper" style="margin-left: -6px;">
-                        <div class="collaborator-avatar" title="${user.name || 'Anonymous'}${locationLabel ? ' — 📍 ' + locationLabel : ''}" 
+                        <div class="collaborator-avatar" title="${user.name || 'Anonymous'} (co-working)" 
                              style="border-color: ${color}; z-index: ${10 - index};">
                             <img src="${avatar}" referrerpolicy="no-referrer">
                             <div class="online-indicator"></div>
                         </div>
-                        ${locationLabel ? `<div class="collab-location-badge" style="background: linear-gradient(135deg, ${color}dd, ${color}aa);">${locationLabel}</div>` : ''}
                     </div>
                 `;
             }).join('');
+        }
 
-            if (users.length > 4) {
-                html += `<div class="more-users-badge" style="margin-left: -6px;">+${users.length - 4}</div>`;
-            }
+        // Show ELSEWHERE users (different page, dimmed, with location badge)
+        if (elsewhere.length > 0) {
+            html += elsewhere.slice(0, 3 - Math.min(coworking.length, 3)).map((user, index) => {
+                const color = this.getUserColor(user.userId || user.socketId || user.id);
+                const avatar = user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || user.id}`;
+                const locationLabel = user.currentPath ? this.getPageNameFromPath(user.currentPath) : 'Online';
+                return `
+                    <div class="collab-avatar-wrapper" style="margin-left: -6px; opacity: 0.55;">
+                        <div class="collaborator-avatar" title="${user.name || 'Anonymous'} — 📍 ${locationLabel}" 
+                             style="border-color: ${color}44; z-index: ${7 - index};">
+                            <img src="${avatar}" referrerpolicy="no-referrer" style="filter: grayscale(40%);">
+                            <div class="online-indicator" style="background: #f59e0b;"></div>
+                        </div>
+                        <div class="collab-location-badge" style="background: linear-gradient(135deg, ${color}99, ${color}66);">${locationLabel}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        const totalShown = Math.min(coworking.length, 3) + Math.min(elsewhere.length, 3 - Math.min(coworking.length, 3));
+        const remaining = users.length - totalShown;
+        if (remaining > 0) {
+            html += `<div class="more-users-badge" style="margin-left: -6px;">+${remaining}</div>`;
         }
 
         container.innerHTML = html;
